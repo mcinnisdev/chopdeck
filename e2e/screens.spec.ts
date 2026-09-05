@@ -5,6 +5,8 @@ const modes: [string, string, string][] = [
   ['7', 'MIXER', 'Stereo mix'],
   ['6', 'PROGRAM', 'Pgm:'],
   ['3', 'LOAD', 'Drop audio'],
+  ['5', 'TRIM', 'Snd:'],
+  ['4', 'SAMPLE', 'Threshold:'],
 ];
 
 for (const [digit, name, expectText] of modes) {

@@ -4,16 +4,15 @@ import { useLayoutEffect, useRef, useState, useEffect, CSSProperties, memo } fro
 import { LcdFrame, ATTR_INVERSE, ATTR_DIM, ATTR_FRAME, ATTR_BLINK, SOFTKEY_ROW } from './frame';
 import { drawGraphics } from './graphics';
 
-let charRatio = 0.5; // VT323 advance width / font-size; measured once the font is available
-function measureRatio(): number {
-  try {
-    const c = document.createElement('canvas').getContext('2d');
-    if (!c) return charRatio;
-    c.font = '100px VT323, monospace';
-    const w = c.measureText('0000000000').width / 10;
-    if (w > 20 && w < 80) charRatio = w / 100;
-  } catch { /* keep default */ }
-  return charRatio;
+/** VT323 advance width / font-size, measured on a real span inside the glass so it tracks the loaded font. */
+function measureRatio(host: HTMLElement): number {
+  const probe = document.createElement('span');
+  probe.textContent = '0000000000';
+  probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;font:inherit;font-size:100px;line-height:1';
+  host.appendChild(probe);
+  const w = probe.getBoundingClientRect().width / 10;
+  host.removeChild(probe);
+  return w > 20 && w < 80 ? w / 100 : 0.5;
 }
 
 interface Run { text: string; attr: number }
@@ -51,11 +50,15 @@ export const LcdScreen = memo(function LcdScreen({ frame, onSoftKey, style }: Lc
   const [fontSize, setFontSize] = useState(20);
   useLayoutEffect(() => {
     const el = ref.current; if (!el) return;
-    const fit = () => { const ratio = measureRatio(); setFontSize(Math.floor((el.clientWidth / frame.cols) / ratio * 100) / 100); };
+    const fit = () => { const ratio = measureRatio(el); setFontSize(Math.floor((el.clientWidth / frame.cols) / ratio * 100) / 100); };
     fit();
     const ro = new ResizeObserver(fit); ro.observe(el);
+    // re-fit once the LCD font is actually available (fonts.ready can resolve before the webfont is requested)
+    document.fonts?.load('100px VT323').then(fit).catch(() => {});
     document.fonts?.ready.then(fit).catch(() => {});
-    return () => ro.disconnect();
+    const onDone = () => fit();
+    document.fonts?.addEventListener?.('loadingdone', onDone);
+    return () => { ro.disconnect(); document.fonts?.removeEventListener?.('loadingdone', onDone); };
   }, [frame.cols]);
 
   const rows = [];

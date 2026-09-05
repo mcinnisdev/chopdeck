@@ -271,11 +271,11 @@ Make it a drum machine.
       notes filter).
 - [x] UNDO SEQ single-level with LED; TAP TEMPO with averaging; NOTE REPEAT with pressure velocity and
       SHIFT lock.
-- [ ] All MAIN windows from the inventory: Sequence (rename/default/delete/all/copy/params), Time Display,
+- [x] All MAIN windows from the inventory: Sequence (rename/default/delete/all/copy/params), Time Display,
       Tempo Change, Timing Correct (destructive), Change Tsig, Count/Metronome + Metronome Sound, Loop,
       Change Bars + IN/DEL, Track (rename/default/delete/all/copy), Erase all OFF tracks, Edit Velocity.
 - [x] TRACK MUTE pad page with SOLO; NEXT SEQ screen with SUDDEN / CLEAR / PAD page; second sequence.
-- [ ] Sequence user defaults (EDIT -> USER).
+- [x] Sequence user defaults (EDIT -> USER).
 
 Done when: you can record a two-bar loop with count-in, quantise it with swing, overdub hats with note
 repeat, erase a stray hit while looping, undo, set up a tempo change, and chain Next Seq live.
@@ -284,19 +284,19 @@ repeat, erase a stray hit while looping, undo, set up a tempo change, and chain 
 
 Make it worthy of the name.
 
-- [ ] SAMPLE mode: input selection (mic/line via `getUserMedia`, plus `RESAMPLE` = master bus), MONO L /
+- [x] SAMPLE mode: input selection (mic/line via `getUserMedia`, plus `RESAMPLE` = master bus), MONO L /
       MONO R / STEREO, monitor, threshold with meter marker, pre-record, time, RESET PEAK, RECORD ->
       waiting -> recording -> KEEP or RETRY window with name and assign-to-note; Sound memory window.
-- [ ] `LcdWaveform`: full-width overview, region shading, zoom windows with sample-accurate St/End markers.
-- [ ] TRIM page: St/End with wheel, numeric entry, SHIFT+slider, SHIFT+cursor coarse; Start fine / End
+- [x] `LcdWaveform`: full-width overview, region shading, zoom windows with sample-accurate St/End markers.
+- [x] TRIM page: St/End with wheel, numeric entry, SHIFT+slider, SHIFT+cursor coarse; Start fine / End
       fine windows with ZOOM-/ZOOM+ and Smpl Lngth VARI/FIX; PLAY X modes.
-- [ ] LOOP page: To/Lngth/End toggle, Loop ON/OFF, fine windows, Fit to length.
-- [ ] ZONE page: Number of Zones window, per-zone St/End fine windows that move neighbours, and
+- [x] LOOP page: To/Lngth/End toggle, Loop ON/OFF, fine windows, Fit to length.
+- [x] ZONE page: Number of Zones window, per-zone St/End fine windows that move neighbours, and
       **SLICE SOUND** with End margin and Create new program (the headline feature).
-- [ ] EDIT window ops: DISCARD, LOOP FROM ST TO END, SECTION -> NEW SOUND, INSERT SOUND, DELETE /
+- [x] EDIT window ops: DISCARD, LOOP FROM ST TO END, SECTION -> NEW SOUND, INSERT SOUND, DELETE /
       SILENCE / REVERSE SECTION, TIME STRETCH (ratio, presets x A/B/C, adjust, BPM Match window).
-- [ ] PARAMS page: Level, Tune, Beat Loop with computed sample tempo and new tempo.
-- [ ] Sound window: rename, delete (and ALL), copy, Convert (stereo->mono L/R, mono->stereo, resample).
+- [x] PARAMS page: Level, Tune, Beat Loop with computed sample tempo and new tempo.
+- [x] Sound window: rename, delete (and ALL), copy, Convert (stereo->mono L/R, mono->stereo, resample).
 
 Done when: sample a phrase from the mic or a loaded record, trim it, split it into 8 zones, nudge a zone
 boundary in the fine window, slice to a new program, play the chops from the pads and sequence them.
