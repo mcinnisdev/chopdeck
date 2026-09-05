@@ -40,7 +40,7 @@ Safari too). Hit a pad. `Shift` + a number key changes mode, exactly like the si
 | `,` `.` and `;` `'` | BAR << >>, STEP < > |
 | `T`, `U`, `Delete`, `G` | TAP TEMPO / NOTE REPEAT, UNDO SEQ, ERASE, GO TO |
 
-The same list lives on the machine under OTHER > HELP.
+The same list lives on the machine under OTHER > HELP, and every control shows a tooltip on hover that links into the owner's manual at `/manual/` (hold `Alt` and click a control to jump straight there).
 
 ## Develop
 

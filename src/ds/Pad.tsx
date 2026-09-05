@@ -14,6 +14,8 @@ export interface PadProps {
   note?: string;
   /** Name-entry characters printed in the top-right corner of the pad face, e.g. "AB" */
   letters?: string;
+  /** Computer-keyboard key printed in the bottom-left corner of the pad face, e.g. "Z" */
+  hotkey?: string;
   /** Rubber colour */
   color?: 'red' | 'grey';
   /** Externally lit (sequencer playing this pad) */
@@ -35,7 +37,7 @@ const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n
 /** Real pressure hardware reports something other than the 0.5 mouse/touch default. */
 const hasPressure = (e: PointerEvent) => e.pressure > 0 && e.pressure !== 0.5;
 
-export function Pad({ label = 'PAD 1', note, letters, color = 'red', lit = false, size, fixedVelocity, onTrigger, onRelease, onPressure, style }: PadProps) {
+export function Pad({ label = 'PAD 1', note, letters, hotkey, color = 'red', lit = false, size, fixedVelocity, onTrigger, onRelease, onPressure, style }: PadProps) {
   const [down, setDown] = useState(false);
   const held = useRef<number | null>(null);
   const last = useRef(-1);
@@ -104,6 +106,9 @@ export function Pad({ label = 'PAD 1', note, letters, color = 'red', lit = false
           cursor: 'pointer', outline: 'none', userSelect: 'none', touchAction: 'none',
         }}
       >
+        {hotkey && (
+          <span aria-hidden style={silk(false, { position: 'absolute', bottom: 4, left: 5, fontSize: 9, color: 'var(--ink)', opacity: .6, pointerEvents: 'none' })}>{hotkey}</span>
+        )}
         {letters && (
           <span
             aria-hidden

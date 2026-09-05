@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chop Deck Owner's Manual</title>
+<link rel="icon" href="/logo.webp" type="image/webp" />
+<link rel="stylesheet" href="../src/ds/tokens.css" />
+<style>
+  html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.55; }
+  .wrap { display: grid; grid-template-columns: 260px minmax(0, 760px); gap: 48px; max-width: 1120px; margin: 0 auto; padding: 32px 24px 96px; }
+  nav { position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow: auto; font-size: 14px; }
+  nav a { display: block; color: var(--ink); text-decoration: none; padding: 3px 0; }
+  nav a.h { font-family: var(--font-label); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; margin-top: 14px; color: var(--red-deep); }
+  nav a:hover { text-decoration: underline; }
+  header { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; border-bottom: 3px solid var(--ink); padding-bottom: 16px; }
+  header img { width: 56px; height: 56px; }
+  .mark { font-family: var(--font-label); font-weight: 700; font-size: 32px; line-height: 1; text-transform: uppercase; }
+  .mark b { color: var(--red); font-weight: 700; } .mark i { font-style: italic; }
+  header .sub { font-family: var(--font-label); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; color: var(--ink-3); }
+  header a.back { margin-left: auto; font-family: var(--font-label); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; color: var(--cream); background: var(--navy); border: 2px solid var(--ink); border-radius: 3px; padding: 6px 10px; text-decoration: none; box-shadow: 0 2px 0 var(--ink); }
+  h1 { font-family: var(--font-label); font-weight: 700; font-size: 34px; letter-spacing: .02em; text-transform: uppercase; margin: 48px 0 12px; border-bottom: 2px solid var(--ink); padding-bottom: 6px; }
+  h2 { font-family: var(--font-label); font-weight: 700; font-size: 22px; letter-spacing: .04em; text-transform: uppercase; margin: 36px 0 8px; }
+  h3 { font-family: var(--font-label); font-weight: 600; font-size: 16px; letter-spacing: .06em; text-transform: uppercase; margin: 24px 0 6px; color: var(--ink-3); }
+  p, li { max-width: 72ch; }
+  code, kbd { font-family: var(--font-lcd); font-size: 18px; line-height: 1; }
+  code { background: var(--lcd); color: var(--lcd-ink); padding: 1px 6px; border-radius: 2px; }
+  kbd { background: var(--white); border: 1px solid var(--ink); border-radius: 3px; padding: 1px 6px; font-family: var(--font-label); font-weight: 700; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; box-shadow: 0 1px 0 var(--ink); }
+  pre { background: var(--lcd); color: var(--lcd-ink); font-family: var(--font-lcd); font-size: 19px; line-height: 1.15; padding: 12px 14px; border: 2px solid var(--ink); border-radius: 4px; box-shadow: inset 0 3px 8px rgba(0,0,0,.25); overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--cream-3); vertical-align: top; }
+  th { font-family: var(--font-label); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: 12px; color: var(--ink-3); }
+  .note { border-left: 4px solid var(--led-amber); background: var(--cream); padding: 8px 12px; margin: 12px 0; }
+  .key { font-family: var(--font-label); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: 13px; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } nav { position: static; max-height: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <img src="/logo.webp" alt="" />
+  <div><div class="mark"><b>CHOP</b> <i>DECK</i></div><div class="sub">Owner's Manual · integrated rhythm machine · OS 0.4</div></div>
+  <a class="back" href="/">Back to the machine</a>
+</header>
+
+<nav>
+  <a class="h" href="#intro">1 Introduction</a>
+  <a href="#panel">The front panel</a><a href="#lcd">The LCD</a><a href="#soft-keys">Soft keys</a><a href="#modes">Modes</a><a href="#cursor">Cursor, DATA wheel, numbers</a><a href="#windows">Windows</a><a href="#name">The Name window</a>
+  <a class="h" href="#basics">2 The Basics</a>
+  <a href="#terms">Terms</a><a href="#pads">Pads and banks</a><a href="#full-level">FULL LEVEL</a><a href="#sixteen-levels">16 LEVELS</a><a href="#note-variation">Note variation</a><a href="#keyboard">Computer keyboard</a>
+  <a class="h" href="#sequencing">3 Recording Sequences</a>
+  <a href="#main-screen">The MAIN screen</a><a href="#transport">Transport</a><a href="#recording">Recording and overdubbing</a><a href="#loop">Looping</a><a href="#count">Count-in and metronome</a><a href="#timing">Timing correct and swing</a><a href="#tap-tempo">Tap tempo and note repeat</a><a href="#locate">Locating</a><a href="#erase">Erasing</a><a href="#undo">Undo</a><a href="#tempo-change">Tempo changes</a><a href="#tsig">Time signature</a><a href="#tracks">Tracks</a><a href="#track-mute">Track mute and solo</a><a href="#next-sequence">Next sequence</a><a href="#misc">Punch, transpose, second sequence</a>
+  <a class="h" href="#editing">4 Editing Sequences</a>
+  <a href="#step-edit">Step edit</a><a href="#edit-screen">The EDIT screen</a><a href="#user">User defaults</a>
+  <a class="h" href="#song">5 Song Mode</a>
+  <a class="h" href="#sounds">6 Sounds</a>
+  <a href="#loading">Loading sounds</a><a href="#sampling">Sampling</a><a href="#trim">Trim</a><a href="#loop-page">Loop</a><a href="#zone">Zones and slicing</a><a href="#edit-sound">Edit operations</a><a href="#params">Level, tune, beat loop</a><a href="#sound-window">The Sound window</a>
+  <a class="h" href="#programs">7 Programs</a>
+  <a href="#assign">Assigning sounds</a><a href="#note-params">Note parameters</a><a href="#drum">DRUM slots</a><a href="#purge">Purge and auto chromatic</a>
+  <a class="h" href="#mixer">8 Mixer and Effects</a>
+  <a class="h" href="#disk">9 Disk</a>
+  <a class="h" href="#midi">10 MIDI</a>
+  <a class="h" href="#other">11 Other</a>
+  <a class="h" href="#spec">Specifications</a>
+</nav>
+
+<main>
+
+<h1 id="intro">1 Introduction</h1>
+<p>Chop Deck is a sampler and sequencer that lives in your browser and works like the drum machines of the late 1990s: sixteen pads, a small green screen, six soft keys, a data wheel. You load or record sounds, put them on pads, play them into a sequence, arrange sequences into a song, and mix the result down. There are no menus outside the machine. If it is not on the front panel, it does not exist.</p>
+<p>This manual follows the layout of the machine's screens. Every field name written in <code>this typeface</code> is what you will read on the LCD.</p>
+
+<h2 id="panel">The front panel</h2>
+<table>
+<tr><th>Control</th><th>What it does</th></tr>
+<tr><td class="key">LCD + F1 to F6</td><td>The display and the six soft keys printed on its bottom line.</td></tr>
+<tr><td class="key">MODE keypad</td><td>Numbers for entering values; with <kbd>SHIFT</kbd>, the modes printed above each key. <kbd>ENTER</kbd> confirms a typed number.</td></tr>
+<tr><td class="key">MAIN SCREEN</td><td>Returns to the sequencer's main screen from anywhere.</td></tr>
+<tr><td class="key">OPEN WINDOW</td><td>Opens the settings window for the field under the cursor.</td></tr>
+<tr><td class="key">DATA wheel</td><td>Changes the value under the cursor. Endless; turn faster for bigger steps.</td></tr>
+<tr><td class="key">CURSOR</td><td>Moves between fields.</td></tr>
+<tr><td class="key">NOTE VARIATION, AFTER</td><td>A slider that bends one parameter of one note in real time (see <a href="#note-variation">Note variation</a>).</td></tr>
+<tr><td class="key">TAP TEMPO / NOTE REPEAT</td><td>Tap the tempo; hold it with pads for rolls.</td></tr>
+<tr><td class="key">UNDO SEQ, ERASE</td><td>Take back a recording; erase notes while the sequence runs.</td></tr>
+<tr><td class="key">LOCATE</td><td><kbd>STEP</kbd>, <kbd>BAR</kbd>, <kbd>GO TO</kbd>: move around the sequence.</td></tr>
+<tr><td class="key">REC, OVER DUB, STOP, PLAY, PLAY START</td><td>The transport.</td></tr>
+<tr><td class="key">FULL LEVEL, 16 LEVELS</td><td>Pad velocity helpers.</td></tr>
+<tr><td class="key">NEXT SEQ, TRACK MUTE</td><td>Live performance pages.</td></tr>
+<tr><td class="key">PAD BANK A to D</td><td>Four banks of sixteen pads.</td></tr>
+<tr><td class="key">REC GAIN, MAIN VOLUME</td><td>Sampling input level and master output.</td></tr>
+</table>
+<p class="note">Hover any control on the machine for a short description and a link to its section here. Hold <kbd>Alt</kbd> and click a control to open that section directly.</p>
+
+<h2 id="lcd">The LCD</h2>
+<p>The display is a grid of 48 columns by 8 rows. The top seven rows belong to the current screen; the bottom row always shows the six soft keys. Values you can change are <em>fields</em>. The field under the cursor is drawn reversed (dark block, light text). Labels end with a colon and sit immediately to the left of their field: <code>Sq:01</code>, <code>Now:001.01.00</code>.</p>
+<p>Positions are shown as <code>bar.beat.tick</code>. There are 96 ticks in a quarter note, so <code>001.02.48</code> is bar 1, beat 2, halfway to beat 3.</p>
+
+<h2 id="soft-keys">Soft keys</h2>
+<p>The bottom line names what <kbd>F1</kbd> to <kbd>F6</kbd> do on the current screen. Three styles tell you what kind of key it is:</p>
+<ul>
+<li><strong>Reversed</strong> (dark block): jumps to another page of the mode, for example <code>LOOP</code> in TRIM mode.</li>
+<li><strong>Framed</strong> (outlined): runs an action, for example <code>DO IT</code>, <code>CANCEL</code>, <code>COPY</code>.</li>
+<li><strong>Plain</strong>: the page you are already on.</li>
+</ul>
+<p>Almost every destructive action asks first, in a window with <code>CANCEL</code> on <kbd>F4</kbd> and <code>DO IT</code> on <kbd>F5</kbd>.</p>
+
+<h2 id="modes">Modes</h2>
+<p>Hold <kbd>SHIFT</kbd> and press a number on the keypad:</p>
+<table>
+<tr><th>Key</th><th>Mode</th><th>Section</th></tr>
+<tr><td>1</td><td>SONG</td><td><a href="#song">Song Mode</a></td></tr>
+<tr><td>2</td><td>MISC.</td><td><a href="#misc">Punch, transpose, second sequence</a></td></tr>
+<tr><td>3</td><td>LOAD</td><td><a href="#disk">Disk</a></td></tr>
+<tr><td>4</td><td>SAMPLE</td><td><a href="#sampling">Sampling</a></td></tr>
+<tr><td>5</td><td>TRIM</td><td><a href="#trim">Trim</a></td></tr>
+<tr><td>6</td><td>PROGRAM</td><td><a href="#programs">Programs</a></td></tr>
+<tr><td>7</td><td>MIXER</td><td><a href="#mixer">Mixer and Effects</a></td></tr>
+<tr><td>8</td><td>OTHER</td><td><a href="#other">Other</a></td></tr>
+<tr><td>9</td><td>MIDI/SYNC</td><td><a href="#midi">MIDI</a></td></tr>
+<tr><td>0</td><td>SAVE</td><td><a href="#disk">Disk</a></td></tr>
+</table>
+<p><kbd>MAIN SCREEN</kbd> always brings you back to the sequencer. <code>STEP</code> and <code>EDIT</code> on the main screen's soft keys reach the two sequence editors.</p>
+
+<h2 id="cursor">Cursor, DATA wheel and numbers</h2>
+<p>Move the cursor with the <kbd>CURSOR</kbd> keys. Turn the <kbd>DATA</kbd> wheel to change the field: one step per click, several per click when you spin it. Enum fields (for example <code>Timing:1/16</code>) cycle through their options.</p>
+<p>Numeric fields also take typed numbers: press the digits on the keypad, then <kbd>ENTER</kbd>. Tempo is typed without its decimal point: <code>1205</code> then <kbd>ENTER</kbd> gives <code>120.5</code>. Moving the cursor, turning the wheel or pressing <kbd>MAIN SCREEN</kbd> before <kbd>ENTER</kbd> cancels the entry.</p>
+<p>For very large fields such as sample points, hold <kbd>SHIFT</kbd> and press <kbd>CURSOR</kbd> left or right to move in coarse steps.</p>
+
+<h2 id="windows">Windows</h2>
+<p>Most fields have a window behind them with more settings. Put the cursor on the field and press <kbd>OPEN WINDOW</kbd>. The window's own soft keys replace the screen's; <code>CLOSE</code> or <kbd>OPEN WINDOW</kbd> again returns. Windows can stack: a confirmation may open on top of a settings window.</p>
+
+<h2 id="name">The Name window</h2>
+<p>Any name field (sequence, track, song, sound, program, file) opens the Name window when you turn the DATA wheel or hit a pad on it.</p>
+<pre>                 Name
+      New name:Sequence01
+      Press PADs or use DATA knob.
+          COPY   PASTE   CANCEL  ENTER</pre>
+<p>The pads type letters, two per pad as printed in the corner of each pad: pad 1 <code>AB</code>, pad 2 <code>CD</code> and so on to pad 13 <code>YZ</code>; pad 14 <code>&amp;#</code>, pad 15 punctuation, pad 16 digits. Hit a pad again within a moment to get its second letter. <kbd>16 LEVELS</kbd> types a space, <kbd>FULL LEVEL</kbd> switches between upper and lower case, the DATA wheel steps through the whole character set at the cursor, <kbd>CURSOR</kbd> left and right move along the name. <code>COPY</code> and <code>PASTE</code> carry a name between fields. <code>ENTER</code> keeps it; <code>CANCEL</code> throws it away.</p>
+
+<h1 id="basics">2 The Basics</h1>
+
+<h2 id="terms">Terms</h2>
+<table>
+<tr><th>Term</th><th>Meaning</th></tr>
+<tr><td>Sound</td><td>One recording: a kick, a two-bar break, a vocal. Up to 256 in memory.</td></tr>
+<tr><td>Program</td><td>A drum kit: which sound plays on which of 64 notes, with envelope, filter, tuning and mixer settings per note. 24 programs.</td></tr>
+<tr><td>Note number</td><td>Notes 35 to 98. Pad A01 plays note 35, A02 note 36, up to D16 at note 98.</td></tr>
+<tr><td>DRUM slot</td><td>Four "drum machines" inside the box, DRUM1 to DRUM4, each holding one program at a time. A track plays through one of them.</td></tr>
+<tr><td>Sequence</td><td>A pattern of some bars, with 64 tracks. 99 sequences.</td></tr>
+<tr><td>Track</td><td>One lane of a sequence, either a DRUM track (plays a program) or a MIDI track (sends to external gear).</td></tr>
+<tr><td>Song</td><td>A list of sequences with repeat counts. 20 songs.</td></tr>
+</table>
+
+<h2 id="pads">Pads and banks</h2>
+<p>The sixteen pads play the program of the current track's DRUM slot. Pad 1 is bottom-left, pad 16 top-right, as on the panel. Velocity depends on where you strike: near the top of a pad is soft, near the bottom is hard; a pressure-sensitive screen or pen uses real pressure. <kbd>PAD BANK</kbd> A to D switches to the next sixteen notes, so one program spans 64 pads.</p>
+<p>The small letters on each pad are for the <a href="#name">Name window</a>; the letter in the bottom-left corner is the computer key that plays it (see <a href="#keyboard">Computer keyboard</a>).</p>
+
+<h2 id="full-level">FULL LEVEL</h2>
+<p>While its LED is lit, every pad hit plays at velocity 127 regardless of how you strike. Handy for even hi-hats and for step recording.</p>
+
+<h2 id="sixteen-levels">16 LEVELS</h2>
+<p>Spreads one sound across the sixteen pads in steps. Press <kbd>16 LEVELS</kbd> to open the window, hit the pad with the sound you want, then choose:</p>
+<ul>
+<li><code>Param:VELOCITY</code>: pad 1 is the softest, pad 16 the loudest.</li>
+<li><code>Param:NOTE VAR</code> with <code>Type:TUNING</code>: each pad a semitone apart, the <code>Original key pad</code> at the original pitch. <code>DECAY</code>, <code>ATTACK</code> and <code>FILTER</code> spread that parameter across the range set in the ASSIGN screen.</li>
+</ul>
+<p><code>TurnON</code> engages it; press <kbd>16 LEVELS</kbd> again to go back to the normal program.</p>
+
+<h2 id="note-variation">Note variation</h2>
+<p>Hold <kbd>SHIFT</kbd> and press <kbd>AFTER</kbd> to open the ASSIGN screen. Hit a pad to pick the note, choose a <code>Parameter</code> (tuning, decay, attack or filter) and the <code>Low range</code> and <code>High range</code> the slider covers. From then on the slider position is applied to that note when you play it, and is recorded with the note (you will see it as <code>Tun:</code> in step edit). With <kbd>AFTER</kbd> lit, the slider also shapes the note during playback. <code>Assign NV slider to ctrl change</code> lets a MIDI controller drive the slider.</p>
+
+<h2 id="keyboard">Computer keyboard</h2>
+<table>
+<tr><th>Keys</th><th>Control</th></tr>
+<tr><td><kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> <kbd>V</kbd></td><td>pads 1 2 3 4</td></tr>
+<tr><td><kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd></td><td>pads 5 6 7 8</td></tr>
+<tr><td><kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd></td><td>pads 9 10 11 12</td></tr>
+<tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></td><td>pads 13 14 15 16</td></tr>
+<tr><td><kbd>Space</kbd>, <kbd>Shift</kbd>+<kbd>Space</kbd></td><td>PLAY / STOP, PLAY START</td></tr>
+<tr><td><kbd>F1</kbd> to <kbd>F6</kbd></td><td>soft keys</td></tr>
+<tr><td><kbd>F7</kbd> <kbd>F8</kbd> <kbd>F9</kbd> <kbd>F10</kbd></td><td>REC, OVER DUB, STOP, PLAY</td></tr>
+<tr><td>Arrow keys</td><td>CURSOR</td></tr>
+<tr><td><kbd>[</kbd> <kbd>]</kbd> (with <kbd>Shift</kbd>: ten steps)</td><td>DATA wheel</td></tr>
+<tr><td><kbd>Enter</kbd>, <kbd>Esc</kbd> or <kbd>Backspace</kbd>, <kbd>Tab</kbd></td><td>ENTER, MAIN SCREEN, OPEN WINDOW</td></tr>
+<tr><td>Numpad <kbd>0</kbd> to <kbd>9</kbd></td><td>numeric entry</td></tr>
+<tr><td><kbd>Shift</kbd> + top-row <kbd>0</kbd> to <kbd>9</kbd></td><td>MODE select</td></tr>
+<tr><td><kbd>,</kbd> <kbd>.</kbd> and <kbd>;</kbd> <kbd>'</kbd></td><td>BAR &lt;&lt; &gt;&gt;, STEP &lt; &gt;</td></tr>
+<tr><td><kbd>T</kbd>, <kbd>U</kbd>, <kbd>Delete</kbd>, <kbd>G</kbd>, <kbd>Home</kbd></td><td>TAP TEMPO / NOTE REPEAT, UNDO SEQ, ERASE, GO TO, PLAY START</td></tr>
+</table>
+<p>Keyboard pads play at velocity 100 (127 with FULL LEVEL). The mouse wheel over the DATA knob also turns it.</p>
+
+<h1 id="sequencing">3 Recording Sequences</h1>
+
+<h2 id="main-screen">The MAIN screen</h2>
+<pre>Sq:01-(Sequence01)                 Now:001.01.00
+♩:120.0(MAS)  Timing:1/16      Tsig: 4/ 4
+Count:OFF  Loop:OFF  Bars:  0
+Tr:01-(Track-01)        ON:YES   Pgm:OFF
+S:DRUM1:OFF  STARTER               Velo%:100
+▪ · · · ▪ · · · ▪ · · · ▪ · · ·
+■ STOP      4 notes
+  STEP    EDIT   TrMUTE   SOLO    Tr -    Tr +</pre>
+<table>
+<tr><th>Field</th><th>Meaning</th></tr>
+<tr><td><code>Sq:</code></td><td>The sequence, 01 to 99. Names in parentheses are unused sequences. While playing, the wheel here queues the <a href="#next-sequence">next sequence</a> instead of jumping. Window: rename, delete, copy.</td></tr>
+<tr><td><code>Now:</code></td><td>The position. Turn the wheel to move; type a bar number and <kbd>ENTER</kbd> to jump to it. Window: display style and frame rate.</td></tr>
+<tr><td><code>♩:</code></td><td>Tempo, 30.0 to 300.0. <code>(MAS)</code> uses the machine's master tempo shared by all sequences; <code>(SEQ)</code> stores a tempo in this sequence. Window: <a href="#tempo-change">tempo changes</a>.</td></tr>
+<tr><td><code>Timing:</code></td><td>The quantise grid for recording, note repeat and step keys: OFF, 1/8, 1/8(3), 1/16, 1/16(3), 1/32, 1/32(3). Window: <a href="#timing">timing correct</a>.</td></tr>
+<tr><td><code>Tsig:</code></td><td>Time signature. Turning the wheel opens the <a href="#tsig">change window</a>.</td></tr>
+<tr><td><code>Count:</code></td><td>Count-in on or off. Window: <a href="#count">count-in and metronome</a>.</td></tr>
+<tr><td><code>Loop:</code></td><td>Loop playback and recording between bars. Window: loop range.</td></tr>
+<tr><td><code>Bars:</code></td><td>Length in bars. Turning the wheel opens Change Bars, which can also insert and delete bars.</td></tr>
+<tr><td><code>Tr:</code></td><td>The current track, 01 to 64. Window: rename, delete, copy.</td></tr>
+<tr><td><code>ON:</code></td><td>Track on or off (mute). Window: erase all tracks that are off.</td></tr>
+<tr><td><code>Pgm:</code></td><td>MIDI program change sent for the track.</td></tr>
+<tr><td><code>S:DRUM1</code></td><td>Track type: DRUM1 to DRUM4 play a program through that slot; MIDI sends to external gear. The field after the colon is the MIDI channel, <code>1A</code> to <code>16B</code>.</td></tr>
+<tr><td><code>Velo%:</code></td><td>Playback velocity scaling for the track. Window: edit recorded velocities.</td></tr>
+</table>
+<p>The row of squares is a step grid of the current bar for the current track; the reversed cell is the playhead. Below it the transport status and the number of notes on the track.</p>
+<p>Soft keys: <code>STEP</code> and <code>EDIT</code> open the editors, <code>TrMUTE</code> toggles the track, <code>SOLO</code> solos it (press again to release), <code>Tr -</code> and <code>Tr +</code> step through tracks.</p>
+
+<h2 id="transport">Transport</h2>
+<p><kbd>PLAY</kbd> plays from <code>Now:</code>. <kbd>PLAY START</kbd> plays from bar 1. <kbd>STOP</kbd> stops and leaves the position where it was. The first pad hit or key press after loading the page also switches the audio on, as browsers require.</p>
+
+<h2 id="recording">Recording and overdubbing</h2>
+<ol>
+<li>Pick a sequence and set <code>Bars:</code> (two bars is a good start) and <code>Loop:ON</code>.</li>
+<li>Press <kbd>REC</kbd> (its LED lights: armed), then <kbd>PLAY START</kbd>.</li>
+<li>Play the pads. Notes are quantised to <code>Timing:</code> as they land.</li>
+<li>When the loop comes round, recording switches to <kbd>OVER DUB</kbd> by itself so you can add layers. Press <kbd>STOP</kbd> when done.</li>
+</ol>
+<p><kbd>REC</kbd> replaces what was on the track as the position passes over it; <kbd>OVER DUB</kbd> adds to it. Either key pressed during playback punches in, and pressed again punches out. With <code>Loop:OFF</code> the sequence grows by a bar whenever recording runs past its end.</p>
+<p>Notes keep the duration you held the pad. Bad hit? Hold <kbd>ERASE</kbd> and the pad while overdubbing (see <a href="#erase">Erasing</a>), or press <kbd>UNDO SEQ</kbd> after stopping.</p>
+
+<h2 id="loop">Looping</h2>
+<p>The Loop window (<kbd>OPEN WINDOW</kbd> on <code>Loop:</code>) sets <code>First bar</code>, <code>Last bar</code> and <code>Number of bars</code>; the three are linked. <code>Last bar:END</code> follows the sequence length as it changes.</p>
+
+<h2 id="count">Count-in and metronome</h2>
+<p>The Count/Metronome window: <code>Count IN</code> plays one bar of clicks before recording and playback (<code>REC+PLAY</code>) or only before recording (<code>REC ONLY</code>). <code>In play</code> and <code>In rec</code> switch the metronome on during playback or recording, <code>Rate</code> sets its note value. <code>Wait for key</code> starts a recording on the first pad hit instead of immediately. <code>SOUND</code> opens the Metronome Sound window: a click with its own volume, or a drum program's accent and normal notes.</p>
+
+<h2 id="timing">Timing correct and swing</h2>
+<p>Real-time recording quantises to <code>Timing:</code>. The Timing Correct window (<kbd>OPEN WINDOW</kbd> on <code>Timing:</code>) also quantises what is already recorded: choose the <code>Note value</code>, a <code>Swing%</code> from 50 (straight) to 75 for 1/8 and 1/16 grids, an optional <code>Shift timing</code> earlier or later by a number of ticks, the <code>Time</code> range and, on a drum track, one pad or <code>ALL</code>. <code>DO IT</code> moves the notes on the current track. Swing delays every second grid position; 62 to 66 is the classic feel.</p>
+
+<h2 id="tap-tempo">Tap tempo and note repeat</h2>
+<p>Tap <kbd>TAP TEMPO</kbd> on the quarter notes; the tempo is the average of the last few taps (<code>Tap averaging</code> in OTHER mode). While the sequence plays, hold the key and hold a pad: the pad repeats at the <code>Timing:</code> value with swing, and the repeats are recorded when you are overdubbing. Pressure on the pad sets the velocity of the repeats.</p>
+
+<h2 id="locate">Locating</h2>
+<p><kbd>BAR</kbd> &lt;&lt; and &gt;&gt; move one bar; <kbd>STEP</kbd> &lt; and &gt; move one <code>Timing:</code> step. Hold <kbd>GO TO</kbd> with <kbd>BAR</kbd> to jump to the start or end, or with <kbd>STEP</kbd> to jump to the previous or next event on the track. Tap <kbd>GO TO</kbd> alone for the Locate window: type or dial a position in <code>Go to:</code>, or move to one of nine memories, <code>STORE</code> the current position into it, and <code>GO TO</code> it later.</p>
+
+<h2 id="erase">Erasing</h2>
+<p>While overdubbing, hold <kbd>ERASE</kbd> and hit the pad to erase: that sound disappears as the position passes over it. While stopped, <kbd>ERASE</kbd> opens the Erase window: a <code>Track</code> (0 means all), a <code>Time</code> range, and either <code>ALL EVENTS</code>, everything <code>ALL EXCEPT</code> one type, or <code>ONLY ERASE</code> one type; on a drum track, one pad or all.</p>
+
+<h2 id="undo">Undo</h2>
+<p><kbd>UNDO SEQ</kbd> lights after a recording or an edit. Press it to put the sequence back the way it was; press again to redo. It holds one step and is only valid right after the take.</p>
+
+<h2 id="tempo-change">Tempo changes</h2>
+<p><kbd>OPEN WINDOW</kbd> on the tempo field. With <code>Tempo change:ON</code>, the list of positions and percentages takes effect; entry 1 always sits at the start. <code>INSERT</code> adds an entry after the selected one, <code>NOW</code> moves an entry to the current position, <code>DELETE</code> removes it. Each entry's <code>%</code> multiplies the initial tempo and the resulting <code>♩=</code> is shown beside it.</p>
+
+<h2 id="tsig">Time signature</h2>
+<p>The Change Tsig window applies a new signature to a range of bars. Bars keep their events at the same beat; events past the end of a shorter bar are dropped.</p>
+
+<h2 id="tracks">Tracks</h2>
+<p>Every sequence has 64 tracks. Tracks are unused until you record on them or rename them. The Track window renames, deletes and copies tracks. <code>ON:NO</code> mutes a track; the ON window can erase every muted track in one go. DRUM tracks play a program through their DRUM slot; MIDI tracks send to the channel and port after the colon.</p>
+
+<h2 id="track-mute">Track mute and solo</h2>
+<p>Press <kbd>TRACK MUTE</kbd> for a pad page of tracks 1 to 16 (banks B to D for 17 to 64). Hitting a pad toggles the track; bracketed names are on. Hold <code>SOLO</code> and hit a pad to solo that track; press <code>SOLO</code> again to release. <kbd>TRACK MUTE</kbd> again returns.</p>
+
+<h2 id="next-sequence">Next sequence</h2>
+<p>Press <kbd>NEXT SEQ</kbd> and dial <code>Next Sq:</code>; it starts when the current sequence reaches its end or its loop point. <code>SUDDEN</code> switches at once, <code>CLEAR</code> forgets it, <code>PAD</code> opens a page where the pads pick sequences 1 to 64. The main screen's <code>Sq:</code> field does the same thing while playing.</p>
+
+<h2 id="misc">Punch, transpose, second sequence</h2>
+<p>MISC. mode (<kbd>SHIFT</kbd>+2) has three pages. <code>PUNCH</code>: automatic punch in and out at two positions; <code>TurnON</code> arms it and recording only happens inside the window. <code>TRANS</code>: a playback transpose for MIDI tracks (drum tracks are never transposed) that becomes permanent with <code>FIX</code>. <code>2ndSEQ</code>: a second sequence that plays alongside the active one; useful for a drum loop under a sequence of changes.</p>
+
+<h1 id="editing">4 Editing Sequences</h1>
+
+<h2 id="step-edit">Step edit</h2>
+<p><code>STEP</code> on the main screen. The list shows the events at the current position on the current track: for a note, <code>N:</code> the note and pad, <code>Tun:</code> its note-variation value, <code>D:</code> duration in ticks, <code>V:</code> velocity with a bar. Move between events with the cursor, edit any field with the wheel or the keypad. <kbd>STEP</kbd> &lt; and &gt; walk through time.</p>
+<p>Soft keys: <code>TC</code> shows and changes the timing value while held, <code>COPY</code> copies the selected events to a clipboard, <code>DELETE</code> removes them, <code>INSERT</code> adds an event of any type at the position, <code>PASTE</code> puts the clipboard at the position (<code>RPLACE</code> or <code>MERGE</code>), <code>PLAY</code> auditions the selection. Hold <kbd>SHIFT</kbd> and press <kbd>CURSOR</kbd> up or down to select several events; <code>EDIT</code> then changes them all: a new note, or add, subtract, multiply or set the value under the cursor.</p>
+<p>Hitting a pad while stopped writes a note at the position (step recording). The Step Edit Options window (<kbd>OPEN WINDOW</kbd>) sets <code>Auto step increment</code>, which advances the position by one timing step after each note, and whether durations are <code>AS PLAYED</code> or a percentage of the <code>TC VALUE</code>.</p>
+
+<h2 id="edit-screen">The EDIT screen</h2>
+<p><code>EDIT</code> on the main screen. <code>EVENTS</code>: <code>COPY</code> a time range of the current track to any track of any sequence, <code>REPLACE</code> or <code>MERGE</code>, several <code>Copies</code>; <code>DURATION</code> and <code>VELOCITY</code> add, subtract, multiply or set; <code>TRANSPOSE</code> MIDI tracks by semitones. <code>BARS</code>: copy whole bars of all tracks into another sequence, inserted after a bar. <code>TrMOVE</code>: <code>SELECT</code> a track, dial its new place, <code>INSERT</code>. <code>DO IT</code> on <kbd>F6</kbd> runs the edit.</p>
+
+<h2 id="user">User defaults</h2>
+<p>The <code>USER</code> page of the EDIT screen holds the settings a new sequence starts with: tempo and source, time signature, loop, bars, program change, track type and channel, velocity percentage.</p>
+
+<h1 id="song">5 Song Mode</h1>
+<p><kbd>SHIFT</kbd>+1. A song is a list of steps; each step names a sequence and how many times it repeats.</p>
+<pre>Song:01-(Song01)                  Now:001.01.00
+TEMPO:MAS    Step  Sequence        Reps
+♩:120.0        1   01-Verse          2
+LOOP:OFF       2   02-Chorus         1
+               3   (end of song)</pre>
+<p>Dial a sequence on the <code>(end of song)</code> row to add a step; <code>INSERT</code> adds one after the selected step, <code>DELETE</code> removes it. <code>Reps:0</code> stops the song at that step. <code>TEMPO:MAS</code> plays everything at the song's tempo, <code>SEQ</code> lets each sequence keep its own. <code>LOOP:ON</code> repeats a range of steps. <kbd>PLAY START</kbd> plays the song from step 1; recording is not possible in song mode. The Song window (<kbd>OPEN WINDOW</kbd> on the song number) renames, deletes and copies songs. <code>CONVRT</code> flattens a song into one long sequence, keeping tracks as in the first step, dropping muted tracks, or merging by MIDI channel.</p>
+
+<h1 id="sounds">6 Sounds</h1>
+
+<h2 id="loading">Loading sounds</h2>
+<p>Drop WAV, AIFF, MP3, FLAC or OGG files anywhere on the machine, or press <code>PICK</code> in LOAD mode. They appear on the <code>IMPORT</code> device of the LOAD page. <code>DO IT</code> opens Load a Sound: <code>PLAY</code> auditions, <code>Assign to note</code> picks a pad (hit one), <code>KEEP</code> puts it in memory and on the pad, <code>DSCARD</code> drops it. See <a href="#disk">Disk</a> for the browser disk and project files.</p>
+
+<h2 id="sampling">Sampling</h2>
+<p>SAMPLE mode (<kbd>SHIFT</kbd>+4).</p>
+<pre>Input:ANALOG   Mode:STEREO  Monitor:L/R
+Threshold:-20  Time:10.0s  Pre-rec:100ms
+ LEFT :▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮      -12dB
+RIGHT :▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮        -13dB
+RESET   PEAK                          RECORD</pre>
+<p><code>Input:ANALOG</code> is your microphone or line input (the browser asks for permission); <code>RESAMPLE</code> records what the machine itself plays, so you can bounce a stack of pads into one sound. <code>Mode</code> chooses mono left, mono right or stereo. <code>Threshold</code> starts the recording when the input crosses that level (<code>OFF</code> starts at once); <code>Pre-rec</code> keeps the milliseconds before the trigger so attacks are never clipped. <code>Time</code> is the maximum length. <code>RECORD</code> arms; <code>START</code> starts by hand; <code>STOP</code> ends the take. The KEEP or RETRY window names the sound, assigns it to a pad, and lets you <code>PLAY</code> it before you <code>KEEP</code> or <code>RETRY</code>. <kbd>OPEN WINDOW</kbd> shows free sound memory.</p>
+
+<h2 id="trim">Trim</h2>
+<p>TRIM mode (<kbd>SHIFT</kbd>+5) edits one sound at a time. <code>Snd:</code> picks the sound (wheel, or hit a pad that has it); pressing the current page's soft key again cycles the list order by memory, size or name. The waveform fills the middle rows with the active region shaded.</p>
+<p><code>St:</code> and <code>End:</code> are the start and end points in samples: dial them, type them, or hold <kbd>SHIFT</kbd> with <kbd>CURSOR</kbd> left and right for coarse steps. <kbd>OPEN WINDOW</kbd> on either opens a fine window with a zoomed waveform (<code>ZOOM-</code>, <code>ZOOM+</code>) and <code>Smpl Lngth:FIX</code>, which moves the other point along to keep the length. <code>PLAY X</code> auditions according to the <code>PLAY X:</code> field: <code>ALL</code> the region, <code>BEFOR ST</code>, <code>AFTR END</code> and so on. Release the key to stop.</p>
+
+<h2 id="loop-page">Loop</h2>
+<p><code>To:</code> and <code>Lngth:</code> set a loop inside the sound; <code>Loop:ON</code> makes the sound sustain while a pad is held. <code>EDIT</code> on this page fits the loop to the whole start-to-end region.</p>
+
+<h2 id="zone">Zones and slicing</h2>
+<p>The <code>ZONE</code> page divides the region into up to sixteen zones. <kbd>OPEN WINDOW</kbd> on <code>Zone:</code> sets the <code>Number of zones</code> (equal division); each zone's <code>St:</code> and <code>End:</code> can then be nudged, and moving one boundary moves the neighbour with it. <code>PLAY X:ZONE</code> auditions the current zone. <code>EDIT</code> from this page offers <code>SLICE SOUND</code>: every zone becomes its own sound (<code>End margin</code> adds a little tail to each), and with <code>Create new program:YES</code> the slices land on pads 1 to 16 of a new program bound to the current DRUM slot. This is the chop.</p>
+
+<h2 id="edit-sound">Edit operations</h2>
+<p><code>EDIT</code> opens the Edit window. <code>Edit:</code> chooses: <code>DISCARD</code> keeps only start to end; <code>LOOP FROM ST TO END</code>; <code>SECTION &gt; NEW SOUND</code> copies the region into a new sound; <code>INSERT SOUND &gt; SECTION START</code> splices another sound in; <code>DELETE SECTION</code>, <code>SILENCE SECTION</code>, <code>REVERSE SECTION</code>; <code>NORMALIZE</code>; <code>TIME STRETCH</code> makes a new sound at a <code>Ratio</code> from 50 to 200 percent with eighteen presets and three qualities, and <code>BPM</code> works the ratio out from a source and target tempo. <code>DO IT</code> applies.</p>
+
+<h2 id="params">Level, tune, beat loop</h2>
+<p>The <code>PARAMS</code> page sets the sound's <code>Level</code> and <code>Tune</code> (tenths of a semitone; tuning changes speed and pitch together, like the old machines). Set <code>Beat</code> to the number of beats in a loop and the page shows its tempo and the tempo it will have at the current tune, so loops can be matched by ear or by number.</p>
+
+<h2 id="sound-window">The Sound window</h2>
+<p><kbd>OPEN WINDOW</kbd> on <code>Snd:</code> (also from PROGRAM mode): rename, <code>DELETE</code> (or <code>ALL</code>), <code>COPY</code>, and <code>CONVRT</code>: stereo to two mono sounds, mono to stereo with another sound on the right, or <code>RE-SAMPLE</code> to another rate and bit depth for that crunch.</p>
+
+<h1 id="programs">7 Programs</h1>
+<p>PROGRAM mode (<kbd>SHIFT</kbd>+6) first asks which DRUM slot to edit; the program bound to that slot is what the pads play on a track of that type.</p>
+
+<h2 id="assign">Assigning sounds</h2>
+<pre>Pgm: 1-STARTER
+Pad:A01=Note:35     Pad assign:PROGRAM
+Note:35=Snd:KICK
+Mode:NORMAL
+  ASSIGN PARAMS  DRUM   PURGE   AUTO   PLAY</pre>
+<p>Hit a pad, dial a sound onto <code>Snd:</code>. <code>Pad:</code>=<code>Note:</code> is the pad to note map, per program or a <code>MASTER</code> map shared by programs that choose it. <code>Mode:</code> plays extra sounds per hit: <code>SIMULT</code> layers up to two other notes, <code>VEL SW</code> switches to another note above a velocity, <code>DCY SW</code> switches on the decay value (open and closed hi-hat on one pad with the slider). <kbd>OPEN WINDOW</kbd> on the pad shows the whole bank's assignment; on <code>Pgm:</code> the Program window renames, deletes, creates (<code>NEW</code>) and copies programs. <code>PLAY</code> auditions the note.</p>
+
+<h2 id="note-params">Note parameters</h2>
+<p>The <code>PARAMS</code> page, per note: envelope <code>Attack</code> and <code>Decay</code> (0 to 100) with <code>Dcy md:END</code>, where the decay ends at the end of the sample, or <code>START</code>, where it starts right after the attack and shortens the sound; filter <code>Freq</code> and <code>Reson</code> (a 12 dB resonant low-pass); <code>Tune</code>; <code>Voice Overlap</code> <code>POLY</code>, <code>MONO</code> (a new hit cuts the previous one) or <code>NOTE OFF</code> (the sound stops when you let go). Windows behind these fields add velocity to attack, start point and level, a filter envelope with velocity to frequency, velocity to pitch, and Mute Assign: two notes this note silences when it plays (closed hat choking the open hat). Copy Note Parameters copies one note's settings to another.</p>
+
+<h2 id="drum">DRUM slots</h2>
+<p>The <code>DRUM</code> page binds a program to each of the four slots and sets whether the slot accepts MIDI program change and volume, and whether pads play the internal sound at all.</p>
+
+<h2 id="purge">Purge and auto chromatic</h2>
+<p><code>PURGE</code> deletes every sound not used by any program. <code>AUTO</code> spreads one sound chromatically across all 64 notes from an original key: an instant melodic program from a single note.</p>
+
+<h1 id="mixer">8 Mixer and Effects</h1>
+<p>MIXER mode (<kbd>SHIFT</kbd>+7), per DRUM slot. <code>STEREO</code>: sixteen strips for the current pad bank; the top row is pan, the fader row is level. Move with the cursor or hit a pad to jump to its strip; hold <kbd>SHIFT</kbd> and hit pads to select several; <code>ALL CH</code> links every strip. <kbd>OPEN WINDOW</kbd> on a strip opens Channel Settings with its level, pan, effect bus and send. <code>SETUP</code> holds the master level.</p>
+<p><code>FXsend</code> routes each note to one of four effect buses, <code>M1</code> and <code>M2</code> (the multi-effects) or <code>R1</code> and <code>R2</code> (reverbs), with a send level. <code>FXedit</code> edits them: a multi-effect is a chain <code>DIST</code> (distortion and ring modulation), <code>FILT</code> (four-band EQ), <code>MOD</code> (phaser, flanger, chorus, rotary, autopan, pitch), <code>ECHO</code> (four delay types with damping) and <code>REV</code> into a <code>MIX</code>. Turn the wheel on a module to switch it on or off, or <kbd>OPEN WINDOW</kbd> for its parameters. The reverbs offer seven room types with predelay, time, diffusion and damping.</p>
+
+<h1 id="disk">9 Disk</h1>
+<p>LOAD (<kbd>SHIFT</kbd>+3) and SAVE (<kbd>SHIFT</kbd>+0) share three pages. The <code>BROWSER</code> device is a disk inside your browser that keeps files and folders between visits; the <code>IMPORT</code> device lists files you dropped or picked. Nothing leaves your computer.</p>
+<table>
+<tr><th>Type</th><th>Holds</th></tr>
+<tr><td><code>.ALL</code></td><td>All sequences and songs.</td></tr>
+<tr><td><code>.SEQ</code>, <code>.MID</code></td><td>One sequence, natively or as a standard MIDI file (type 0 or 1) for other software.</td></tr>
+<tr><td><code>.APS</code></td><td>All programs and, if you choose, all sounds.</td></tr>
+<tr><td><code>.PGM</code></td><td>One program with its sounds.</td></tr>
+<tr><td><code>.SND</code>, <code>.WAV</code></td><td>One sound, with its trim and loop points or as a plain WAV.</td></tr>
+<tr><td><code>.CHOPDECK</code></td><td>The whole machine in one bundle.</td></tr>
+<tr><td>Mixdown <code>.WAV</code></td><td>A stereo render of a sequence (one pass) or a song, through the effects.</td></tr>
+</table>
+<p>On the LOAD page dial <code>File:</code> and press <code>DO IT</code>; each type opens its own window (which sequence slot, whether to replace sounds, and so on). <kbd>OPEN WINDOW</kbd> on <code>File:</code> opens the Directory: <kbd>CURSOR</kbd> right enters a folder, left goes up, <code>NEW</code> makes one, <code>RENAME</code> and <code>DELETE</code> do what they say. On the SAVE page choose the <code>Type</code>, a name, and the <code>Device</code>: <code>BROWSER</code> writes to the disk, <code>DOWNLOAD</code> hands the file to your computer. <code>FORMAT</code> wipes the browser disk.</p>
+<p>The machine also saves itself after every change and comes back exactly as you left it when you reopen the page.</p>
+
+<h1 id="midi">10 MIDI</h1>
+<p>MIDI/SYNC mode (<kbd>SHIFT</kbd>+9) works in browsers with Web MIDI (Chromium-based). <code>PORTS</code> binds an input and two outputs, <code>A</code> and <code>B</code>, from your connected devices and shows channel activity. Incoming notes play the current track's program (or record onto a MIDI track); program change, controllers and bend are recorded on MIDI tracks. MIDI tracks send their events to the channel and port set on the main screen, and their notes follow the playback transpose. <code>SYNC</code>: send MIDI clock, start and stop from output A, or follow an external clock's tempo, start and stop. <code>MIDIsw</code> maps four controller numbers to footswitch functions: transport, tap, bank and pad selection, soft keys. The main screen's MIDI Input and MIDI Output windows hold the receive channel, program change to sequence, soft thru and <code>PANIC</code>.</p>
+
+<h1 id="other">11 Other</h1>
+<p>OTHER mode (<kbd>SHIFT</kbd>+8): <code>Tap averaging</code> and the keyboard reference (<code>HELP</code> turns the pages); <code>INIT</code> returns the whole machine to factory state after a confirmation; <code>VER.</code> shows the OS version.</p>
+
+<h1 id="spec">Specifications</h1>
+<table>
+<tr><td>Sequencer</td><td>99 sequences, 64 tracks each, 96 ticks per quarter note, 20 songs of 250 steps</td></tr>
+<tr><td>Sampler</td><td>32 voices, 256 sounds, 24 programs of 64 notes, 4 DRUM slots, 16-bit playback at the browser's rate</td></tr>
+<tr><td>Timing correct</td><td>1/8, 1/8(3), 1/16, 1/16(3), 1/32, 1/32(3), swing 50 to 75 percent</td></tr>
+<tr><td>Filter</td><td>12 dB per octave resonant low-pass per voice, with envelope and velocity control</td></tr>
+<tr><td>Effects</td><td>Two multi-effect chains, two reverbs</td></tr>
+<tr><td>Pads</td><td>16, velocity and pressure sensitive, 4 banks</td></tr>
+<tr><td>MIDI</td><td>1 in, 2 out (A, B), clock in and out</td></tr>
+<tr><td>Files</td><td>WAV, AIFF, MP3, FLAC, OGG in; WAV, standard MIDI file, native bundles out</td></tr>
+</table>
+<p style="margin-top:48px;color:var(--ink-3);font-size:13px">Chop Deck is an independent project. The machines that inspired it and their names belong to their makers.</p>
+
+</main>
+</div>
+</body>
+</html>

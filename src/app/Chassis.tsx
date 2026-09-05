@@ -5,12 +5,16 @@ import { LcdScreen } from '@/lcd/LcdScreen';
 import { HwKey } from '@/kernel/keys';
 import { PAD_LETTERS } from '@/kernel/firmware';
 import { useFirmware } from './store';
-import { useKeyboard } from './useKeyboard';
+import { useKeyboard, PAD_KEYS } from './useKeyboard';
 import { useHostEvents } from './host';
 import { AudioEngine } from '@/audio/engine';
+import { Tip, TipProvider } from './Tip';
+import { MANUAL_URL } from './help';
 
 const CHASSIS_W = 1240;
+const LCD_W = 640;
 const BANKS = ['A', 'B', 'C', 'D'] as const;
+const HOTKEYS = PAD_KEYS.map(code => code.replace('Key', '').replace('Digit', ''));
 
 export function Chassis({ engine }: { engine: AudioEngine }) {
   const fw = useFirmware();
@@ -36,15 +40,20 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
   const [vol, setVol] = useState(80);
   const [gain, setGain] = useState(40);
   useEffect(() => { engine.setVolume(Math.pow(vol / 100, 1.5)); }, [vol, engine]);
+  const padProgram = fw.m.programs[fw.m.drums[s.drum].pgm];
 
   return (
+    <TipProvider>
     <div style={{ height: h || 'auto', position: 'relative' }}>
       <div ref={wrapRef} style={{ width: CHASSIS_W, position: 'absolute', left: '50%', top: 0, transform: `translateX(-50%) scale(${scale})`, transformOrigin: 'top center', background: 'var(--navy) var(--texture-grain)', border: '3px solid var(--ink)', borderRadius: 'var(--radius-chassis)', boxShadow: 'var(--chassis-shadow)', padding: 22, boxSizing: 'border-box', display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20, color: 'var(--cream)' }}>
 
         {/* ---------- LEFT: LCD, F-keys, mode block, wheel, transport ---------- */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ ...lbl, opacity: .8 }}>INTEGRATED RHYTHM MACHINE · 16 BIT SAMPLER · SEQUENCER · RUNS IN YOUR BROWSER</span>
+            <span style={{ ...lbl, opacity: .8 }}>
+              INTEGRATED RHYTHM MACHINE · 16 BIT SAMPLER · SEQUENCER ·{' '}
+              <Tip id="manual"><a href={MANUAL_URL} target="_blank" rel="noopener" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>OWNER'S MANUAL</a></Tip>
+            </span>
             <div style={{ display: 'flex', gap: 14 }}>
               <Led color="green" on={s.playing} label="PLAY" style={{ color: 'var(--cream)' }} />
               <Led color="red" on={s.record !== 'OFF'} label="REC" style={{ color: 'var(--cream)' }} />
@@ -52,44 +61,49 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
             </div>
           </div>
 
-          <div>
-            <Lcd style={{ width: '100%' }}>
-              <LcdScreen frame={frame} onSoftKey={i => { const k = `F${i + 1}` as HwKey; fw.key(k, true); fw.key(k, false); }} />
-            </Lcd>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', padding: '10px 12px 0', justifyItems: 'center' }}>
+          {/* the display sits in the panel like the hardware's: fixed width, F-keys aligned beneath it */}
+          <div style={{ width: LCD_W, margin: '0 auto' }}>
+            <Tip id="lcd" style={{ display: 'block' }}>
+              <Lcd style={{ width: '100%' }}>
+                <LcdScreen frame={frame} onSoftKey={i => { const k = `F${i + 1}` as HwKey; fw.key(k, true); fw.key(k, false); }} />
+              </Lcd>
+            </Tip>
+            <Tip id="f" style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', padding: '10px 12px 0', justifyItems: 'center' }}>
               {[0, 1, 2, 3, 4, 5].map(i => <HardButton key={i} label={`F${i + 1}`} size="sm" onDark disabled={!soft[i]?.label} {...key(`F${i + 1}` as HwKey)} />)}
-            </div>
+            </Tip>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 18, alignItems: 'start' }}>
             {/* MODE block */}
-            <Panel title="MODE" onDark padding="10px 12px" style={{ minWidth: 'max-content' }}>
-              <Keypad onDark shiftHeld={s.shift} onKey={k => fw.key(k, true)} onKeyRelease={k => fw.key(k, false)} />
-            </Panel>
+            <Tip id="mode">
+              <Panel title="MODE" onDark padding="10px 12px" style={{ minWidth: 'max-content' }}>
+                <Keypad onDark shiftHeld={s.shift} onKey={k => fw.key(k, true)} onKeyRelease={k => fw.key(k, false)} />
+              </Panel>
+            </Tip>
 
             {/* centre: MAIN/WINDOW, DATA wheel, cursor */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
               <div style={{ display: 'flex', gap: 24 }}>
-                <HardButton label="MAIN SCREEN" onDark active={s.mode === 'MAIN' && !s.windows.length} {...key('MAIN')} />
-                <HardButton label="OPEN WINDOW" cap="amber" onDark active={s.windows.length > 0} {...key('WINDOW')} />
+                <Tip id="main"><HardButton label="MAIN SCREEN" onDark active={s.mode === 'MAIN' && !s.windows.length} {...key('MAIN')} /></Tip>
+                <Tip id="window"><HardButton label="OPEN WINDOW" cap="amber" onDark active={s.windows.length > 0} {...key('WINDOW')} /></Tip>
               </div>
               <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-                <DataWheel label="DATA" onDark onTurn={d => fw.wheel(d)} />
-                <CursorPad onDark onMove={d => fw.key(d.toUpperCase() as HwKey)} />
+                <Tip id="data"><DataWheel label="DATA" onDark onTurn={d => fw.wheel(d)} /></Tip>
+                <Tip id="cursor"><CursorPad onDark onMove={d => fw.key(d.toUpperCase() as HwKey)} /></Tip>
               </div>
             </div>
 
             {/* right: note variation, tap, undo, erase */}
             <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                <HardButton label="AFTER" shiftLabel="ASSIGN" size="sm" onDark led="red" ledOn={s.after} {...key('AFTER')} />
-                <Fader label="NOTE VARIATION" height={110} onDark value={s.nvValue} onChange={v => fw.slider(v)} />
+                <Tip id="after"><HardButton label="AFTER" shiftLabel="ASSIGN" size="sm" onDark led="red" ledOn={s.after} {...key('AFTER')} /></Tip>
+                <Tip id="nv"><Fader label="NOTE VARIATION" height={110} onDark value={s.nvValue} onChange={v => fw.slider(v)} /></Tip>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <HardButton label="TAP TEMPO" shiftLabel="NOTE REPEAT" size="lg" onDark {...key('TAP')} />
+                <Tip id="tap"><HardButton label="TAP TEMPO" shiftLabel="NOTE REPEAT" size="lg" onDark {...key('TAP')} /></Tip>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <HardButton label="UNDO SEQ" onDark led="red" ledOn={s.undoAvailable} {...key('UNDO')} />
-                  <HardButton label="ERASE" onDark {...key('ERASE')} />
+                  <Tip id="undo"><HardButton label="UNDO SEQ" onDark led="red" ledOn={s.undoAvailable} {...key('UNDO')} /></Tip>
+                  <Tip id="erase"><HardButton label="ERASE" onDark {...key('ERASE')} /></Tip>
                 </div>
               </div>
             </div>
@@ -99,19 +113,19 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
           <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', justifyContent: 'space-between' }}>
             <Panel title="LOCATE" onDark padding="8px 10px">
               <div style={{ display: 'flex', gap: 10 }}>
-                <HardButton label="STEP" shiftLabel="EVENT" onDark size="sm" {...key('STEP_L')}>&lt;</HardButton>
-                <HardButton label="" onDark size="sm" {...key('STEP_R')}>&gt;</HardButton>
-                <HardButton label="GO TO" onDark size="sm" {...key('GOTO')} />
-                <HardButton label="BAR" shiftLabel="START" onDark size="sm" {...key('BAR_L')}>&lt;&lt;</HardButton>
-                <HardButton label="" shiftLabel="END" onDark size="sm" {...key('BAR_R')}>&gt;&gt;</HardButton>
+                <Tip id="step"><HardButton label="STEP" shiftLabel="EVENT" onDark size="sm" {...key('STEP_L')}>&lt;</HardButton></Tip>
+                <Tip id="step"><HardButton label="" onDark size="sm" {...key('STEP_R')}>&gt;</HardButton></Tip>
+                <Tip id="goto"><HardButton label="GO TO" onDark size="sm" {...key('GOTO')} /></Tip>
+                <Tip id="bar"><HardButton label="BAR" shiftLabel="START" onDark size="sm" {...key('BAR_L')}>&lt;&lt;</HardButton></Tip>
+                <Tip id="bar"><HardButton label="" shiftLabel="END" onDark size="sm" {...key('BAR_R')}>&gt;&gt;</HardButton></Tip>
               </div>
             </Panel>
             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
-              <HardButton label="REC" cap="red" led="red" ledOn={s.record === 'REC'} size="lg" onDark {...key('REC')} />
-              <HardButton label="OVER DUB" cap="red" led="red" ledOn={s.record === 'OVERDUB'} size="lg" onDark {...key('OVERDUB')} />
-              <HardButton label="STOP" size="lg" onDark {...key('STOP')}>■</HardButton>
-              <HardButton label="PLAY" size="lg" led="green" ledOn={s.playing} onDark {...key('PLAY')}>►</HardButton>
-              <HardButton label="PLAY START" size="lg" width={56} onDark {...key('PLAY_START')} />
+              <Tip id="rec"><HardButton label="REC" cap="red" led="red" ledOn={s.record === 'REC'} size="lg" onDark {...key('REC')} /></Tip>
+              <Tip id="overdub"><HardButton label="OVER DUB" cap="red" led="red" ledOn={s.record === 'OVERDUB'} size="lg" onDark {...key('OVERDUB')} /></Tip>
+              <Tip id="stop"><HardButton label="STOP" size="lg" onDark {...key('STOP')}>■</HardButton></Tip>
+              <Tip id="play"><HardButton label="PLAY" size="lg" led="green" ledOn={s.playing} onDark {...key('PLAY')}>►</HardButton></Tip>
+              <Tip id="playStart"><HardButton label="PLAY START" size="lg" width={56} onDark {...key('PLAY_START')} /></Tip>
             </div>
           </div>
         </div>
@@ -121,33 +135,36 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><img src="/logo.webp" alt="" style={{ width: 44, height: 44 }} /><Wordmark onDark /></div>
             <div style={{ display: 'flex', gap: 18 }}>
-              <Knob label="REC GAIN" size="sm" ticks={false} value={gain} onChange={setGain} onDark />
-              <Knob label="MAIN VOLUME" size="sm" ticks={false} value={vol} onChange={setVol} onDark />
+              <Tip id="recGain"><Knob label="REC GAIN" size="sm" ticks={false} value={gain} onChange={setGain} onDark /></Tip>
+              <Tip id="volume"><Knob label="MAIN VOLUME" size="sm" ticks={false} value={vol} onChange={setVol} onDark /></Tip>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: 14, justifyContent: 'space-between', alignItems: 'stretch' }}>
             <Panel title="" onDark padding="6px 10px"><div style={{ display: 'grid', gridTemplateColumns: 'auto auto', gap: '8px 12px' }}>
-              <HardButton label="FULL LEVEL" size="sm" onDark led="red" ledOn={s.fullLevel} {...key('FULL_LEVEL')} />
-              <HardButton label="16 LEVELS" size="sm" onDark led="red" ledOn={s.sixteenLevels} {...key('SIXTEEN_LEVELS')} />
-              <HardButton label="NEXT SEQ" size="sm" onDark active={s.mode === 'NEXT_SEQ'} {...key('NEXT_SEQ')} />
-              <HardButton label="TRACK MUTE" size="sm" onDark active={s.mode === 'TRACK_MUTE'} {...key('TRACK_MUTE')} />
+              <Tip id="fullLevel"><HardButton label="FULL LEVEL" size="sm" onDark led="red" ledOn={s.fullLevel} {...key('FULL_LEVEL')} /></Tip>
+              <Tip id="sixteenLevels"><HardButton label="16 LEVELS" size="sm" onDark led="red" ledOn={s.sixteenLevels} {...key('SIXTEEN_LEVELS')} /></Tip>
+              <Tip id="nextSeq"><HardButton label="NEXT SEQ" size="sm" onDark active={s.mode === 'NEXT_SEQ'} {...key('NEXT_SEQ')} /></Tip>
+              <Tip id="trackMute"><HardButton label="TRACK MUTE" size="sm" onDark active={s.mode === 'TRACK_MUTE'} {...key('TRACK_MUTE')} /></Tip>
             </div></Panel>
-            <Panel title="PAD BANK" onDark padding="6px 12px" style={{ display: 'flex', alignItems: 'center' }}><div style={{ display: 'flex', gap: 14 }}>
+            <Tip id="bank"><Panel title="PAD BANK" onDark padding="6px 12px" style={{ display: 'flex', alignItems: 'center' }}><div style={{ display: 'flex', gap: 14 }}>
               {BANKS.map((b, i) => <HardButton key={b} label={b} size="sm" led="green" ledOn={s.padBank === i} onDark {...key(`BANK_${b}` as HwKey)} />)}
-            </div></Panel>
+            </div></Panel></Tip>
           </div>
 
-          <div style={{ background: 'var(--cream)', border: 'var(--stroke-w) solid var(--ink)', borderRadius: 'var(--radius-panel)', padding: 14, boxShadow: 'inset 0 2px 6px rgba(0,0,0,.25)', display: 'grid', gridTemplateColumns: 'repeat(4, var(--pad-size))', gap: 'var(--pad-gap)', justifyContent: 'center' }}>
-            {[12, 13, 14, 15, 8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3].map(i => {
-              const slot = s.padBank * 16 + i;
-              return <Pad key={i} label={`PAD ${i + 1}`} note={String(fw.m.programs[fw.m.drums[s.drum].pgm].padToNote[slot])} letters={PAD_LETTERS[i].slice(0, 2)} lit={s.litPads.has(slot) || s.lastPad === slot && s.playing}
-                onTrigger={v => fw.padDown(slot, v)} onRelease={() => fw.padUp(slot)} onPressure={p => fw.padPressure(slot, p)} />;
-            })}
-          </div>
-          <span style={{ ...lbl, opacity: .7, textAlign: 'center' }}>BANK {BANKS[s.padBank]} · {fw.m.programs[fw.m.drums[s.drum].pgm].name} · HIT A PAD, PRESS PLAY</span>
+          <Tip id="pads" style={{ display: 'block' }}>
+            <div style={{ background: 'var(--cream)', border: 'var(--stroke-w) solid var(--ink)', borderRadius: 'var(--radius-panel)', padding: 14, boxShadow: 'inset 0 2px 6px rgba(0,0,0,.25)', display: 'grid', gridTemplateColumns: 'repeat(4, var(--pad-size))', gap: 'var(--pad-gap)', justifyContent: 'center' }}>
+              {[12, 13, 14, 15, 8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3].map(i => {
+                const slot = s.padBank * 16 + i;
+                return <Pad key={i} label={`PAD ${i + 1}`} note={String(padProgram.padToNote[slot])} letters={PAD_LETTERS[i].slice(0, 2)} hotkey={HOTKEYS[i]} lit={s.litPads.has(slot) || s.lastPad === slot && s.playing}
+                  onTrigger={v => fw.padDown(slot, v)} onRelease={() => fw.padUp(slot)} onPressure={p => fw.padPressure(slot, p)} />;
+              })}
+            </div>
+          </Tip>
+          <span style={{ ...lbl, opacity: .7, textAlign: 'center' }}>BANK {BANKS[s.padBank]} · {padProgram.name} · HIT A PAD, PRESS PLAY</span>
         </div>
       </div>
     </div>
+    </TipProvider>
   );
 }

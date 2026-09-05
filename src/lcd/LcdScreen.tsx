@@ -6,11 +6,21 @@ import { drawGraphics } from './graphics';
 
 /** VT323 advance width / font-size, measured on a real span inside the glass so it tracks the loaded font. */
 function measureRatio(host: HTMLElement): number {
+  // canvas text metrics are layout-independent: the chassis is scaled with a CSS transform, which would
+  // distort any DOM rectangle measurement and mis-size the grid
+  try {
+    const c = document.createElement('canvas').getContext('2d');
+    if (c) {
+      c.font = `100px ${getComputedStyle(host).fontFamily || 'VT323, monospace'}`;
+      const w = c.measureText('0000000000').width / 10;
+      if (w > 20 && w < 80) return w / 100;
+    }
+  } catch { /* fall through */ }
   const probe = document.createElement('span');
   probe.textContent = '0000000000';
   probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;font:inherit;font-size:100px;line-height:1';
   host.appendChild(probe);
-  const w = probe.getBoundingClientRect().width / 10;
+  const w = probe.offsetWidth / 10;
   host.removeChild(probe);
   return w > 20 && w < 80 ? w / 100 : 0.5;
 }
