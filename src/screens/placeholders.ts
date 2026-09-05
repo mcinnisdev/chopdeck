@@ -44,10 +44,7 @@ export const placeholderScreens: ScreenDef[] = [
   ...placeholder('SONG', 'SONG', [null, null, null, action('CONVRT'), action('DELETE'), action('INSERT')]),
   ...placeholder('MISC', 'MISC.', [page('PUNCH', 'PUNCH'), page('TRANS', 'TRANS'), page('2ndSEQ', '2NDSEQ'), null, null, action('TurnON')], ['PUNCH', 'TRANS', '2NDSEQ']),
   ...placeholder('SAVE', 'SAVE', [page('LOAD', 'LOAD'), page('SAVE', 'SAVE'), page('FORMAT', 'FORMAT'), null, null, action('DO IT')], ['LOAD', 'SAVE', 'FORMAT']),
-  ...placeholder('SAMPLE', 'SAMPLE', [action('RESET'), action('PEAK'), null, null, null, action('RECORD')]),
   ...placeholder('TRIM', 'TRIM', [page('TRIM', 'TRIM'), page('LOOP', 'LOOP'), page('ZONE', 'ZONE'), page('PARAMS', 'PARAMS'), action('EDIT'), action('PLAY X')], ['TRIM', 'LOOP', 'ZONE', 'PARAMS']),
   ...placeholder('OTHER', 'OTHER', [page('OTHERS', 'OTHERS'), page('INIT', 'INIT'), page('VER.', 'VER'), null, null, null], ['OTHERS', 'INIT', 'VER']),
   ...placeholder('MIDI', 'MIDI/SYNC', [page('SYNC', 'SYNC'), page('DUMP', 'DUMP'), page('MIDIsw', 'MIDISW'), null, null, null], ['SYNC', 'DUMP', 'MIDISW']),
-  ...placeholder('TRACK_MUTE', 'TRACK MUTE', [null, null, null, null, null, action('SOLO')]),
-  ...placeholder('NEXT_SEQ', 'NEXT SEQ', [null, null, null, action('SUDDEN'), action('CLEAR'), action('PAD')]),
 ];

@@ -70,6 +70,8 @@ export interface TransportApi {
   setErase?(on: boolean): void;
   /** Sequencer position at this instant (fractional ticks), for displays. */
   tickNow?(): number;
+  /** Jump to another sequence immediately (NEXT SEQ > SUDDEN). */
+  switchSequence?(seq: number): void;
 }
 
 export interface ConfirmOpts {

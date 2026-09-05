@@ -20,7 +20,8 @@ const mainFields = (c: Ctx): Field[] => {
   const tr = trackOf(c);
   const isDrum = tr.type !== 'MIDI';
   return [
-    intField({ id: 'seq', row: 0, col: 3, width: 2, label: 'Sq:', min: 1, max: NUM_SEQUENCES, get: c => c.s.seq + 1, set: (c, v) => { c.s.seq = v - 1; }, fmt: pad2,
+    // while playing, the wheel queues the next sequence instead of jumping (Next Sq: shown on row 6)
+    intField({ id: 'seq', row: 0, col: 3, width: 2, label: 'Sq:', min: 1, max: NUM_SEQUENCES, get: c => (c.s.playing && c.s.nextSeq != null ? c.s.nextSeq : c.s.seq) + 1, set: (c, v) => { if (c.s.playing) c.s.nextSeq = v - 1; else c.s.seq = v - 1; }, fmt: pad2,
       window: c => c.fw.openWindow('MAIN/SEQUENCE') }),
     textField('seqDash', 0, 5, 1, () => '-'),
     nameField({ id: 'seqName', row: 0, col: 6, raw: c => seqOf(c).name, get: c => (seq.used ? seq.name : `(${seq.name})`), set: (c, n) => { seqOf(c).name = n; seqOf(c).used = true; },
@@ -181,7 +182,8 @@ export const changeBarsWindow: ScreenDef = {
     text(f, 5, 2, n >= cur ? 'Pressing DO IT will add blank bars after last bar.' : 'Pressing DO IT will truncate bars after last bar.', ATTR_DIM);
   },
   softKeys: () => [
-    null, null, null,
+    null, null,
+    { label: 'IN/DEL', kind: 'action', press: c => c.fw.openWindow('MAIN/BARS_INDEL') },
     { label: 'CANCEL', kind: 'action', press: c => c.fw.closeWindow() },
     { label: 'DO IT', kind: 'action', press: c => { c.fw.snapshotForUndo(); setBars(seqOf(c), newBars(c)); c.fw.closeWindow(); } },
     null,

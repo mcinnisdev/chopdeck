@@ -2,6 +2,7 @@
 import { Machine, Sound, NOTE_MIN, NOTE_MAX } from '@/model/types';
 import { SoundApi, NoteVar } from '@/kernel/screen';
 import { planVoice, resolveNotes, ampEnvelope, cutoffHz, MAX_VOICES, VoicePlan } from './params';
+import { Recorder } from './recorder';
 
 interface Voice {
   id: number;
@@ -27,7 +28,12 @@ export class AudioEngine implements SoundApi {
   private nextId = 1;
   private volume = 0.8;
 
+  /** SAMPLE mode input; taps the master bus for RESAMPLE. */
+  readonly recorder = new Recorder(() => this.boot(), () => this.analyser);
+
   constructor(private getMachine: () => Machine) {}
+
+  sampleRate(): number { return this.ctx?.sampleRate ?? 44100; }
 
   /** Create/resume the context. Safe to call on every user gesture. */
   boot(): AudioContext {
@@ -207,5 +213,15 @@ export class AudioEngine implements SoundApi {
     return { pcm, rate: buf.sampleRate };
   }
 
-  mixerChanged() { /* voices are short; new hits pick up the mixer. Live update comes with the MIXER phase. */ }
+  /** Mixer moved: update level/pan of voices still sounding and the master trim. */
+  mixerChanged() {
+    if (!this.ctx) return;
+    const m = this.getMachine();
+    const now = this.ctx.currentTime;
+    this.master.gain.setTargetAtTime(this.volume * Math.pow(10, m.masterLevelDb / 20), now, 0.02);
+    for (const v of this.voices) {
+      const pg = m.programs[m.drums[v.drum]?.pgm ?? 0]; const np = pg?.notes[v.note - NOTE_MIN]; if (!np) continue;
+      v.pan.pan.setTargetAtTime(Math.max(-1, Math.min(1, (np.pan - 50) / 50)), now, 0.02);
+    }
+  }
 }

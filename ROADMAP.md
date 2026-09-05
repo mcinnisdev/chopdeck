@@ -257,24 +257,24 @@ machine to IndexedDB).
 
 Make it a drum machine.
 
-- [ ] Tick engine: tempo map (initial tempo + tempo-change list, SEQ vs MAS source), tsig per bar,
+- [x] Tick engine: tempo map (initial tempo + tempo-change list, SEQ vs MAS source), tsig per bar,
       `bar.beat.tick` and `h m s f` display styles, Worker clock + lookahead scheduler.
-- [ ] Transport: PLAY, PLAY START, STOP, REC, OVER DUB with all the manual's combinations, punch-in by
+- [x] Transport: PLAY, PLAY START, STOP, REC, OVER DUB with all the manual's combinations, punch-in by
       pressing REC/OVERDUB during play, loop (First/Last/END window) with REC->OVERDUB on wrap, auto-append
       bars when Loop is OFF, count-in and metronome (CLICK or DRUM accent/normal), Wait for key.
-- [ ] Recording: audio-clock timestamps, real-time timing correct with swing and shift timing, note
+- [x] Recording: audio-clock timestamps, real-time timing correct with swing and shift timing, note
       duration from release, note variation captured per note, Velo% playback scaling, track ON/OFF,
       TrMUTE / SOLO soft keys, Tr- / Tr+.
-- [ ] Locate: STEP < >, BAR << >>, GO TO combos (start, end, previous/next event), Locate window with
+- [x] Locate: STEP < >, BAR << >>, GO TO combos (start, end, previous/next event), Locate window with
       nine memories, `Now:` wheel-editable.
-- [ ] ERASE: hold + pad during overdub; Erase window when stopped (track, time range, event-type filter,
+- [x] ERASE: hold + pad during overdub; Erase window when stopped (track, time range, event-type filter,
       notes filter).
-- [ ] UNDO SEQ single-level with LED; TAP TEMPO with averaging; NOTE REPEAT with pressure velocity and
+- [x] UNDO SEQ single-level with LED; TAP TEMPO with averaging; NOTE REPEAT with pressure velocity and
       SHIFT lock.
 - [ ] All MAIN windows from the inventory: Sequence (rename/default/delete/all/copy/params), Time Display,
       Tempo Change, Timing Correct (destructive), Change Tsig, Count/Metronome + Metronome Sound, Loop,
       Change Bars + IN/DEL, Track (rename/default/delete/all/copy), Erase all OFF tracks, Edit Velocity.
-- [ ] TRACK MUTE pad page with SOLO; NEXT SEQ screen with SUDDEN / CLEAR / PAD page; second sequence.
+- [x] TRACK MUTE pad page with SOLO; NEXT SEQ screen with SUDDEN / CLEAR / PAD page; second sequence.
 - [ ] Sequence user defaults (EDIT -> USER).
 
 Done when: you can record a two-bar loop with count-in, quantise it with swing, overdub hats with note

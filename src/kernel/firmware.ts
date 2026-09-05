@@ -44,6 +44,7 @@ export class Firmware {
   host: HostApi = { pickFiles() {} };
   hooks: PadHooks = {};
   private heldPads = new Map<number, { drum: number; note: number }>();
+  private gotoCombo = false;
   private screens = new Map<string, ScreenDef>();
   private listeners = new Set<() => void>();
   private undoSnapshot: { seq: number; data: Sequence } | null = null;
@@ -171,6 +172,7 @@ export class Firmware {
     if (!down) {
       if (k === 'TAP') this.transport.setRepeat?.(false);
       if (k === 'ERASE') this.transport.setErase?.(false);
+      if (k === 'GOTO' && !this.gotoCombo && !s.windows.length) this.api.openWindow('LOCATE');
       this.touch();
       return;
     }
@@ -210,7 +212,11 @@ export class Firmware {
       case 'REC': this.transport.setRecord('REC'); return;
       case 'OVERDUB': this.transport.setRecord('OVERDUB'); return;
       case 'TAP': this.transport.tap(); this.transport.setRepeat?.(true); return;
-      case 'ERASE': this.transport.setErase?.(true); return;
+      case 'ERASE':
+        if (s.playing) this.transport.setErase?.(true);
+        else if (s.mode === 'MAIN' && !s.windows.length) this.api.openWindow('MAIN/ERASE');
+        return;
+      case 'GOTO': this.gotoCombo = false; return;
       case 'BANK_A': case 'BANK_B': case 'BANK_C': case 'BANK_D':
         s.padBank = ['BANK_A', 'BANK_B', 'BANK_C', 'BANK_D'].indexOf(k); this.touch(); return;
       case 'FULL_LEVEL': s.fullLevel = !s.fullLevel; this.touch(); return;
@@ -236,6 +242,7 @@ export class Firmware {
   private locateKey(k: 'BAR_L' | 'BAR_R' | 'STEP_L' | 'STEP_R') {
     const s = this.s; const seq = this.m.sequences[s.seq];
     const goto = s.held.has('GOTO');
+    if (goto) this.gotoCombo = true;
     const len = sequenceLengthTicks(seq);
     if (k === 'BAR_L' || k === 'BAR_R') {
       if (goto) { this.transport.locate(k === 'BAR_L' ? 0 : len); return; }
@@ -244,6 +251,12 @@ export class Firmware {
       const start = barStartTick(seq.tsigs, bar0);
       if (k === 'BAR_L') this.transport.locate(s.now > start ? start : barStartTick(seq.tsigs, Math.max(0, bar0 - 1)));
       else this.transport.locate(barStartTick(seq.tsigs, bar0 + 1));
+      return;
+    }
+    if (goto) {
+      const ev = seq.tracks[s.track].events;
+      const target = k === 'STEP_L' ? [...ev].reverse().find(e => e.tick < s.now) : ev.find(e => e.tick > s.now);
+      if (target) this.transport.locate(target.tick);
       return;
     }
     const step = TIMING_TICKS[this.m.timing];

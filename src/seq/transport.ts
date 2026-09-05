@@ -166,6 +166,15 @@ export class Transport implements TransportApi {
     }
   }
 
+  /** NEXT SEQ > SUDDEN: jump to another sequence right now (from its start). */
+  switchSequence(seq: number) {
+    if (seq === this.s.seq) return;
+    this.s.seq = seq; this.s.nextSeq = null; this.s.message = null;
+    if (this.running) { const now = this.host.sound.now(); this.finishPending(Math.floor(this.tickAtTime(now))); this.host.sound.stopAll(); this.reanchor(0, now + 0.02); this.scheduledTo = 0; this.erasedTo = 0; this.recordedNow.clear(); }
+    this.s.now = 0;
+    this.host.touch();
+  }
+
   setRepeat(on: boolean) { this.repeatHeld = on; if (!on) this.repeatLast.clear(); }
   setErase(on: boolean) { this.eraseHeld = on; }
 
@@ -294,9 +303,10 @@ export class Transport implements TransportApi {
       tr.events = tr.events.filter(e => !(e.kind === 'note' && e.tick >= f0 && e.tick < to && notes.has(e.note)));
     }
 
-    // track playback
-    q.tracks.forEach((tr, ti) => {
-      if (!tr.on || (this.s.soloTrack != null && this.s.soloTrack !== ti)) return;
+    // track playback (the active sequence, plus the second sequence when one is switched on)
+    const second = this.s.secondSeq != null && this.s.secondSeq !== this.s.seq ? this.m.sequences[this.s.secondSeq] : null;
+    const play = (tracks: Sequence['tracks'], primary: boolean) => tracks.forEach((tr, ti) => {
+      if (!tr.on || (primary && this.s.soloTrack != null && this.s.soloTrack !== ti)) return;
       const ti0 = TRACK_TYPES.indexOf(tr.type);
       if (ti0 <= 0) return; // MIDI tracks: Phase 5
       const drum = ti0 - 1;
@@ -310,6 +320,8 @@ export class Transport implements TransportApi {
         sound.noteOff(drum, e.note, this.timeAtTick(e.tick + e.dur));
       }
     });
+    play(q.tracks, true);
+    if (second) play(second.tracks, false);
 
     // note repeat: held pads on the timing grid
     if (this.repeatHeld && this.heldPads.size && this.m.timing !== 'OFF') {

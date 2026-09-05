@@ -37,11 +37,14 @@ export function eraseEvents(track: Track, f: EraseFilter): number {
   track.events = track.events.filter(e => {
     if (e.tick < f.from || e.tick >= f.to) return true;
     const kindMatch = !f.kind || e.kind === f.kind;
-    const noteMatch = !f.notes || e.kind !== 'note' || (e.note >= f.notes.lo && e.note <= f.notes.hi);
+    // a note range restricts erasing to notes inside it
+    const noteOk = !f.notes || (e.kind === 'note' && e.note >= f.notes.lo && e.note <= f.notes.hi);
     const mode = f.mode ?? 'ALL';
-    if (mode === 'ALL') return f.notes ? !(e.kind === 'note' && noteMatch) && e.kind === 'note' ? true : !noteMatch : false;
-    if (mode === 'ONLY') return !(kindMatch && noteMatch);
-    return kindMatch && noteMatch ? true : false; // EXCEPT: keep the matching kind, erase the rest
+    let erase: boolean;
+    if (mode === 'ALL') erase = noteOk;
+    else if (mode === 'ONLY') erase = kindMatch && (f.kind !== 'note' || noteOk);
+    else erase = !kindMatch; // EXCEPT: keep the matching kind, erase the rest
+    return !erase;
   });
   return before - track.events.length;
 }
