@@ -129,6 +129,18 @@ export class Firmware {
     const fields = this.visibleFields(def, ctx).filter(f => !f.skip);
     return { def, field: fields[this.cursorIndex(def, fields)], fields };
   }
+  /** The field (label or value) drawn at an LCD cell, on the top window or the mode screen. */
+  fieldAt(row: number, col: number): { def: ScreenDef; field: Field } | null {
+    const def = this.current(); if (!def) return null;
+    const ctx = this.ctx();
+    for (const f of this.visibleFields(def, ctx)) {
+      if (f.row !== row) continue;
+      const start = f.col - (f.label?.length ?? 0);
+      if (col >= start && col < f.col + f.width) return { def, field: f };
+    }
+    return null;
+  }
+
   moveCursor(dir: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') {
     const cf = this.cursorField(); if (!cf || !cf.field) return;
     const { def, fields } = cf;

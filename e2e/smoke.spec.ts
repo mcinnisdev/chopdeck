@@ -5,7 +5,7 @@ test('the machine boots to the MAIN screen and responds to keys', async ({ page 
   page.on('pageerror', e => errors.push(e.message));
   await page.goto('/');
   const lcd = page.getByRole('region', { name: 'LCD' });
-  await expect(lcd).toContainText('Sq:01-(Sequence01)');
+  await expect(lcd).toContainText('Sq:01-First Beat');
   await expect(lcd).toContainText('Now:001.01.00');
   // SHIFT + 5 on the keypad -> TRIM
   await page.getByRole('button', { name: 'SHIFT' }).dispatchEvent('pointerdown', { button: 0, pointerId: 1 });

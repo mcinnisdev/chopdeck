@@ -10,6 +10,7 @@ import { useHostEvents } from './host';
 import { AudioEngine } from '@/audio/engine';
 import { Tip, useTips } from './Tip';
 import { MANUAL_URL, softKeyHelp } from './help';
+import { fieldHelp } from './field-help';
 
 const CHASSIS_W = 1240;
 const LCD_W = 640;
@@ -67,7 +68,13 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
           <div style={{ width: LCD_W, margin: '0 auto' }}>
             <Lcd style={{ width: '100%' }}>
               <LcdScreen frame={frame} onSoftKey={i => { const k = `F${i + 1}` as HwKey; fw.key(k, true); fw.key(k, false); }}
-                onSoftKeyHover={(i, el) => { if (i == null) { tips.hide(); return; } const entry = softKeyHelp(soft[i]?.label ?? '', i); if (entry) tips.show(entry, el); }} />
+                onSoftKeyHover={(i, el) => { if (i == null) { tips.hide(); return; } const entry = softKeyHelp(soft[i]?.label ?? '', i); if (entry) tips.show(entry, el); }}
+                onCellHover={(cell, el) => {
+                  if (!cell) { tips.hide(); return; }
+                  const hit = fw.fieldAt(cell.row, cell.col);
+                  if (!hit) { tips.hide(); return; }
+                  tips.show(fieldHelp(hit.def.id, hit.field.id, hit.field.label, fw.s.mode, hit.field.get(fw.ctx())), el);
+                }} />
             </Lcd>
             <Tip id="f" style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', padding: '10px 12px 0', justifyItems: 'center' }}>
               {[0, 1, 2, 3, 4, 5].map(i => <HardButton key={i} label={`F${i + 1}`} size="sm" onDark disabled={!soft[i]?.label} {...key(`F${i + 1}` as HwKey)} />)}

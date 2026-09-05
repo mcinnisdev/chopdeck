@@ -16,7 +16,7 @@ One product / surface: the app (`ui_kits/chopdeck-app/`).
 - **Labels are silkscreen, printed UNDER the control** (pads are the exception: label above). Status LEDs sit directly above the cap — the classic hardware arrangement — and every button reserves that LED slot so caps in a row share a baseline. Short nouns/verbs — `PAD BANK`, `TAP TEMPO`, `OVER DUB`, `PLAY START`, `OPEN WINDOW`. 1–3 words, uppercase, condensed.
 - **Numbers are padded and monospaced** on the LCD: `SEQ:01`, `NOW:001.01.00`, `BPM: 93.0`, `ST:0004120`.
 - **Body prose (Barlow) appears only outside the machine** (help, settings, legal): plain sentence case, short, dry-friendly: "Drop a WAV or MP3 on the LCD to load it. 16 pads, one bank at a time."
-- Brand name: **Chop Deck** in prose (two words); `CHOP DECK` wordmark (CHOP red, DECK italic). Never "MPC" in product copy or UI — it is a third-party trademark; say "sampler", "the machine", "the deck".
+- Brand name: **Chop Deck** in prose (two words); `CHOPDECK` wordmark set solid with no space (CHOP red, DECK italic). Never "MPC" in product copy or UI — it is a third-party trademark; say "sampler", "the machine", "the deck".
 
 ## Visual foundations
 - **Colour.** From the logo: cream panel `--cream #FBF2DA`, pad red `--red #F23A28`, ink `--ink #1B1B1B`. Chassis: navy `--navy #1F3F6E` (nod to the 2000XL body) with a darker `--navy-deep` edge. Display: yellow-green LCD glass `--lcd #B7C58C` with dark-green ink `--lcd-ink`. Status lives **only in LEDs**: red (rec), green (play), amber (attention/window). App background outside the chassis is ink with faint grain. No gradients except the subtle radial on knob caps; no purple, no pastel.

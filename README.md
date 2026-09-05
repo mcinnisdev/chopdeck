@@ -22,7 +22,7 @@ npm install
 npm run dev
 ```
 
-Open the printed URL in a Chromium browser (Web MIDI needs Chromium; everything else works in Firefox and
+The machine boots with a factory demo: a starter kit, a two-bar break already chopped onto program 2, two sequences and a song, so PLAY START makes a beat on the first visit (OTHER > INIT restores it). Open the printed URL in a Chromium browser (Web MIDI needs Chromium; everything else works in Firefox and
 Safari too). Hit a pad. `Shift` + a number key changes mode, exactly like the silkscreen on the keypad.
 
 ## Keyboard

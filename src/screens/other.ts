@@ -3,6 +3,7 @@ import { ScreenDef, Ctx } from '@/kernel/screen';
 import { text, ATTR_DIM } from '@/lcd/frame';
 import { intField, clamp } from './util';
 import { newMachine } from '@/model/factory';
+import { installDemo } from '@/audio/demo';
 
 export const OS_VERSION = '0.4';
 let helpPage = 0;
@@ -18,7 +19,7 @@ const footer = (page: string): ((c: Ctx) => (import('@/kernel/screen').SoftKeyDe
   { label: 'VER.', kind: page === 'VER' ? 'current' : 'page', press: c => c.fw.setPage('VER') },
   page === 'OTHERS' ? { label: 'HELP', kind: 'action', press: () => { helpPage = (helpPage + 1) % HELP.length; } } : null,
   null,
-  page === 'INIT' ? { label: 'DO IT', kind: 'action', press: c => c.fw.confirm({ title: 'Initialize ALL PARAMETERS', lines: ['', 'Pressing DO IT will initialize!!', 'Sequences, programs and sounds are erased.'], doIt: () => { const fresh = newMachine(); Object.assign(c.m, fresh); c.s.seq = 0; c.s.track = 0; c.s.now = 0; c.s.sound = 0; c.s.program = 0; c.fw.message('INITIALIZED'); } }) } : null,
+  page === 'INIT' ? { label: 'DO IT', kind: 'action', press: c => c.fw.confirm({ title: 'Initialize ALL PARAMETERS', lines: ['', 'Pressing DO IT will initialize!!', 'Sequences, programs and sounds are erased.'], doIt: () => { const fresh = newMachine(); fresh.programs[0].used = true; installDemo(fresh); Object.assign(c.m, fresh); c.s.seq = 0; c.s.track = 0; c.s.now = 0; c.s.sound = 0; c.s.program = 0; c.fw.message('INITIALIZED'); } }) } : null,
 ];
 
 export const othersPage: ScreenDef = {

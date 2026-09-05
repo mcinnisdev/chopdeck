@@ -11,7 +11,8 @@ test('record a loop with the pads, hear it play back, and see the step grid', as
   await page.click('body');
 
   // 2 bars, loop on: Bars field is the 10th landable field; use the wheel path via the LCD window instead
-  await page.evaluate(() => { const fw = (window as unknown as Win).chopdeck; const q = fw.m.sequences[0] as unknown as { bars: number; loop: { on: boolean }; used: boolean }; q.bars = 1; q.loop.on = true; q.used = true; });
+  // record on an empty sequence (the first two hold the factory demo)
+  await page.evaluate(() => { const fw = (window as unknown as Win).chopdeck; fw.s.seq = 2; const q = fw.m.sequences[2] as unknown as { bars: number; loop: { on: boolean }; used: boolean }; q.bars = 1; q.loop.on = true; q.used = true; });
 
   await page.keyboard.press('F7');          // REC arm
   await expect(lcd).toContainText('● REC');
@@ -25,7 +26,7 @@ test('record a loop with the pads, hear it play back, and see the step grid', as
   await page.keyboard.press('KeyZ');
   await page.waitForTimeout(1100);          // past the loop point -> OVERDUB
   await expect(lcd).toContainText('● DUB');
-  const events = await page.evaluate(() => (window as unknown as Win).chopdeck.m.sequences[0].tracks[0].events.map(e => [e.tick, e.note]));
+  const events = await page.evaluate(() => (window as unknown as Win).chopdeck.m.sequences[2].tracks[0].events.map(e => [e.tick, e.note]));
   expect(events.length).toBeGreaterThanOrEqual(3);
   // quantised to the 1/16 grid
   for (const [tick] of events) expect(tick % 24).toBe(0);

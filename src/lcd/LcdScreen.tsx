@@ -6,23 +6,20 @@ import { drawGraphics } from './graphics';
 
 /** VT323 advance width / font-size, measured on a real span inside the glass so it tracks the loaded font. */
 function measureRatio(host: HTMLElement): number {
-  // canvas text metrics are layout-independent: the chassis is scaled with a CSS transform, which would
-  // distort any DOM rectangle measurement and mis-size the grid
+  // a DOM probe measured with offsetWidth: layout width, unaffected by the chassis scale transform,
+  // and laid out by the same text engine as the rows (canvas metrics can disagree with it by a few percent)
+  const probe = document.createElement('span');
+  probe.textContent = '000000000000000000000000000000000000000000000000';
+  probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;font:inherit;font-size:100px;line-height:1;left:0;top:0';
+  host.appendChild(probe);
+  const w = probe.offsetWidth / 48;
+  host.removeChild(probe);
+  if (w > 20 && w < 80) return w / 100;
   try {
     const c = document.createElement('canvas').getContext('2d');
-    if (c) {
-      c.font = `100px ${getComputedStyle(host).fontFamily || 'VT323, monospace'}`;
-      const w = c.measureText('0000000000').width / 10;
-      if (w > 20 && w < 80) return w / 100;
-    }
+    if (c) { c.font = `100px ${getComputedStyle(host).fontFamily || 'VT323, monospace'}`; const cw = c.measureText('0000000000').width / 10; if (cw > 20 && cw < 80) return cw / 100; }
   } catch { /* fall through */ }
-  const probe = document.createElement('span');
-  probe.textContent = '0000000000';
-  probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;font:inherit;font-size:100px;line-height:1';
-  host.appendChild(probe);
-  const w = probe.offsetWidth / 10;
-  host.removeChild(probe);
-  return w > 20 && w < 80 ? w / 100 : 0.5;
+  return 0.5;
 }
 
 interface Run { text: string; attr: number }
@@ -54,15 +51,17 @@ export interface LcdScreenProps {
   onSoftKey?: (index: number) => void;
   /** Mouse over a soft-key slot (index) or off the row (null), with the slot element for positioning. */
   onSoftKeyHover?: (index: number | null, el: HTMLElement) => void;
+  /** Mouse over a content cell (rows 0..6), or null when the pointer leaves the row. */
+  onCellHover?: (cell: { row: number; col: number } | null, el: HTMLElement) => void;
   style?: CSSProperties;
 }
 
-export const LcdScreen = memo(function LcdScreen({ frame, onSoftKey, onSoftKeyHover, style }: LcdScreenProps) {
+export const LcdScreen = memo(function LcdScreen({ frame, onSoftKey, onSoftKeyHover, onCellHover, style }: LcdScreenProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [fontSize, setFontSize] = useState(20);
   useLayoutEffect(() => {
     const el = ref.current; if (!el) return;
-    const fit = () => { const ratio = measureRatio(el); setFontSize(Math.floor((el.clientWidth / frame.cols) / ratio * 100) / 100); };
+    const fit = () => { const ratio = measureRatio(el); setFontSize(Math.floor((el.clientWidth / frame.cols) / ratio * 0.985 * 100) / 100); };
     fit();
     const ro = new ResizeObserver(fit); ro.observe(el);
     // re-fit once the LCD font is actually available (fonts.ready can resolve before the webfont is requested)
@@ -72,6 +71,13 @@ export const LcdScreen = memo(function LcdScreen({ frame, onSoftKey, onSoftKeyHo
     document.fonts?.addEventListener?.('loadingdone', onDone);
     return () => { ro.disconnect(); document.fonts?.removeEventListener?.('loadingdone', onDone); };
   }, [frame.cols]);
+
+  // feedback: if a rendered row still overflows the glass (glyph rounding at small sizes), shrink to fit
+  useLayoutEffect(() => {
+    const el = ref.current; if (!el) return;
+    const over = el.scrollWidth / Math.max(1, el.clientWidth);
+    if (over > 1.003) setFontSize(f => Math.floor((f / over) * 100) / 100);
+  }, [fontSize, frame]);
 
   const rows = [];
   for (let r = 0; r < frame.rows; r++) rows.push(rowRuns(frame, r));
@@ -97,7 +103,9 @@ export const LcdScreen = memo(function LcdScreen({ frame, onSoftKey, onSoftKeyHo
       <style>{'@keyframes lcd-blink{50%{opacity:0}}'}</style>
       <canvas ref={canvasRef} aria-hidden style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: fontSize * frame.rows, pointerEvents: 'none', imageRendering: 'pixelated' }} />
       {rows.map((runs, r) => (
-        <div key={r} style={{ height: fontSize, display: 'flex' }}>
+        <div key={r} style={{ height: fontSize, display: 'flex' }}
+          onPointerMove={r === SOFTKEY_ROW || !onCellHover ? undefined : e => { if (e.pointerType !== 'mouse') return; const rect = e.currentTarget.getBoundingClientRect(); const col = Math.floor(((e.clientX - rect.left) / rect.width) * frame.cols); onCellHover({ row: r, col }, e.currentTarget); }}
+          onPointerLeave={r === SOFTKEY_ROW || !onCellHover ? undefined : e => onCellHover(null, e.currentTarget)}>
           {r === SOFTKEY_ROW && onSoftKey
             ? Array.from({ length: 6 }, (_, i) => {
                 const slot = frame.cols / 6;

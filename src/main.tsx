@@ -6,7 +6,7 @@ import { allScreens } from '@/screens';
 import { AudioEngine } from '@/audio/engine';
 import { Transport } from '@/seq/transport';
 import { WorkerClock } from '@/seq/clock';
-import { installStarterKit } from '@/audio/starterKit';
+import { installDemo } from '@/audio/demo';
 import { loadAutosave, startAutosave } from '@/disk/autosave';
 import { FirmwareContext } from '@/app/store';
 import { Chassis } from '@/app/Chassis';
@@ -27,7 +27,7 @@ document.head.appendChild(style);
 async function powerOn() {
   const restored = await loadAutosave();
   const machine = restored ?? newMachineWithStarterProgram();
-  if (!restored) installStarterKit(machine);
+  if (!restored) installDemo(machine);
 
   const firmware = new Firmware(machine, allScreens);
   const engine = new AudioEngine(() => firmware.m);

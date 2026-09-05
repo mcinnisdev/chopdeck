@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 
-/** Typographic "CHOP DECK" wordmark. Use the pad-grid logo (assets/logo.webp) as the mark; this is the type lockup beside it. */
+/** Typographic "CHOPDECK" wordmark, set solid: CHOP in red, DECK italic, no space. Use the pad-grid logo (assets/logo.webp) as the mark; this is the type lockup beside it. */
 export interface WordmarkProps {
   size?: 'sm' | 'md' | 'lg';
   onDark?: boolean;
@@ -13,7 +13,7 @@ export function Wordmark({ size = 'md', onDark = false, style }: WordmarkProps) 
     <span
       aria-label="Chop Deck"
       style={{
-        display: 'inline-flex', alignItems: 'baseline', gap: '.18em', fontFamily: 'var(--font-label)', fontWeight: 700, fontSize: fs,
+        display: 'inline-flex', alignItems: 'baseline', gap: 0, fontFamily: 'var(--font-label)', fontWeight: 700, fontSize: fs,
         lineHeight: 1, letterSpacing: '-.01em', textTransform: 'uppercase', color: onDark ? 'var(--cream)' : 'var(--ink)', ...style,
       }}
     >
