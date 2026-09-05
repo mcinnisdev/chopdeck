@@ -62,5 +62,5 @@ npm run build
 - `src/disk/` file formats (WAV, SMF, ZIP bundles) and the IndexedDB drive.
 - `src/midi/` Web MIDI.
 
-`ROADMAP.md` is the plan and its status. `docs/mpc2000xl-feature-inventory.md` is the behavioural spec the
+`ROADMAP.md` is the plan and its status. `docs/DEPLOY.md` explains how the site is deployed to chopdeck.com on Cloudflare Pages. `docs/mpc2000xl-feature-inventory.md` is the behavioural spec the
 screens follow.
