@@ -8,8 +8,8 @@ import { useFirmware } from './store';
 import { useKeyboard, PAD_KEYS } from './useKeyboard';
 import { useHostEvents } from './host';
 import { AudioEngine } from '@/audio/engine';
-import { Tip, TipProvider } from './Tip';
-import { MANUAL_URL } from './help';
+import { Tip, useTips } from './Tip';
+import { MANUAL_URL, softKeyHelp } from './help';
 
 const CHASSIS_W = 1240;
 const LCD_W = 640;
@@ -41,9 +41,9 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
   const [gain, setGain] = useState(40);
   useEffect(() => { engine.setVolume(Math.pow(vol / 100, 1.5)); }, [vol, engine]);
   const padProgram = fw.m.programs[fw.m.drums[s.drum].pgm];
+  const tips = useTips();
 
   return (
-    <TipProvider>
     <div style={{ height: h || 'auto', position: 'relative' }}>
       <div ref={wrapRef} style={{ width: CHASSIS_W, position: 'absolute', left: '50%', top: 0, transform: `translateX(-50%) scale(${scale})`, transformOrigin: 'top center', background: 'var(--navy) var(--texture-grain)', border: '3px solid var(--ink)', borderRadius: 'var(--radius-chassis)', boxShadow: 'var(--chassis-shadow)', padding: 22, boxSizing: 'border-box', display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20, color: 'var(--cream)' }}>
 
@@ -53,6 +53,8 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
             <span style={{ ...lbl, opacity: .8 }}>
               INTEGRATED RHYTHM MACHINE · 16 BIT SAMPLER · SEQUENCER ·{' '}
               <Tip id="manual"><a href={MANUAL_URL} target="_blank" rel="noopener" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>OWNER'S MANUAL</a></Tip>
+              {' · '}
+              <Tip id="tips"><button type="button" aria-pressed={tips.enabled} onClick={() => tips.setEnabled(!tips.enabled)} style={{ ...lbl, background: 'none', border: 0, padding: 0, cursor: 'pointer', color: tips.enabled ? 'var(--led-amber)' : 'var(--cream)', opacity: tips.enabled ? 1 : .6, borderBottom: '1px solid currentColor' }}>TIPS {tips.enabled ? 'ON' : 'OFF'}</button></Tip>
             </span>
             <div style={{ display: 'flex', gap: 14 }}>
               <Led color="green" on={s.playing} label="PLAY" style={{ color: 'var(--cream)' }} />
@@ -63,11 +65,10 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
 
           {/* the display sits in the panel like the hardware's: fixed width, F-keys aligned beneath it */}
           <div style={{ width: LCD_W, margin: '0 auto' }}>
-            <Tip id="lcd" style={{ display: 'block' }}>
-              <Lcd style={{ width: '100%' }}>
-                <LcdScreen frame={frame} onSoftKey={i => { const k = `F${i + 1}` as HwKey; fw.key(k, true); fw.key(k, false); }} />
-              </Lcd>
-            </Tip>
+            <Lcd style={{ width: '100%' }}>
+              <LcdScreen frame={frame} onSoftKey={i => { const k = `F${i + 1}` as HwKey; fw.key(k, true); fw.key(k, false); }}
+                onSoftKeyHover={(i, el) => { if (i == null) { tips.hide(); return; } const entry = softKeyHelp(soft[i]?.label ?? '', i); if (entry) tips.show(entry, el); }} />
+            </Lcd>
             <Tip id="f" style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', padding: '10px 12px 0', justifyItems: 'center' }}>
               {[0, 1, 2, 3, 4, 5].map(i => <HardButton key={i} label={`F${i + 1}`} size="sm" onDark disabled={!soft[i]?.label} {...key(`F${i + 1}` as HwKey)} />)}
             </Tip>
@@ -165,6 +166,5 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
         </div>
       </div>
     </div>
-    </TipProvider>
   );
 }

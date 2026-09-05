@@ -10,6 +10,7 @@ import { installStarterKit } from '@/audio/starterKit';
 import { loadAutosave, startAutosave } from '@/disk/autosave';
 import { FirmwareContext } from '@/app/store';
 import { Chassis } from '@/app/Chassis';
+import { TipProvider } from '@/app/Tip';
 import { installHost } from '@/app/host';
 import { installSamplerInput, keep } from '@/screens/sample';
 import { installDrive } from '@/screens/disk';
@@ -57,7 +58,7 @@ async function powerOn() {
   createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
       <FirmwareContext.Provider value={firmware}>
-        <Chassis engine={engine} />
+        <TipProvider><Chassis engine={engine} /></TipProvider>
       </FirmwareContext.Provider>
     </React.StrictMode>,
   );

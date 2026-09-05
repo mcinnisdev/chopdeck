@@ -1,19 +1,40 @@
 import { test, expect } from '@playwright/test';
 
-test("the owner's manual is reachable and controls show tooltips that point into it", async ({ page }) => {
+const hoverCenter = async (page: import('@playwright/test').Page, box: { x: number; y: number; width: number; height: number }) =>
+  page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 5 });
+
+test("the owner's manual is reachable and controls and soft keys show tooltips that point into it", async ({ page }) => {
   await page.goto('/');
   const lcd = page.getByRole('region', { name: 'LCD' });
   await expect(lcd).toContainText('Sq:01');
-  // the LCD fits its 48 columns inside the glass: the last column of row 0 ends before the glass edge
+  // the LCD fits its 48 columns inside the glass
   const glass = await lcd.boundingBox();
   const width = await page.evaluate(() => { const r = document.querySelector('[role=region][aria-label=LCD] > div'); return r ? (r as HTMLElement).scrollWidth : 0; });
   expect(width).toBeLessThanOrEqual(Math.ceil(glass!.width));
 
-  const rec = await page.getByRole('button', { name: 'REC' }).boundingBox();
-  await page.mouse.move(rec!.x + rec!.width / 2, rec!.y + rec!.height / 2, { steps: 5 });
+  // a panel control
+  await hoverCenter(page, (await page.getByRole('button', { name: 'REC' }).boundingBox())!);
   const tip = page.getByRole('tooltip');
   await expect(tip).toContainText('Arm recording');
   await expect(tip).toContainText('#recording');
+
+  // a soft key on the LCD: TrMUTE is the third slot
+  const softRow = lcd.locator('> div > div').nth(7);
+  const slot = await softRow.locator('> span').nth(2).boundingBox();
+  await page.mouse.move(10, 10);
+  await hoverCenter(page, slot!);
+  await expect(tip).toContainText('F3: TrMUTE');
+  await expect(tip).toContainText('Mute or unmute');
+
+  // TIPS OFF silences them and is remembered across a reload
+  await page.getByRole('button', { name: /TIPS ON/ }).click();
+  await page.mouse.move(10, 10);
+  await hoverCenter(page, (await page.getByRole('button', { name: 'REC' }).boundingBox())!);
+  await page.waitForTimeout(700);
+  await expect(tip).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('button', { name: /TIPS OFF/ })).toBeVisible();
+  await page.getByRole('button', { name: /TIPS OFF/ }).click();
 
   const manual = await page.context().newPage();
   await manual.goto('/manual/#recording');

@@ -52,10 +52,12 @@ function runStyle(attr: number): CSSProperties | undefined {
 export interface LcdScreenProps {
   frame: LcdFrame;
   onSoftKey?: (index: number) => void;
+  /** Mouse over a soft-key slot (index) or off the row (null), with the slot element for positioning. */
+  onSoftKeyHover?: (index: number | null, el: HTMLElement) => void;
   style?: CSSProperties;
 }
 
-export const LcdScreen = memo(function LcdScreen({ frame, onSoftKey, style }: LcdScreenProps) {
+export const LcdScreen = memo(function LcdScreen({ frame, onSoftKey, onSoftKeyHover, style }: LcdScreenProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [fontSize, setFontSize] = useState(20);
   useLayoutEffect(() => {
@@ -100,7 +102,7 @@ export const LcdScreen = memo(function LcdScreen({ frame, onSoftKey, style }: Lc
             ? Array.from({ length: 6 }, (_, i) => {
                 const slot = frame.cols / 6;
                 const seg = runs.length ? sliceRuns(runs, i * slot, slot) : [];
-                return <span key={i} onPointerDown={() => onSoftKey(i)} style={{ cursor: 'pointer', display: 'inline-block' }}>{seg.map((run, j) => <span key={j} style={runStyle(run.attr)}>{run.text}</span>)}</span>;
+                return <span key={i} onPointerDown={() => onSoftKey(i)} onPointerEnter={e => { if (e.pointerType === 'mouse') onSoftKeyHover?.(i, e.currentTarget); }} onPointerLeave={e => onSoftKeyHover?.(null, e.currentTarget)} style={{ cursor: 'pointer', display: 'inline-block' }}>{seg.map((run, j) => <span key={j} style={runStyle(run.attr)}>{run.text}</span>)}</span>;
               })
             : runs.map((run, j) => <span key={j} style={runStyle(run.attr)}>{run.text}</span>)}
         </div>
