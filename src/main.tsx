@@ -64,3 +64,6 @@ async function powerOn() {
 }
 
 void powerOn();
+
+// offline shell (production builds only; the dev server serves modules live)
+if (import.meta.env.PROD && 'serviceWorker' in navigator) window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });

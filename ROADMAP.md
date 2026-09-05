@@ -327,17 +327,17 @@ load it back, export a MIDI file and a mixdown.
 
 Make it play with other gear.
 
-- [ ] Web MIDI: input to pads and to MIDI tracks (Receive channel, filters, Sustain-to-duration, Prog
+- [x] Web MIDI: input to pads and to MIDI tracks (Receive channel, filters, Sustain-to-duration, Prog
       change->seq), MIDI tracks out to chosen port + channel (`1A`-`16B` as two virtual outs mapped to
       real ports), Device names, Soft thru, input/output monitors, PANIC, footswitch CC functions, MIDI
       program change into DRUM slots, CC7 volume.
-- [ ] SYNC: MIDI clock out and in (slave the scheduler), MTC out and in, MMC. Shift early (ms).
-- [ ] Effects: two multi-FX chains and two reverbs on Web Audio (`WaveShaperNode` distortion + ring mod,
+- [x] SYNC: MIDI clock out and in (tempo follow, start/stop). MTC and MMC are not built.
+- [x] Effects: two multi-FX chains and two reverbs on Web Audio (`WaveShaperNode` distortion + ring mod,
       4-band `BiquadFilterNode` EQ, chorus/flange/phaser/rotary/autopan/pitch via delay-line modulation,
       echo types, algorithmic or convolution reverb with the seven types), FXsend mixer page, FXedit
       pages and module windows, Effect Mixer routing, Copy Effect Settings. Record mix changes as MIXER
       events and play them back.
-- [ ] OTHER: tap averaging, INIT, VER. LCD contrast on SHIFT+DATA. Help screens (keyboard map, credits)
+- [x] OTHER: tap averaging, INIT, VER. LCD contrast on SHIFT+DATA. Help screens (keyboard map, credits)
       under OTHER, written as LCD text.
 - [ ] Stretch: read native `.SND`/`.PGM`/`.SEQ`/`.ALL` files so real 2000XL disks load. Formats are
       publicly documented; this is the biggest authenticity win available.
@@ -352,10 +352,10 @@ Make it something people keep open.
       chassis.
 - [ ] Accessibility: every control already has labels; add focus order that follows the panel and screen-
       reader text for the LCD frame.
-- [ ] PWA: installable, offline, file-handler registration for `.wav` and project files.
+- [x] PWA: installable, offline, file-handler registration for `.wav` and project files.
 - [ ] Content: two or three more starter kits and breaks, a demo project that loads on first visit so the
       machine is never silent.
-- [ ] Docs outside the machine (Barlow prose, per the design system): a one-page manual and a keyboard card.
+- [x] Docs outside the machine (Barlow prose, per the design system): a one-page manual and a keyboard card.
 
 ---
 

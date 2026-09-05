@@ -1,0 +1,14 @@
+{
+  "name": "Chop Deck",
+  "short_name": "Chop Deck",
+  "description": "A browser sampler and sequencer in the shape of a classic drum machine.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#1B1B1B",
+  "theme_color": "#1F3F6E",
+  "icons": [{ "src": "/logo.webp", "sizes": "512x512", "type": "image/webp", "purpose": "any" }],
+  "file_handlers": [
+    { "action": "/", "accept": { "audio/wav": [".wav"], "audio/midi": [".mid"], "application/octet-stream": [".chopdeck", ".all", ".aps", ".pgm", ".snd"] } }
+  ]
+}
