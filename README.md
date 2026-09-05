@@ -40,7 +40,7 @@ Safari too). Hit a pad. `Shift` + a number key changes mode, exactly like the si
 | `,` `.` and `;` `'` | BAR << >>, STEP < > |
 | `T`, `U`, `Delete`, `G` | TAP TEMPO / NOTE REPEAT, UNDO SEQ, ERASE, GO TO |
 
-The same list lives on the machine under OTHER > HELP, and every control shows a tooltip on hover that links into the owner's manual at `/manual/` (hold `Alt` and click a control to jump straight there).
+The same list lives on the machine under OTHER > HELP, and every control shows a tooltip on hover that links into the owner's manual at `/manual/` (hold `Alt` and click a control to jump straight there). A first visit opens the QUICK START tour, a ten-step walk around the panel that ends with dropping in your own sounds, chopping them and recording; the same guide opens the manual.
 
 ## Develop
 
@@ -49,6 +49,7 @@ npm run typecheck   # strict TypeScript
 npm test            # Vitest: model, sequencer, DSP, every screen as text
 npm run test:e2e    # Playwright: boots the machine in Chromium, records a loop, loads a file, reloads
 npm run build
+npm run assets      # re-render public/og.png and the PNG icons from scripts/og/card.html
 ```
 
 - `design-system/` is the visual source of truth (tokens, component specs, the original concept).

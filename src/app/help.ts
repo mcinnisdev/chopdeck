@@ -34,6 +34,7 @@ export const HELP: Record<string, HelpEntry> = {
   lcd: { title: 'The LCD', text: 'Everything happens here: fields, windows and the six soft keys on the bottom line. The cursor is the reversed block.', anchor: 'lcd' },
   manual: { title: "Owner's Manual", text: 'The full manual: every mode, every window, and a keyboard reference.', anchor: '' },
   tips: { title: 'TIPS', text: 'Switch these hover tips on or off. The choice is remembered in this browser.', anchor: 'panel' },
+  quickStart: { title: 'Quick start', text: 'A short guided tour of the machine: play the demo, hit the pads, drop in your own sounds, chop them and record a beat. Escape closes it.', anchor: 'quick-start' },
 };
 
 /** Soft-key help by label. Labels are what the screens print; a few appear in several modes with the same meaning. */

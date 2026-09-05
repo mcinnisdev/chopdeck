@@ -10,6 +10,7 @@ import { useHostEvents } from './host';
 import { AudioEngine } from '@/audio/engine';
 import { Tip, useTips } from './Tip';
 import { MANUAL_URL, softKeyHelp } from './help';
+import { Tour, shouldAutoStartTour } from './Tour';
 import { fieldHelp } from './field-help';
 
 const CHASSIS_W = 1240;
@@ -43,9 +44,11 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
   useEffect(() => { engine.setVolume(Math.pow(vol / 100, 1.5)); }, [vol, engine]);
   const padProgram = fw.m.programs[fw.m.drums[s.drum].pgm];
   const tips = useTips();
+  const [tour, setTour] = useState(shouldAutoStartTour);
 
   return (
     <div style={{ height: h || 'auto', position: 'relative' }}>
+      <Tour open={tour} onClose={() => setTour(false)} />
       <div ref={wrapRef} style={{ width: CHASSIS_W, position: 'absolute', left: '50%', top: 0, transform: `translateX(-50%) scale(${scale})`, transformOrigin: 'top center', background: 'var(--navy) var(--texture-grain)', border: '3px solid var(--ink)', borderRadius: 'var(--radius-chassis)', boxShadow: 'var(--chassis-shadow)', padding: 22, boxSizing: 'border-box', display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20, color: 'var(--cream)' }}>
 
         {/* ---------- LEFT: LCD, F-keys, mode block, wheel, transport ---------- */}
@@ -53,6 +56,8 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ ...lbl, opacity: .8 }}>
               INTEGRATED RHYTHM MACHINE · 16 BIT SAMPLER · SEQUENCER ·{' '}
+              <Tip id="quickStart"><button type="button" onClick={() => setTour(true)} style={{ ...lbl, background: 'none', border: 0, padding: 0, cursor: 'pointer', color: 'var(--led-amber)', borderBottom: '1px solid var(--led-amber)' }}>QUICK START</button></Tip>
+              {' · '}
               <Tip id="manual"><a href={MANUAL_URL} target="_blank" rel="noopener" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>OWNER'S MANUAL</a></Tip>
               {' · '}
               <Tip id="tips"><button type="button" aria-pressed={tips.enabled} onClick={() => tips.setEnabled(!tips.enabled)} style={{ ...lbl, background: 'none', border: 0, padding: 0, cursor: 'pointer', color: tips.enabled ? 'var(--led-amber)' : 'var(--cream)', opacity: tips.enabled ? 1 : .6, borderBottom: '1px solid currentColor' }}>TIPS {tips.enabled ? 'ON' : 'OFF'}</button></Tip>

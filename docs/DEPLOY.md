@@ -80,8 +80,30 @@ After the first production deploy, run through this on `https://chopdeck.com`:
 5. In Chrome, MIDI/SYNC mode (`Shift`+9), PORTS lists any connected MIDI device.
 6. Reload: the sequence and any sounds you added come back (IndexedDB autosave).
 7. Chrome's address bar offers **Install** (the PWA manifest is served).
+8. A first visit (private window) opens the QUICK START tour; Escape closes it; QUICK START in the
+   header reopens it.
+9. `https://chopdeck.com/og.png`, `/robots.txt` and `/sitemap.xml` load. Paste the URL into
+   [opengraph.xyz](https://www.opengraph.xyz/) or the LinkedIn Post Inspector: title, description and
+   the 1200x630 card should appear. Slack and iMessage show the same card.
+10. Search Console: add the `chopdeck.com` property (Cloudflare can verify the DNS record for you) and
+    submit `https://chopdeck.com/sitemap.xml`.
 
-## 7. Alternatives, if you ever want them
+## 7. Share cards and search
+
+Everything search engines and link previews read is static and lives in the repo:
+
+- `index.html` and `manual/index.html` carry the title, description, canonical URL, Open Graph and
+  Twitter card tags, and (on the front page) a `WebApplication` JSON-LD block. Both point at
+  `https://chopdeck.com/og.png`; if the domain ever changes, change the URLs there and in
+  `public/sitemap.xml` and `public/robots.txt`.
+- `public/og.png` (1200x630) and the PNG icons (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`)
+  are rendered from the design system by `npm run assets`, which drives Playwright over
+  `scripts/og/card.html`. Edit the card, run the script, commit the images. Social networks cache the
+  card by URL for days; after changing it, re-scrape with the inspector above.
+- `public/manifest.webmanifest` names the app, its icons and a screenshot for the install prompt.
+- `public/404.html` is the not-found page Pages serves for unknown paths.
+
+## 8. Alternatives, if you ever want them
 
 - **Deploy from GitHub Actions instead of Cloudflare's Git integration**: add a job that runs
   `npm ci && npm run build` and then `npx wrangler pages deploy dist --project-name chopdeck`, with
@@ -90,8 +112,7 @@ After the first production deploy, run through this on `https://chopdeck.com`:
 - **Any static host** (Netlify, GitHub Pages, an S3 bucket behind a CDN) works the same way: build,
   upload `dist/`, serve `/manual/` from `manual/index.html`. Only the `_headers` file is Cloudflare-specific.
 
-## 8. Things that are not there yet
+## 9. Things that are not there yet
 
 - No analytics or error reporting are wired in. If you want either, Cloudflare Web Analytics is a single
   script tag in `index.html` and respects the no-tracking spirit of the machine.
-- No custom 404 page. Pages serves its default; `public/404.html` would replace it.

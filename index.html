@@ -3,14 +3,58 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="theme-color" content="#1B1B1B" />
-<title>Chop Deck</title>
+<title>Chop Deck: a sampler and sequencer in the shape of a classic drum machine</title>
+<meta name="description" content="Chop Deck is a free browser drum machine: sample or load sounds, chop breaks onto 16 pads, sequence beats with swing, arrange songs and mix them down. No install, nothing leaves your computer." />
+<link rel="canonical" href="https://chopdeck.com/" />
+<meta name="theme-color" content="#1F3F6E" />
+<meta name="color-scheme" content="dark" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<meta name="application-name" content="Chop Deck" />
+<meta name="keywords" content="drum machine, sampler, sequencer, beat maker, chop breaks, browser DAW, MPC style, web audio" />
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Chop Deck" />
+<meta property="og:url" content="https://chopdeck.com/" />
+<meta property="og:title" content="Chop Deck: a drum machine in your browser" />
+<meta property="og:description" content="Sample it, chop it, play it on 16 pads, sequence it with swing. A classic drum machine workflow that runs in the browser." />
+<meta property="og:image" content="https://chopdeck.com/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="The Chop Deck front panel: green LCD, sixteen red pads, CHOPDECK wordmark." />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Chop Deck: a drum machine in your browser" />
+<meta name="twitter:description" content="Sample it, chop it, play it on 16 pads, sequence it with swing. A classic drum machine workflow that runs in the browser." />
+<meta name="twitter:image" content="https://chopdeck.com/og.png" />
+<meta name="twitter:image:alt" content="The Chop Deck front panel: green LCD, sixteen red pads, CHOPDECK wordmark." />
+
+<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
 <link rel="icon" href="/logo.webp" type="image/webp" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/manifest.webmanifest" />
-<link rel="apple-touch-icon" href="/logo.webp" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Chop Deck",
+  "url": "https://chopdeck.com/",
+  "description": "A sampler and sequencer in the shape of a classic drum machine. Chop breaks, play pads, make beats. In your browser.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any (web browser)",
+  "browserRequirements": "Requires a modern browser with Web Audio; MIDI needs Chromium.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "image": "https://chopdeck.com/og.png",
+  "screenshot": "https://chopdeck.com/og.png",
+  "featureList": "16 velocity pads, 99 sequences of 64 tracks, swing quantise, note repeat, sampling, chopping to pads, time stretch, mixer with effects, song mode, MIDI, WAV and MIDI file export"
+}
+</script>
 </head>
 <body>
 <div id="root"></div>
+<noscript>Chop Deck is a drum machine that runs in your browser and needs JavaScript. Read the <a href="/manual/">owner's manual</a> for what it does.</noscript>
 <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

@@ -4,7 +4,23 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Chop Deck Owner's Manual</title>
-<link rel="icon" href="/logo.webp" type="image/webp" />
+<meta name="description" content="How to use Chop Deck, the browser drum machine: the front panel, recording sequences, step editing, song mode, sampling and chopping sounds, programs, mixer and effects, disk, MIDI, and the keyboard reference." />
+<link rel="canonical" href="https://chopdeck.com/manual/" />
+<meta name="robots" content="index, follow" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Chop Deck" />
+<meta property="og:url" content="https://chopdeck.com/manual/" />
+<meta property="og:title" content="Chop Deck Owner's Manual" />
+<meta property="og:description" content="Every mode, every window, every key of the browser drum machine, laid out like the manuals that came in the box." />
+<meta property="og:image" content="https://chopdeck.com/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Chop Deck Owner's Manual" />
+<meta name="twitter:description" content="Every mode, every window, every key of the browser drum machine." />
+<meta name="twitter:image" content="https://chopdeck.com/og.png" />
+<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="stylesheet" href="../src/ds/tokens.css" />
 <style>
   html { scroll-behavior: smooth; scroll-padding-top: 24px; }
@@ -46,7 +62,7 @@
 
 <nav>
   <a class="h" href="#intro">1 Introduction</a>
-  <a href="#panel">The front panel</a><a href="#lcd">The LCD</a><a href="#soft-keys">Soft keys</a><a href="#modes">Modes</a><a href="#cursor">Cursor, DATA wheel, numbers</a><a href="#windows">Windows</a><a href="#name">The Name window</a>
+  <a href="#quick-start">Quick start guide</a><a href="#panel">The front panel</a><a href="#lcd">The LCD</a><a href="#soft-keys">Soft keys</a><a href="#modes">Modes</a><a href="#cursor">Cursor, DATA wheel, numbers</a><a href="#windows">Windows</a><a href="#name">The Name window</a>
   <a class="h" href="#basics">2 The Basics</a>
   <a href="#terms">Terms</a><a href="#pads">Pads and banks</a><a href="#full-level">FULL LEVEL</a><a href="#sixteen-levels">16 LEVELS</a><a href="#note-variation">Note variation</a><a href="#keyboard">Computer keyboard</a>
   <a class="h" href="#sequencing">3 Recording Sequences</a>
@@ -70,6 +86,22 @@
 <h1 id="intro">1 Introduction</h1>
 <p>Chop Deck is a sampler and sequencer that lives in your browser and works like the drum machines of the late 1990s: sixteen pads, a small green screen, six soft keys, a data wheel. You load or record sounds, put them on pads, play them into a sequence, arrange sequences into a song, and mix the result down. There are no menus outside the machine. If it is not on the front panel, it does not exist.</p>
 <p>This manual follows the layout of the machine's screens. Every field name written in <code>this typeface</code> is what you will read on the LCD.</p>
+
+<h2 id="quick-start">Quick start guide</h2>
+<p>Ten minutes from first visit to a beat of your own. The machine also walks you through these steps itself: press <kbd>QUICK START</kbd> in the header above the LCD. The tour opens by itself the first time you visit and never again unless you ask.</p>
+<ol class="steps">
+<li><strong>Play the demo.</strong> A two-bar beat called <code>First Beat</code> is loaded when you arrive. Press <kbd>PLAY</kbd> (or <kbd>Space</kbd>). Press <kbd>STOP</kbd> to stop. The green PLAY light in the header shows the sequencer running.</li>
+<li><strong>Hit the pads.</strong> Click a pad, or use the keyboard: <kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> <kbd>V</kbd> are pads 1 to 4, <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd> pads 5 to 8, <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> pads 9 to 12 and <kbd>1</kbd> to <kbd>4</kbd> pads 13 to 16. Strike near the bottom of a pad for a quiet hit, near the top for a loud one, or press <kbd>FULL LEVEL</kbd> to make every hit loud. The chopped break that sequence 2 plays lives in program <code>BREAK CHOPS</code> on DRUM2.</li>
+<li><strong>Read the screen.</strong> Every setting is a field on the LCD; the reversed block is the cursor. Move it with the <kbd>CURSOR</kbd> keys (arrow keys), change the value with the <kbd>DATA</kbd> wheel (<kbd>[</kbd> and <kbd>]</kbd>) or type a number and press <kbd>ENTER</kbd>. Put the cursor on the tempo and turn the wheel while the beat plays.</li>
+<li><strong>Press the words under the glass.</strong> The bottom line of the LCD names the six soft keys <kbd>F1</kbd> to <kbd>F6</kbd>. On the main screen, <code>TrMUTE</code> opens a page where the pads mute and unmute the tracks of the running sequence.</li>
+<li><strong>Change mode.</strong> Hold <kbd>SHIFT</kbd> and press a number on the keypad: 3 LOAD, 4 SAMPLE, 5 TRIM, 6 PROGRAM, 7 MIXER, 0 SAVE. <kbd>MAIN SCREEN</kbd> always returns to the sequencer.</li>
+<li><strong>Bring your own sounds.</strong> Drag audio files (WAV, AIFF, MP3, anything the browser can decode) from your computer and drop them anywhere on the machine. They appear in the import tray of LOAD mode (<kbd>SHIFT</kbd>+3). Choose one in the <code>File:</code> field, press <code>DO IT</code>, audition it with <code>PLAY</code>, choose the pad in <code>Assign to note:</code>, and press <code>KEEP</code>. <code>PICK</code> opens the browser's file chooser instead of dragging. See <a href="#loading">Loading sounds</a>.</li>
+<li><strong>Or sample something.</strong> <kbd>SHIFT</kbd>+4 opens SAMPLE mode. Turn <kbd>REC GAIN</kbd> until the meter peaks just below the top, press <code>RECORD</code>, and recording starts when the input passes <code>Threshold:</code>. Press <code>STOP</code>, then <code>KEEP</code> and name it. See <a href="#sampling">Sampling</a>.</li>
+<li><strong>Chop a break.</strong> <kbd>SHIFT</kbd>+5 opens TRIM with the waveform of the sound in <code>Snd:</code>. Set <code>St:</code> and <code>End:</code> around the part you want (<code>PLAY X</code> auditions it). Press <code>ZONE</code>, put the cursor on <code>Zone:</code> and press <kbd>OPEN WINDOW</kbd> to choose the number of slices, then <code>EDIT</code> and <code>SLICE SOUND</code>. Each zone becomes its own sound on its own pad in a new program. See <a href="#zone">Zones and slicing</a>.</li>
+<li><strong>Record a beat.</strong> Back on the main screen, turn the <code>Sq:</code> field to an empty sequence, hold <kbd>REC</kbd> and press <kbd>PLAY START</kbd>. After a one-bar count-in the sequence loops and everything you play is recorded, timing-corrected to the <code>Timing:</code> value. Keep playing to add more layers. <kbd>STOP</kbd> when done; <kbd>UNDO SEQ</kbd> removes the last pass; hold <kbd>ERASE</kbd> and a pad while it runs to remove that pad's notes. See <a href="#recording">Recording and overdubbing</a>.</li>
+<li><strong>Save.</strong> The machine autosaves to this browser, so closing the tab is safe. <kbd>SHIFT</kbd>+0 opens SAVE, which writes to the built-in drive or downloads a <code>.CHOPDECK</code> file holding everything. LOAD brings it back on any computer. See <a href="#disk">Disk</a>.</li>
+</ol>
+<p class="note">Hover any control for a tip that links to its section here. The <a href="#keyboard">computer keyboard</a> reference lists every shortcut.</p>
 
 <h2 id="panel">The front panel</h2>
 <table>

@@ -69,6 +69,7 @@ export function Tip({ id, children, style }: { id: string; children: ReactNode; 
   const href = `${MANUAL_URL}${entry?.anchor ? `#${entry.anchor}` : ''}`;
   return (
     <span
+      data-tip={id}
       style={{ display: 'inline-flex', ...style }}
       onPointerEnter={e => { if (e.pointerType === 'mouse') ctx?.show(id, e.currentTarget); }}
       onPointerLeave={() => ctx?.hide()}
