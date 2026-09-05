@@ -72,12 +72,18 @@ export const LcdScreen = memo(function LcdScreen({ frame, onSoftKey, onSoftKeyHo
     return () => { ro.disconnect(); document.fonts?.removeEventListener?.('loadingdone', onDone); };
   }, [frame.cols]);
 
-  // feedback: if a rendered row still overflows the glass (glyph rounding at small sizes), shrink to fit
+  // feedback: if a rendered row still overflows the glass (glyph rounding at small sizes), shrink to fit;
+  // otherwise spread the slack as letter-spacing so the 48 columns span the glass exactly. That keeps the
+  // canvas cells, the hover columns and the soft-key labels on the same grid the F keys are laid out on.
+  const [spacing, setSpacing] = useState(0);
   useLayoutEffect(() => {
     const el = ref.current; if (!el) return;
-    const over = el.scrollWidth / Math.max(1, el.clientWidth);
-    if (over > 1.003) setFontSize(f => Math.floor((f / over) * 100) / 100);
-  }, [fontSize, frame]);
+    const w = Math.max(1, el.clientWidth);
+    const natural = el.scrollWidth - frame.cols * spacing;
+    if (natural > w * 1.003) { setFontSize(f => Math.floor((f * w / natural) * 100) / 100); return; }
+    const s = Math.max(0, (w - natural) / frame.cols);
+    if (Math.abs(s - spacing) > 0.05) setSpacing(s);
+  }, [fontSize, spacing, frame]);
 
   const rows = [];
   for (let r = 0; r < frame.rows; r++) rows.push(rowRuns(frame, r));
@@ -99,7 +105,7 @@ export const LcdScreen = memo(function LcdScreen({ frame, onSoftKey, onSoftKeyHo
   }, [frame, fontSize]);
 
   return (
-    <div ref={ref} style={{ width: '100%', fontFamily: 'var(--font-lcd)', fontSize, lineHeight: 1, color: 'var(--text-lcd)', whiteSpace: 'pre', textTransform: 'none', userSelect: 'none', position: 'relative', ...style }}>
+    <div ref={ref} style={{ width: '100%', fontFamily: 'var(--font-lcd)', fontSize, letterSpacing: spacing, lineHeight: 1, color: 'var(--text-lcd)', whiteSpace: 'pre', textTransform: 'none', userSelect: 'none', position: 'relative', ...style }}>
       <style>{'@keyframes lcd-blink{50%{opacity:0}}'}</style>
       <canvas ref={canvasRef} aria-hidden style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: fontSize * frame.rows, pointerEvents: 'none', imageRendering: 'pixelated' }} />
       {rows.map((runs, r) => (

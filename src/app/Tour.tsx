@@ -69,16 +69,19 @@ export function Tour({ open, onClose }: { open: boolean; onClose(): void }) {
 
   useEffect(() => { if (open) setI(0); }, [open]);
 
-  // follow the target as the chassis rescales or the page scrolls
+  // follow the target every frame while open: the chassis rescales, the page scrolls, and the LCD
+  // font arriving late pushes everything under it down. Only re-render when the box actually moves.
   useEffect(() => {
     if (!open) return;
-    const update = () => setBox(measure(step.target));
-    update();
-    window.addEventListener('resize', update);
-    window.addEventListener('scroll', update, true);
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(update) : null;
-    ro?.observe(document.body);
-    return () => { window.removeEventListener('resize', update); window.removeEventListener('scroll', update, true); ro?.disconnect(); };
+    let raf = 0, last = '';
+    const tick = () => {
+      const b = measure(step.target);
+      const key = b ? `${b.x},${b.y},${b.w},${b.h}` : '';
+      if (key !== last) { last = key; setBox(b); }
+      raf = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => cancelAnimationFrame(raf);
   }, [open, step]);
 
   // place the plate beside the spotlight, inside the viewport

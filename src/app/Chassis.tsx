@@ -15,6 +15,8 @@ import { fieldHelp } from './field-help';
 
 const CHASSIS_W = 1240;
 const LCD_W = 640;
+const LCD_INSET = 16;                       // bezel 6 + glass padding 10, see ds/Lcd.tsx
+const LCD_COL = (LCD_W - 2 * LCD_INSET) / 48; // one character cell of the 48-column grid
 const BANKS = ['A', 'B', 'C', 'D'] as const;
 const HOTKEYS = PAD_KEYS.map(code => code.replace('Key', '').replace('Digit', ''));
 
@@ -81,7 +83,9 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
                   tips.show(fieldHelp(hit.def.id, hit.field.id, hit.field.label, fw.s.mode, hit.field.get(fw.ctx())), el);
                 }} />
             </Lcd>
-            <Tip id="f" style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', padding: '10px 12px 0', justifyItems: 'center' }}>
+            {/* F keys sit under the centre of each soft-key label: labels are 7 columns wide at the start of an 8-column slot,
+                and the text grid starts one bezel (6) plus one glass padding (10) in from the display's edge */}
+            <Tip id="f" style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', padding: `10px ${LCD_INSET + LCD_COL / 2}px 0 ${LCD_INSET - LCD_COL / 2}px`, justifyItems: 'center' }}>
               {[0, 1, 2, 3, 4, 5].map(i => <HardButton key={i} label={`F${i + 1}`} size="sm" onDark disabled={!soft[i]?.label} {...key(`F${i + 1}` as HwKey)} />)}
             </Tip>
           </div>
