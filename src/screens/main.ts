@@ -1,8 +1,9 @@
 // MAIN screen and its windows.
 import { ScreenDef, Ctx, Field } from '@/kernel/screen';
-import { text, ATTR_DIM } from '@/lcd/frame';
+import { text, ATTR_DIM, ATTR_INVERSE } from '@/lcd/frame';
 import { NUM_SEQUENCES, NUM_TRACKS, TIMING_VALUES, TRACK_TYPES, TEMPO_MIN, TEMPO_MAX, TIMING_TICKS, Sequence } from '@/model/types';
-import { tickToBBT, formatBBT, barStartTick, tsigAtBar } from '@/model/time';
+import { tickToBBT, formatBBT, barStartTick, tsigAtBar, ticksPerBar } from '@/model/time';
+import { eventsInRange } from '@/seq/events';
 import { pad2, midiOutName, tsigStr, tempoStr } from '@/model/format';
 import { newSequence } from '@/model/factory';
 import { intField, enumField, boolField, nameField, textField, clamp } from './util';
@@ -67,6 +68,28 @@ const mainFields = (c: Ctx): Field[] => {
   ];
 };
 
+/** Rows 5-6: a 1/16 grid of the current bar for the current track, plus transport status. */
+function drawStepGrid(c: Ctx, f: import('@/lcd/frame').LcdFrame) {
+  const seq = seqOf(c); const tr = trackOf(c); const s = c.s;
+  const bbt = tickToBBT(seq.tsigs, s.now);
+  const bar0 = bbt.bar - 1;
+  const ts = tsigAtBar(seq.tsigs, bar0);
+  const barLen = ticksPerBar(ts);
+  const start = barStartTick(seq.tsigs, bar0);
+  const cells = Math.min(16, Math.max(4, ts.num * 4));
+  const cellTicks = barLen / cells;
+  const cellW = Math.floor(48 / cells);
+  for (let i = 0; i < cells; i++) {
+    const a = start + Math.round(i * cellTicks), b = start + Math.round((i + 1) * cellTicks);
+    const has = eventsInRange(tr.events, a, b).some(e => e.kind === 'note');
+    const here = s.now >= a && s.now < b && s.playing;
+    text(f, 5, i * cellW, (has ? '▪' : '·').padEnd(cellW, ' '), here ? ATTR_INVERSE : has ? 0 : ATTR_DIM);
+  }
+  const status = s.record === 'REC' ? '● REC' : s.record === 'OVERDUB' ? '● DUB' : s.playing ? '► PLAY' : '■ STOP';
+  const notes = tr.events.reduce((n, e) => n + (e.kind === 'note' ? 1 : 0), 0);
+  text(f, 6, 0, `${status}  ${String(notes).padStart(5, ' ')} notes`, s.record !== 'OFF' ? 0 : ATTR_DIM);
+}
+
 export const mainScreen: ScreenDef = {
   id: 'MAIN',
   fields: mainFields,
@@ -75,8 +98,9 @@ export const mainScreen: ScreenDef = {
     // status glyphs the hardware prints beside Now: (2nd, transpose, tempo change)
     const flags = [s.secondSeq != null ? '2nd' : '', seqOf(c).tempoChangeOn ? 'c' : ''].filter(Boolean).join(' ');
     if (flags) text(f, 0, 34 - flags.length, flags, ATTR_DIM);
-    if (s.soloTrack != null) text(f, 6, 0, 'SOLO is active', ATTR_DIM);
-    if (s.nextSeq != null) text(f, 6, 0, `Next Sq:${seqLabel(c, s.nextSeq).slice(0, 19)}`);
+    drawStepGrid(c, f);
+    if (s.soloTrack != null) text(f, 6, 24, 'SOLO is active', ATTR_DIM);
+    if (s.nextSeq != null) text(f, 6, 24, `Next Sq:${seqLabel(c, s.nextSeq).slice(0, 15)}`);
   },
   softKeys: c => [
     { label: 'STEP', kind: 'page', press: x => x.fw.setMode('STEP') },

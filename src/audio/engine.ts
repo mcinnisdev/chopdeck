@@ -73,7 +73,7 @@ export class AudioEngine implements SoundApi {
   invalidate(soundId: string) { this.buffers.delete(soundId); }
 
   // ---------- SoundApi ----------
-  noteOn(drum: number, note: number, vel: number, nv?: NoteVar) {
+  noteOn(drum: number, note: number, vel: number, nv?: NoteVar, when?: number) {
     const c = this.boot();
     const m = this.getMachine();
     const slot = m.drums[drum]; if (!slot) return;
@@ -86,15 +86,15 @@ export class AudioEngine implements SoundApi {
       const p = pg.notes[n - NOTE_MIN]; if (!p?.snd) continue;
       const sound = m.sounds.find(s => s.id === p.snd); if (!sound) continue;
       const plan = planVoice({ np: p, sound, vel, nv, drumVol });
-      this.startVoice(c, drum, n, plan);
+      this.startVoice(c, drum, n, plan, when);
     }
   }
 
-  private startVoice(c: AudioContext, drum: number, note: number, plan: VoicePlan) {
+  private startVoice(c: AudioContext, drum: number, note: number, plan: VoicePlan, when?: number) {
     const buf = this.bufferFor(plan.sound); if (!buf) return;
-    const now = c.currentTime;
+    const now = Math.max(c.currentTime, when ?? 0);
 
-    // voice overlap and mute groups
+    // voice overlap and mute groups (cut at the scheduled time, not before)
     for (const v of [...this.voices]) {
       if (v.drum !== drum) continue;
       if (plan.mutes.includes(v.note) || (v.note === note && plan.overlap !== 'POLY')) this.release(v, now, 0.004);
@@ -152,10 +152,23 @@ export class AudioEngine implements SoundApi {
     this.voices = this.voices.filter(x => x !== v);
   }
 
-  noteOff(drum: number, note: number) {
+  noteOff(drum: number, note: number, when?: number) {
     if (!this.ctx) return;
-    const now = this.ctx.currentTime;
-    for (const v of [...this.voices]) if (v.drum === drum && v.note === note && v.releaseOnOff) this.release(v, now, v.releaseOnOff && v.tau > 0.01 ? v.tau : 0.004);
+    const now = Math.max(this.ctx.currentTime, when ?? 0);
+    for (const v of [...this.voices]) if (v.drum === drum && v.note === note && v.releaseOnOff && v.startedAt <= now) this.release(v, now, v.tau > 0.01 ? v.tau : 0.004);
+  }
+
+  now(): number { return this.ctx?.currentTime ?? 0; }
+
+  /** Metronome: a short sine blip, higher for the accent. */
+  click(accent: boolean, volume01: number, when?: number) {
+    const c = this.boot();
+    const t = Math.max(c.currentTime, when ?? 0);
+    const osc = c.createOscillator(); osc.type = 'square'; osc.frequency.value = accent ? 1760 : 1175;
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.25 * volume01 + 0.0001, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + (accent ? 0.06 : 0.035));
+    osc.connect(g); g.connect(this.master);
+    osc.start(t); osc.stop(t + 0.08);
+    osc.onended = () => { osc.disconnect(); g.disconnect(); };
   }
 
   playSound(sound: string | Sound, opts: { from?: number; to?: number; loop?: boolean } = {}) {

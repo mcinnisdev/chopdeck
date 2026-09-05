@@ -40,8 +40,12 @@ export interface NoteVar { param: import('@/model/types').NvParam; value: number
 /** The sampler as screens see it. A silent implementation is installed until the audio engine boots. */
 export interface SoundApi {
   /** Play a program note through a DRUM slot (0..3). Velocity 1..127. nv = note-variation slider value (0..127) or undefined. */
-  noteOn(drum: number, note: number, vel: number, nv?: NoteVar): void;
-  noteOff(drum: number, note: number): void;
+  noteOn(drum: number, note: number, vel: number, nv?: NoteVar, when?: number): void;
+  noteOff(drum: number, note: number, when?: number): void;
+  /** Metronome click. */
+  click(accent: boolean, volume01: number, when?: number): void;
+  /** Audio clock in seconds (AudioContext.currentTime), 0 before boot. */
+  now(): number;
   /** Audition raw sound data (TRIM / LOAD windows), optionally a range in frames. */
   playSound(sound: string | import('@/model/types').Sound, opts?: { from?: number; to?: number; loop?: boolean }): void;
   stopAll(): void;
@@ -58,6 +62,14 @@ export interface TransportApi {
   setRecord(mode: import('./session').RecordMode): void;
   locate(tick: number): void;
   tap(): void;
+  /** Pad performance hooks so recording, note repeat and erase can see the pads. */
+  padDown?(pad: number, drum: number, note: number, vel: number, nv?: NoteVar): void;
+  padUp?(pad: number): void;
+  padPressure?(pad: number, value: number): void;
+  setRepeat?(on: boolean): void;
+  setErase?(on: boolean): void;
+  /** Sequencer position at this instant (fractional ticks), for displays. */
+  tickNow?(): number;
 }
 
 export interface ConfirmOpts {

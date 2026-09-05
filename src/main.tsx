@@ -4,6 +4,8 @@ import { Firmware } from '@/kernel/firmware';
 import { newMachineWithStarterProgram } from '@/model/factory';
 import { allScreens } from '@/screens';
 import { AudioEngine } from '@/audio/engine';
+import { Transport } from '@/seq/transport';
+import { WorkerClock } from '@/seq/clock';
 import { installStarterKit } from '@/audio/starterKit';
 import { loadAutosave, startAutosave } from '@/disk/autosave';
 import { FirmwareContext } from '@/app/store';
@@ -23,6 +25,7 @@ async function powerOn() {
   const firmware = new Firmware(machine, allScreens);
   const engine = new AudioEngine(() => firmware.m);
   firmware.sound = engine;
+  firmware.transport = new Transport(firmware, new WorkerClock());
   installHost(firmware, engine);
   startAutosave(() => firmware.m, fn => firmware.subscribe(fn));
 

@@ -11,6 +11,8 @@ class SpySound implements SoundApi {
   offs: number[] = [];
   noteOn(drum: number, note: number, vel: number, nv?: NoteVar) { this.calls.push({ drum, note, vel, nv }); }
   noteOff(_d: number, note: number) { this.offs.push(note); }
+  click() {}
+  now() { return 0; }
   playSound() {}
   stopAll() {}
   async decode() { return { pcm: [new Float32Array(100)], rate: 44100 }; }

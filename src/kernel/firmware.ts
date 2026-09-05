@@ -10,6 +10,8 @@ import { HwKey, ModeId, SHIFT_MODES, isDigit, softKeyIndex } from './keys';
 import { Session, newSession, RecordMode } from './session';
 import { Ctx, Field, FirmwareApi, ScreenDef, ConfirmOpts, TransportApi, SoftKeyDef, SoundApi, HostApi, NoteVar } from './screen';
 import { sixteenLevelValue, sliderValue } from '@/audio/params';
+import { Transport } from '@/seq/transport';
+import { ManualClock } from '@/seq/clock';
 import { TRACK_TYPES } from '@/model/types';
 
 const NAME_CHARS = ' ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&\'()+,-.;=@[]^_`{}~';
@@ -24,21 +26,13 @@ export interface PadHooks {
 export class NullSound implements SoundApi {
   noteOn() {}
   noteOff() {}
+  click() {}
+  now() { return 0; }
   playSound() {}
   stopAll() {}
   async decode(): Promise<{ pcm: Float32Array[]; rate: number }> { throw new Error('audio engine not running'); }
   mixerChanged() {}
   ready() { return false; }
-}
-
-/** Phase 0 transport: flips flags so LEDs and the LCD respond. Replaced by the real sequencer in Phase 2. */
-class StubTransport implements TransportApi {
-  constructor(private fw: Firmware) {}
-  play(fromStart: boolean) { const s = this.fw.s; if (fromStart) s.now = 0; s.playing = true; this.fw.touch(); }
-  stop() { const s = this.fw.s; s.playing = false; s.record = 'OFF'; this.fw.touch(); }
-  setRecord(mode: RecordMode) { this.fw.s.record = mode; this.fw.touch(); }
-  locate(tick: number) { this.fw.s.now = Math.max(0, tick); this.fw.touch(); }
-  tap() { /* Phase 2 */ }
 }
 
 export class Firmware {
@@ -58,7 +52,8 @@ export class Firmware {
   constructor(machine: Machine, screens: ScreenDef[] = []) {
     this.m = machine;
     this.s = newSession();
-    this.transport = new StubTransport(this);
+    // the real sequencer with a manual clock; the app swaps in a WorkerClock
+    this.transport = new Transport(this, new ManualClock());
     for (const d of screens) this.register(d);
     this.register(confirmWindow);
   }
@@ -173,7 +168,12 @@ export class Firmware {
     }
 
     if (def?.onKey?.(ctx, k, down)) { this.touch(); return; }
-    if (!down) { this.touch(); return; }
+    if (!down) {
+      if (k === 'TAP') this.transport.setRepeat?.(false);
+      if (k === 'ERASE') this.transport.setErase?.(false);
+      this.touch();
+      return;
+    }
 
     // mode select
     if (isDigit(k) && s.shift) { this.setMode(SHIFT_MODES[k]); return; }
@@ -207,8 +207,10 @@ export class Firmware {
       case 'PLAY': this.transport.play(false); return;
       case 'PLAY_START': this.transport.play(true); return;
       case 'STOP': this.transport.stop(); return;
-      case 'REC': this.transport.setRecord(s.record === 'REC' ? 'OFF' : 'REC'); return;
-      case 'OVERDUB': this.transport.setRecord(s.record === 'OVERDUB' ? 'OFF' : 'OVERDUB'); return;
+      case 'REC': this.transport.setRecord('REC'); return;
+      case 'OVERDUB': this.transport.setRecord('OVERDUB'); return;
+      case 'TAP': this.transport.tap(); this.transport.setRepeat?.(true); return;
+      case 'ERASE': this.transport.setErase?.(true); return;
       case 'BANK_A': case 'BANK_B': case 'BANK_C': case 'BANK_D':
         s.padBank = ['BANK_A', 'BANK_B', 'BANK_C', 'BANK_D'].indexOf(k); this.touch(); return;
       case 'FULL_LEVEL': s.fullLevel = !s.fullLevel; this.touch(); return;
@@ -275,13 +277,16 @@ export class Firmware {
       else nv = sixteenLevelValue(s.sixteen.type, i, s.sixteen.origPad, low, high);
     } else if (nvNote === playNote) nv = sliderValue(param, s.nvValue, low, high);
     this.heldPads.set(pad, { drum, note: playNote });
-    this.sound.noteOn(drum, playNote, v, nv);
+    this.transport.padDown?.(pad, drum, playNote, v, nv);
+    if (!(this.transportRepeating())) this.sound.noteOn(drum, playNote, v, nv);
   }
+  private transportRepeating(): boolean { return this.s.held.has('TAP') && this.s.playing && this.m.timing !== 'OFF'; }
   padUp(pad: number) {
     const ctx = this.ctx();
     if (!this.s.nameEdit) this.current()?.onPad?.(ctx, pad, 0, false);
     const held = this.heldPads.get(pad) ?? this.padTarget(pad);
     this.heldPads.delete(pad);
+    this.transport.padUp?.(pad);
     this.sound.noteOff(held.drum, held.note);
     this.touch();
   }
@@ -295,7 +300,7 @@ export class Firmware {
     const map = pg.padAssign === 'MASTER' ? this.m.masterPadToNote : pg.padToNote;
     return { drum, note: map[pad], program };
   }
-  padPressure(pad: number, value: number) { this.hooks.padPressure?.(pad, value); }
+  padPressure(pad: number, value: number) { this.transport.padPressure?.(pad, value); this.hooks.padPressure?.(pad, value); }
 
   wheel(delta: number) {
     const s = this.s;
