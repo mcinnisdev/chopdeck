@@ -1,0 +1,17 @@
+<!-- @dsCard group="Components" viewport="700x380" name="Controls" subtitle="Pad, HardButton, Led, Knob, Fader, CursorPad" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{background:var(--cream);padding:16px}#root{display:flex;flex-wrap:wrap;gap:20px 28px;align-items:flex-end}.row{display:flex;gap:12px;align-items:flex-end}</style></head><body><div id="root"></div>
+<script type="text/babel">
+const { Pad, HardButton, Led, Knob, Fader, CursorPad } = window.FunMPCDesignSystem_3bf065;
+const App = () => (<>
+  <div className="row"><Pad label="PAD 1" note="A8" /><Pad label="PAD 2" note="B9" lit /><Pad label="PAD 3" color="grey" /></div>
+  <div className="row"><HardButton label="PLAY START" led="green" ledOn size="lg" /><HardButton label="REC" cap="red" led="red" /><HardButton label="OVER DUB" cap="red" led="red" ledOn /><HardButton label="OPEN WINDOW" cap="amber" /><HardButton label="MAIN" active /><HardButton label="F1" size="sm" /><HardButton label="ERASE" disabled /></div>
+  <div className="row"><HardButton label="7" size="sm">MIDI</HardButton><HardButton label="SHIFT" cap="dark" /><Led color="red" on label="REC" /><Led color="green" on label="PLAY" /><Led color="amber" label="OFF" /></div>
+  <div className="row"><Knob label="MAIN VOLUME" value={70} /><Knob label="REC GAIN" value={30} size="sm" ticks={false} /><Knob label="DATA" size="lg" ticks={false} value={40} /><Fader label="NOTE VAR" height={110} /><CursorPad /></div>
+</>);
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

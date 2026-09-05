@@ -1,0 +1,14 @@
+:root{
+--font-label:"Barlow Condensed","Arial Narrow",sans-serif;
+--font-body:"Barlow","Helvetica Neue",Arial,sans-serif;
+--font-lcd:"VT323","Courier New",monospace;
+/* silkscreen labels */
+--label-xs:9px;--label-sm:10px;--label-md:12px;--label-lg:14px;--label-xl:18px;
+--label-tracking:0.08em;--label-weight:600;
+/* body */
+--body-sm:12px;--body-md:14px;--body-lg:16px;--body-line:1.4;/* @kind other */
+/* lcd */
+--lcd-sm:16px;--lcd-md:20px;--lcd-lg:28px;--lcd-xl:40px;--lcd-line:1;/* @kind other */
+/* brand wordmark */
+--display-md:32px;--display-lg:56px;--display-weight:700;
+}

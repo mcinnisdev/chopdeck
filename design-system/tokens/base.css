@@ -1,0 +1,4 @@
+body{margin:0;font-family:var(--font-body);font-size:var(--body-md);line-height:var(--body-line);color:var(--text-body);-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:underline;text-underline-offset:2px}a:hover{color:var(--link-hover)}
+.silkscreen{font-family:var(--font-label);font-weight:var(--label-weight);font-size:var(--label-sm);letter-spacing:var(--label-tracking);text-transform:uppercase;color:var(--text-silkscreen);line-height:1}
+.lcd-text{font-family:var(--font-lcd);font-size:var(--lcd-md);line-height:var(--lcd-line);color:var(--text-lcd);text-transform:uppercase}

@@ -1,0 +1,28 @@
+<!-- @dsCard group="Components" viewport="700x400" name="Display" subtitle="Lcd, LcdField, SoftKeys, LcdWindow, Waveform, Panel, Silkscreen, Wordmark" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{background:var(--cream);padding:16px}#root{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:flex-start}</style></head><body><div id="root"></div>
+<script type="text/babel">
+const { Lcd, LcdField, SoftKeys, LcdWindow, Waveform, Panel, Silkscreen, Wordmark, HardButton } = window.FunMPCDesignSystem_3bf065;
+const App = () => (<>
+  <Lcd title="MAIN SCREEN" cols={36} rows={6}>
+    <div>SEQ:01-FUNKY DRUMMER   NOW:001.01.00</div>
+    <div><LcdField label="BPM" value="93.0" selected /> <LcdField label="LOOP" value="ON" />  <LcdField label="BARS" value="4" /></div>
+    <div style={{color:'var(--lcd-dim)'}}>TR:01-DRUMS   PGM:BREAK_93</div>
+    <SoftKeys keys={['MAIN','TRACK','SAMPLE','CHOP','','MIX']} active={0} style={{position:'absolute',left:6,right:6,bottom:6}} />
+  </Lcd>
+  <Lcd title="CHOP" cols={36} rows={6}>
+    <Waveform chops={[0,.2,.44,.7]} selected={1} width={340} height={64} />
+    <div>CHOP:02  ST:0004120  END:0009840</div>
+    <LcdWindow title="LOAD A SOUND"><div>FILE: BREAK_93.WAV</div><div>ASSIGN TO: <LcdField value="PAD 1" selected /></div></LcdWindow>
+  </Lcd>
+  <Panel title="PAD BANK"><div style={{display:'flex',gap:10}}><HardButton label="A" led="green" ledOn size="sm" /><HardButton label="B" led="green" size="sm" /><HardButton label="C" led="green" size="sm" /><HardButton label="D" led="green" size="sm" /></div></Panel>
+  <Panel title="LOCATE" recessed><div style={{display:'flex',gap:10}}><HardButton label="STEP" size="sm">&lt;</HardButton><HardButton size="sm" label="">&gt;</HardButton><HardButton label="GO TO" size="sm" /></div></Panel>
+  <div style={{display:'flex',flexDirection:'column',gap:8}}><Silkscreen size="xs">XS · TAP TEMPO / NOTE REPEAT</Silkscreen><Silkscreen size="sm">SM · MIDI PRODUCTION CENTER</Silkscreen><Silkscreen size="md">MD · PAD BANK</Silkscreen><Silkscreen size="lg">LG · SEQUENCER</Silkscreen><Wordmark /></div>
+  <div style={{background:'var(--navy)',padding:'14px 18px',borderRadius:'var(--radius-panel)',display:'flex',flexDirection:'column',gap:8}}><Silkscreen onDark>ON CHASSIS</Silkscreen><Wordmark onDark /></div>
+</>);
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

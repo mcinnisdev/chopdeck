@@ -1,0 +1,7 @@
+:root{
+--space-1:2px;--space-2:4px;--space-3:8px;--space-4:12px;--space-5:16px;--space-6:24px;--space-7:32px;--space-8:48px;
+/* hardware geometry */
+--pad-size:72px;--pad-gap:10px;--key-w:34px;--key-h:18px;--key-lg-w:44px;--key-lg-h:26px;--knob-md:56px;--knob-lg:96px;--led-size:6px;
+--radius-key:3px;--radius-pad:6px;--radius-lcd:4px;--radius-panel:10px;--radius-chassis:18px;
+--stroke-w:2px;--stroke-w-thick:3px;
+}
