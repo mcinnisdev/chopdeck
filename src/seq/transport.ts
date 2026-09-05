@@ -190,6 +190,7 @@ export class Transport implements TransportApi {
     if (this.recording === 'OFF') return;
     const tr = this.seq().tracks[this.s.track];
     const raw = this.tickAtTime(this.host.sound.now());
+    if (!this.inPunch(raw)) return;
     let tick = Math.round(raw);
     tick = correctTick(tick, this.m.timing, this.m.swing);
     tick = Math.max(0, tick);
@@ -215,6 +216,14 @@ export class Transport implements TransportApi {
   }
 
   padPressure(pad: number, value: number) { const h = this.heldPads.get(pad); if (h) h.pressure = Math.max(0.05, Math.min(1, value)); }
+
+  /** Auto punch: is this position inside the recording window? */
+  private inPunch(tick: number): boolean {
+    const p = this.s.punch; if (!p) return true;
+    if (p.mode === 'PUNCH IN ONLY') return tick >= p.in;
+    if (p.mode === 'PUNCH OUT ONLY') return tick < p.out;
+    return tick >= p.in && tick < p.out;
+  }
 
   private finishPending(tick: number) {
     for (const [, p] of this.pending) p.ev.dur = Math.max(1, tick - p.startTick);
@@ -294,7 +303,7 @@ export class Transport implements TransportApi {
     if (this.recording === 'REC') {
       const tr = q.tracks[this.s.track];
       const a = Math.max(this.erasedTo, f0);
-      if (to > a) { tr.events = tr.events.filter(e => e.tick < a || e.tick >= to || this.recordedNow.has(e)); this.erasedTo = to; }
+      if (to > a) { tr.events = tr.events.filter(e => e.tick < a || e.tick >= to || this.recordedNow.has(e) || !this.inPunch(e.tick)); this.erasedTo = to; }
     }
     // ERASE held + pads held during overdub: erase those notes as the head passes
     if (this.eraseHeld && this.recording === 'OVERDUB' && this.heldPads.size) {

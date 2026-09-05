@@ -39,10 +39,7 @@ function placeholder(id: ModeId, title: string, keys: (SoftKeyDef | null)[], pag
 }
 
 export const placeholderScreens: ScreenDef[] = [
-  ...placeholder('STEP', 'STEP EDIT', [action('TC'), action('COPY'), action('DELETE'), action('INSERT'), action('PASTE'), action('PLAY')]),
-  ...placeholder('EDIT', 'EDIT', [page('EVENTS', 'EVENTS'), page('BARS', 'BARS'), page('TrMOVE', 'TRMOVE'), null, page('USER', 'USER'), action('DO IT')], ['EVENTS', 'BARS', 'TRMOVE', 'USER']),
   ...placeholder('SONG', 'SONG', [null, null, null, action('CONVRT'), action('DELETE'), action('INSERT')]),
-  ...placeholder('MISC', 'MISC.', [page('PUNCH', 'PUNCH'), page('TRANS', 'TRANS'), page('2ndSEQ', '2NDSEQ'), null, null, action('TurnON')], ['PUNCH', 'TRANS', '2NDSEQ']),
   ...placeholder('SAVE', 'SAVE', [page('LOAD', 'LOAD'), page('SAVE', 'SAVE'), page('FORMAT', 'FORMAT'), null, null, action('DO IT')], ['LOAD', 'SAVE', 'FORMAT']),
   ...placeholder('OTHER', 'OTHER', [page('OTHERS', 'OTHERS'), page('INIT', 'INIT'), page('VER.', 'VER'), null, null, null], ['OTHERS', 'INIT', 'VER']),
   ...placeholder('MIDI', 'MIDI/SYNC', [page('SYNC', 'SYNC'), page('DUMP', 'DUMP'), page('MIDIsw', 'MIDISW'), null, null, null], ['SYNC', 'DUMP', 'MIDISW']),
