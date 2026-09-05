@@ -304,6 +304,7 @@ export class Firmware {
       else nv = sixteenLevelValue(s.sixteen.type, i, s.sixteen.origPad, low, high);
     } else if (nvNote === playNote) nv = sliderValue(param, s.nvValue, low, high);
     this.heldPads.set(pad, { drum, note: playNote });
+    s.padsDown.add(pad);
     this.transport.padDown?.(pad, drum, playNote, v, nv);
     if (!(this.transportRepeating())) this.sound.noteOn(drum, playNote, v, nv);
   }
@@ -313,6 +314,7 @@ export class Firmware {
     if (!this.s.nameEdit) this.current()?.onPad?.(ctx, pad, 0, false);
     const held = this.heldPads.get(pad) ?? this.padTarget(pad);
     this.heldPads.delete(pad);
+    this.s.padsDown.delete(pad);
     this.transport.padUp?.(pad);
     this.sound.noteOff(held.drum, held.note);
     this.touch();

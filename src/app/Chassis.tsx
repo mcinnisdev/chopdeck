@@ -164,7 +164,7 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
             <div style={{ background: 'var(--cream)', border: 'var(--stroke-w) solid var(--ink)', borderRadius: 'var(--radius-panel)', padding: 14, boxShadow: 'inset 0 2px 6px rgba(0,0,0,.25)', display: 'grid', gridTemplateColumns: 'repeat(4, var(--pad-size))', gap: 'var(--pad-gap)', justifyContent: 'center' }}>
               {[12, 13, 14, 15, 8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3].map(i => {
                 const slot = s.padBank * 16 + i;
-                return <Pad key={i} label={`PAD ${i + 1}`} note={String(padProgram.padToNote[slot])} letters={PAD_LETTERS[i].slice(0, 2)} hotkey={HOTKEYS[i]} lit={s.litPads.has(slot) || s.lastPad === slot && s.playing}
+                return <Pad key={i} label={`PAD ${i + 1}`} note={String(padProgram.padToNote[slot])} letters={PAD_LETTERS[i].slice(0, 2)} hotkey={HOTKEYS[i]} lit={s.litPads.has(slot) || s.padsDown.has(slot)}
                   onTrigger={v => fw.padDown(slot, v)} onRelease={() => fw.padUp(slot)} onPressure={p => fw.padPressure(slot, p)} />;
               })}
             </div>

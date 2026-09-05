@@ -20,3 +20,19 @@ test('the machine boots to the MAIN screen and responds to keys', async ({ page 
   await page.screenshot({ path: 'test-results/main.png', fullPage: true });
   expect(errors).toEqual([]);
 });
+
+test('keyboard pads light up while held', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('region', { name: 'LCD' }).waitFor();
+  await page.click('body');
+  const pad1 = page.getByRole('button', { name: 'PAD 1', exact: true });
+  await expect(pad1).toHaveAttribute('aria-pressed', 'false');
+  await page.keyboard.down('KeyZ');
+  await expect(pad1).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.up('KeyZ');
+  await expect(pad1).toHaveAttribute('aria-pressed', 'false');
+  // top row: 1 = pad 13
+  await page.keyboard.down('Digit1');
+  await expect(page.getByRole('button', { name: 'PAD 13', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.up('Digit1');
+});

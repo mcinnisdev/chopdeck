@@ -54,7 +54,8 @@ export interface Session {
   nvValue: number;                      // slider 0..127
   lastPad: number | null;               // 0..63
   lastVel: number;
-  litPads: Set<number>;
+  litPads: Set<number>;                 // pads the sequencer is sounding right now
+  padsDown: Set<number>;                // pads held from the keyboard, MIDI or footswitches
 
   // selections in the sound modes
   drum: number;                         // 0..3 selected DRUM slot
@@ -87,6 +88,7 @@ export function newSession(): Session {
     song: 0, songStep: 0, songRep: 0, songPlaying: false,
     padBank: 0, fullLevel: false, sixteenLevels: false, after: false, nvValue: 64, lastPad: null, lastVel: 0,
     litPads: new Set(),
+    padsDown: new Set(),
     drum: 0, program: 0, note: 60, pad: 0, sound: 0,
     sixteen: { note: 35, param: 'VELOCITY', type: 'TUNING', origPad: 4 },
     importFiles: [], importIndex: 0, diskFolder: '', diskIndex: 0,
