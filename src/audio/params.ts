@@ -34,6 +34,8 @@ export interface VoicePlan {
   fenv: { attackSec: number; decaySec: number; amountIdx: number; baseIdx: number } | null;
   overlap: NoteParams['overlap'];
   mutes: number[];
+  fxBus: NoteParams['fxBus'];
+  fxSend: number;
 }
 
 export interface PlanInput {
@@ -84,6 +86,7 @@ export function planVoice({ np, sound, vel, nv, drumVol }: PlanInput): VoicePlan
     loop: sound.loopOn, attackSec, decaySec, decayMode: np.dcyMode,
     cutoff: cutoffHz(cutIdx), q: resonanceQ(np.reson), fenv, overlap: np.overlap,
     mutes: np.mutes.filter(n => n > 0),
+    fxBus: np.fxBus, fxSend: np.fxSend,
   };
 }
 

@@ -223,4 +223,30 @@ export interface Machine {
   defaults: SequenceDefaults;
   locateMemories: number[]; // 9 ticks
   recordMixChanges: boolean;
+  fx: FxSets;
 }
+
+// ---------- Effects (the EB16-class board, always installed here) ----------
+
+export type ModType = 'PHASE SHIFT' | 'FLANGE' | 'CHORUS' | 'ROTARY SPEAKERS' | 'FMOD/AUTOPAN' | 'PITCH SHIFT';
+export type EchoType = 'MONO LEFT' | 'MONO L+R' | 'X-OVER L&R' | 'STEREO';
+export type ReverbType = 'LARGE HALL' | 'SMALL HALL' | 'LARGE ROOM' | 'SMALL ROOM' | 'GATED 1' | 'GATED 2' | 'REVERSE';
+
+export interface ReverbParams {
+  type: ReverbType;
+  predelayMs: number;       // 0..200
+  time: number;             // 0..100 (decay)
+  diffuse: number;          // 0..100
+  hfDamp: number;           // 0..100
+  level: number;            // 0..100 wet return
+  on: boolean;
+}
+export interface MultiFxParams {
+  dist: { on: boolean; gain: number; level: number; ringFreq: number; ringDepth: number };          // gain/level 0..100, ring depth 0..100 (0 = off)
+  filt: { on: boolean; low: number; mid1: number; mid1Freq: number; mid2: number; mid2Freq: number; high: number }; // dB -12..12, freqs Hz
+  mod: { on: boolean; type: ModType; speed: number; depth: number; feedback: number };              // speed 0.05..10 Hz, depth 0..100, feedback 0..100
+  echo: { on: boolean; type: EchoType; delayMs: number; feedback: number; hfDamp: number };        // delay 0..670 ms
+  rev: ReverbParams;
+  mix: { on: boolean; direct: boolean; level: number };                                            // level 0..100
+}
+export interface FxSets { m1: MultiFxParams; m2: MultiFxParams; r1: ReverbParams; r2: ReverbParams }

@@ -1,5 +1,5 @@
 import {
-  Machine, Sequence, Track, Song, Program, NoteParams, DrumSlot, Sound, SequenceDefaults,
+  Machine, Sequence, Track, Song, Program, NoteParams, DrumSlot, Sound, SequenceDefaults, ReverbParams, MultiFxParams, FxSets,
   NUM_SEQUENCES, NUM_TRACKS, NUM_SONGS, NUM_PROGRAMS, NUM_DRUMS, NUM_PADS, NUM_NOTES, NOTE_MIN,
 } from './types';
 
@@ -105,8 +105,22 @@ export function newMachine(): Machine {
     defaults: { ...DEFAULTS },
     locateMemories: Array.from({ length: 9 }, () => 0),
     recordMixChanges: false,
+    fx: newFxSets(),
   };
 }
+
+export function newReverb(type: ReverbParams['type'] = 'LARGE HALL'): ReverbParams { return { type, predelayMs: 20, time: 50, diffuse: 70, hfDamp: 40, level: 60, on: true }; }
+export function newMultiFx(): MultiFxParams {
+  return {
+    dist: { on: false, gain: 30, level: 70, ringFreq: 440, ringDepth: 0 },
+    filt: { on: false, low: 0, mid1: 0, mid1Freq: 400, mid2: 0, mid2Freq: 2500, high: 0 },
+    mod: { on: false, type: 'CHORUS', speed: 0.8, depth: 40, feedback: 20 },
+    echo: { on: true, type: 'STEREO', delayMs: 375, feedback: 35, hfDamp: 40 },
+    rev: newReverb('SMALL ROOM'),
+    mix: { on: true, direct: false, level: 70 },
+  };
+}
+export function newFxSets(): FxSets { return { m1: newMultiFx(), m2: newMultiFx(), r1: newReverb('LARGE HALL'), r2: newReverb('SMALL ROOM') }; }
 
 /** Programs 0 is marked used on a fresh machine so pads have somewhere to land. */
 export function newMachineWithStarterProgram(): Machine {

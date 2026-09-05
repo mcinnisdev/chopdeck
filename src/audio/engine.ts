@@ -3,6 +3,7 @@ import { Machine, Sound, NOTE_MIN, NOTE_MAX } from '@/model/types';
 import { SoundApi, NoteVar } from '@/kernel/screen';
 import { planVoice, resolveNotes, ampEnvelope, cutoffHz, MAX_VOICES, VoicePlan } from './params';
 import { Recorder } from './recorder';
+import { FxRack } from './fx';
 
 interface Voice {
   id: number;
@@ -23,6 +24,7 @@ export class AudioEngine implements SoundApi {
   private limiter!: DynamicsCompressorNode;
   private analyser!: AnalyserNode;
   private drumBus: GainNode[] = [];
+  private fx: FxRack | null = null;
   private voices: Voice[] = [];
   private buffers = new Map<string, { pcm: Float32Array; buf: AudioBuffer }>();
   private nextId = 1;
@@ -48,6 +50,8 @@ export class AudioEngine implements SoundApi {
       this.analyser = c.createAnalyser(); this.analyser.fftSize = 512;
       this.master.connect(this.limiter); this.limiter.connect(this.analyser); this.analyser.connect(c.destination);
       for (let i = 0; i < 4; i++) { const g = c.createGain(); g.connect(this.master); this.drumBus.push(g); }
+      this.fx = new FxRack(c, this.master);
+      this.fx.apply(this.getMachine().fx);
     }
     if (!this.opts.context && this.ctx.state === 'suspended') void this.ctx.resume();
     return this.ctx;
@@ -141,6 +145,7 @@ export class AudioEngine implements SoundApi {
     pan.pan.value = Math.max(-1, Math.min(1, plan.pan));
 
     src.connect(filter); filter.connect(amp); amp.connect(pan); pan.connect(this.drumBus[drum]);
+    if (this.fx && plan.fxBus !== 'OFF' && plan.fxSend > 0) { const send = c.createGain(); send.gain.value = plan.fxSend / 100; pan.connect(send); send.connect(this.fx.buses[plan.fxBus]); }
     src.start(now, startSec, plan.loop ? undefined : Math.max(0.001, endSec - startSec));
     if (isFinite(env.stopAt) && !plan.loop) src.stop(now + env.stopAt + 0.01);
 
@@ -220,6 +225,7 @@ export class AudioEngine implements SoundApi {
     const m = this.getMachine();
     const now = this.ctx.currentTime;
     this.master.gain.setTargetAtTime(this.volume * Math.pow(10, m.masterLevelDb / 20), now, 0.02);
+    this.fx?.apply(m.fx);
     for (const v of this.voices) {
       const pg = m.programs[m.drums[v.drum]?.pgm ?? 0]; const np = pg?.notes[v.note - NOTE_MIN]; if (!np) continue;
       v.pan.pan.setTargetAtTime(Math.max(-1, Math.min(1, (np.pan - 50) / 50)), now, 0.02);

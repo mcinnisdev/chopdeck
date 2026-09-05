@@ -3,7 +3,7 @@ import { ScreenDef, Ctx, Field } from '@/kernel/screen';
 import { text, ATTR_DIM, ATTR_INVERSE, setAttr } from '@/lcd/frame';
 import { NOTE_MIN } from '@/model/types';
 import { pad2, notePad } from '@/model/format';
-import { intField, enumField, boolField, clamp } from './util';
+import { intField, enumField, boolField, clamp, cycle } from './util';
 
 const program = (c: Ctx) => c.m.programs[c.m.drums[c.s.drum].pgm];
 const padMap = (c: Ctx) => { const pg = program(c); return pg.padAssign === 'MASTER' ? c.m.masterPadToNote : pg.padToNote; };
@@ -131,13 +131,117 @@ export const setupPage: ScreenDef = {
   softKeys: pageKeys('SETUP'),
 };
 
-function stub(page: string, title: string): ScreenDef {
-  return {
-    id: `MIXER/${page}`, fields: () => [],
-    draw(c, f) { text(f, 0, 0, title); text(f, 3, 0, 'Needs the effects board (Phase 5).', ATTR_DIM); void c; },
-    softKeys: pageKeys(page),
-  };
+// ---------- FXsend page: bus + send level per strip ----------
+const FX_BUSES = ['OFF', 'M1', 'M2', 'R1', 'R2'] as const;
+export const fxSendPage: ScreenDef = {
+  id: 'MIXER/FXSEND',
+  fields: () => {
+    const fields: Field[] = [];
+    for (let ch = 0; ch < 16; ch++) {
+      fields.push({ id: `bus${ch}`, row: 1, col: ch * 3, width: 3, get: x => paramsOf(x, ch).fxBus.padEnd(3, ' '),
+        wheel: (x, d) => { for (const k of channelsToEdit(x, ch)) { const p = paramsOf(x, k); p.fxBus = cycle(FX_BUSES, p.fxBus, d); } x.fw.sound.mixerChanged(); } });
+      fields.push({ id: `snd${ch}`, row: 5, col: ch * 3, width: 3, get: x => String(paramsOf(x, ch).fxSend).padStart(3, ' '),
+        wheel: (x, d) => { for (const k of channelsToEdit(x, ch)) { const p = paramsOf(x, k); p.fxSend = clamp(p.fxSend + d, 0, 100); } x.fw.sound.mixerChanged(); },
+        enter: (x, digits) => { const v = clamp(parseInt(digits, 10) || 0, 0, 100); for (const k of channelsToEdit(x, ch)) paramsOf(x, k).fxSend = v; x.fw.sound.mixerChanged(); } });
+    }
+    return fields;
+  },
+  draw(c, f) {
+    text(f, 0, 0, `FX send    Pgm:${String(c.m.drums[c.s.drum].pgm + 1).padStart(2, ' ')}-${program(c).name.slice(0, 12)}`);
+    text(f, 0, 33, `Bank:${'ABCD'[c.s.padBank]}  Drum:${c.s.drum + 1}`);
+    const ch = (c.s.cursor['MIXER/FXSEND'] ?? 0) % 16;
+    for (let i = 0; i < 16; i++) { f.graphics.push({ kind: 'fader', row: 2, col: i * 3, rows: 3, cols: 3, value: paramsOf(c, i).fxSend / 100 }); text(f, 6, i * 3, pad2(i + 1), i === ch ? ATTR_INVERSE : ATTR_DIM); }
+  },
+  softKeys: pageKeys('FXSEND'),
+  onPad(c, pad, _v, down) { if (!down) return false; const ch = pad % 16; const i = c.s.cursor['MIXER/FXSEND'] ?? 0; c.fw.setCursor('MIXER/FXSEND', ch + (i >= 16 ? 16 : 0)); return false; },
+};
+
+// ---------- FXedit page and module windows ----------
+type FxSel = 'MULTI FX1' | 'MULTI FX2' | 'REVERB 1' | 'REVERB 2';
+const FX_SELS: readonly FxSel[] = ['MULTI FX1', 'MULTI FX2', 'REVERB 1', 'REVERB 2'];
+let fxSel: FxSel = 'MULTI FX1';
+const multiOf = (c: Ctx) => (fxSel === 'MULTI FX2' ? c.m.fx.m2 : c.m.fx.m1);
+const reverbOf = (c: Ctx) => (fxSel === 'REVERB 1' ? c.m.fx.r1 : fxSel === 'REVERB 2' ? c.m.fx.r2 : multiOf(c).rev);
+const MODULES = ['DIST', 'FILT', 'MOD', 'ECHO', 'REV', 'MIX'] as const;
+type Mod = typeof MODULES[number];
+const moduleOn = (c: Ctx, m: Mod) => { const x = multiOf(c); return m === 'DIST' ? x.dist.on : m === 'FILT' ? x.filt.on : m === 'MOD' ? x.mod.on : m === 'ECHO' ? x.echo.on : m === 'REV' ? x.rev.on : x.mix.on; };
+const setModuleOn = (c: Ctx, m: Mod, on: boolean) => { const x = multiOf(c); if (m === 'DIST') x.dist.on = on; else if (m === 'FILT') x.filt.on = on; else if (m === 'MOD') x.mod.on = on; else if (m === 'ECHO') x.echo.on = on; else if (m === 'REV') x.rev.on = on; else x.mix.on = on; c.fw.sound.mixerChanged(); };
+const touchFx = (c: Ctx) => c.fw.sound.mixerChanged();
+const signed = (v: number) => `${v > 0 ? '+' : ''}${v}`.padStart(3, ' ');
+
+export const fxEditPage: ScreenDef = {
+  id: 'MIXER/FXEDIT',
+  fields: () => {
+    const f: Field[] = [enumField({ id: 'sel', row: 0, col: 5, width: 9, label: 'Edit:', values: FX_SELS, get: () => fxSel, set: (_c, v) => { fxSel = v; } })];
+    if (fxSel.startsWith('MULTI')) MODULES.forEach((m, i) => f.push({ id: `mod${m}`, row: 2, col: 1 + i * 8, width: 4, get: () => m, wheel: (c, d) => setModuleOn(c, m, d > 0), window: c => c.fw.openWindow(`MIXER/FX_${m}`) }));
+    else f.push(...reverbFields(2));
+    return f;
+  },
+  draw(c, f) {
+    text(f, 0, 20, `Drum:${c.s.drum + 1}  Pgm:${program(c).name.slice(0, 12)}`, ATTR_DIM);
+    if (fxSel.startsWith('MULTI')) {
+      MODULES.forEach((m, i) => { const on = moduleOn(c, m); text(f, 1, 1 + i * 8, on ? '[ON ]' : '[OFF]', on ? 0 : ATTR_DIM); if (i < MODULES.length - 1) text(f, 2, 6 + i * 8, '->', ATTR_DIM); });
+      text(f, 4, 0, 'DATA on a module: ON/OFF.  OPEN WINDOW: its parameters.', ATTR_DIM);
+      const x = multiOf(c);
+      text(f, 5, 0, `${x.mod.type}  ${x.echo.type} ${x.echo.delayMs}ms  ${x.rev.type}`.slice(0, 48), ATTR_DIM);
+    }
+    text(f, 6, 0, 'Sends: MIXER > FXsend.  Returns go to the stereo out.', ATTR_DIM);
+  },
+  softKeys: c => [...pageKeys('FXEDIT')(c).slice(0, 5), fxSel.startsWith('MULTI') ? { label: 'ON/OFF', kind: 'action', press: x => { const id = x.s.cursor['MIXER/FXEDIT'] ?? 0; const m = MODULES[id - 1]; if (m) setModuleOn(x, m, !moduleOn(x, m)); } } : null],
+};
+
+function reverbFields(row: number): Field[] {
+  return [
+    enumField({ id: 'rtype', row, col: 5, width: 10, label: 'Type:', values: ['LARGE HALL', 'SMALL HALL', 'LARGE ROOM', 'SMALL ROOM', 'GATED 1', 'GATED 2', 'REVERSE'] as const, get: c => reverbOf(c).type, set: (c, v) => { reverbOf(c).type = v; touchFx(c); } }),
+    intField({ id: 'pre', row: row + 1, col: 9, width: 3, label: 'Predelay:', min: 0, max: 200, get: c => reverbOf(c).predelayMs, set: (c, v) => { reverbOf(c).predelayMs = v; touchFx(c); } }),
+    intField({ id: 'time', row: row + 1, col: 22, width: 3, label: 'Time:', min: 0, max: 100, get: c => reverbOf(c).time, set: (c, v) => { reverbOf(c).time = v; touchFx(c); } }),
+    intField({ id: 'diff', row: row + 2, col: 8, width: 3, label: 'Diffuse:', min: 0, max: 100, get: c => reverbOf(c).diffuse, set: (c, v) => { reverbOf(c).diffuse = v; touchFx(c); } }),
+    intField({ id: 'hf', row: row + 2, col: 26, width: 3, label: 'HF damping:', min: 0, max: 100, get: c => reverbOf(c).hfDamp, set: (c, v) => { reverbOf(c).hfDamp = v; touchFx(c); } }),
+    intField({ id: 'lvl', row: row + 3, col: 6, width: 3, label: 'Level:', min: 0, max: 100, get: c => reverbOf(c).level, set: (c, v) => { reverbOf(c).level = v; touchFx(c); } }),
+    boolField({ id: 'on', row: row + 3, col: 17, width: 3, label: 'ON:', get: c => reverbOf(c).on, set: (c, v) => { reverbOf(c).on = v; touchFx(c); } }),
+  ];
 }
+const closeKey = (): (import('@/kernel/screen').SoftKeyDef | null)[] => [null, null, null, { label: 'CLOSE', kind: 'action', press: c => c.fw.closeWindow() }, null, null];
+const win = (id: string, title: string, fields: (c: Ctx) => Field[]): ScreenDef => ({ id, title, fields, draw() {}, softKeys: closeKey });
+
+export const fxWindows: ScreenDef[] = [
+  win('MIXER/FX_DIST', 'DISTORTION/RING MOD', () => [
+    intField({ id: 'gain', row: 2, col: 6, width: 3, label: 'Gain:', min: 0, max: 100, get: c => multiOf(c).dist.gain, set: (c, v) => { multiOf(c).dist.gain = v; touchFx(c); } }),
+    intField({ id: 'lvl', row: 2, col: 18, width: 3, label: 'Level:', min: 0, max: 100, get: c => multiOf(c).dist.level, set: (c, v) => { multiOf(c).dist.level = v; touchFx(c); } }),
+    intField({ id: 'rf', row: 3, col: 6, width: 5, label: 'Freq:', min: 20, max: 5000, step: 10, get: c => multiOf(c).dist.ringFreq, set: (c, v) => { multiOf(c).dist.ringFreq = v; touchFx(c); } }),
+    intField({ id: 'rd', row: 3, col: 18, width: 3, label: 'Depth:', min: 0, max: 100, get: c => multiOf(c).dist.ringDepth, set: (c, v) => { multiOf(c).dist.ringDepth = v; touchFx(c); } }),
+    boolField({ id: 'on', row: 5, col: 3, width: 3, label: 'ON:', get: c => multiOf(c).dist.on, set: (c, v) => setModuleOn(c, 'DIST', v) }),
+  ]),
+  win('MIXER/FX_FILT', '4-BAND FILTER', () => [
+    intField({ id: 'low', row: 2, col: 5, width: 3, label: 'LOW:', min: -12, max: 12, get: c => multiOf(c).filt.low, set: (c, v) => { multiOf(c).filt.low = v; touchFx(c); }, fmt: signed }),
+    intField({ id: 'm1', row: 3, col: 6, width: 3, label: 'MID1:', min: -12, max: 12, get: c => multiOf(c).filt.mid1, set: (c, v) => { multiOf(c).filt.mid1 = v; touchFx(c); }, fmt: signed }),
+    intField({ id: 'm1f', row: 3, col: 12, width: 5, label: '@', min: 50, max: 10000, step: 10, get: c => multiOf(c).filt.mid1Freq, set: (c, v) => { multiOf(c).filt.mid1Freq = v; touchFx(c); } }),
+    intField({ id: 'm2', row: 4, col: 6, width: 3, label: 'MID2:', min: -12, max: 12, get: c => multiOf(c).filt.mid2, set: (c, v) => { multiOf(c).filt.mid2 = v; touchFx(c); }, fmt: signed }),
+    intField({ id: 'm2f', row: 4, col: 12, width: 5, label: '@', min: 50, max: 15000, step: 10, get: c => multiOf(c).filt.mid2Freq, set: (c, v) => { multiOf(c).filt.mid2Freq = v; touchFx(c); } }),
+    intField({ id: 'high', row: 5, col: 6, width: 3, label: 'HIGH:', min: -12, max: 12, get: c => multiOf(c).filt.high, set: (c, v) => { multiOf(c).filt.high = v; touchFx(c); }, fmt: signed }),
+    boolField({ id: 'on', row: 5, col: 20, width: 3, label: 'ON:', get: c => multiOf(c).filt.on, set: (c, v) => setModuleOn(c, 'FILT', v) }),
+  ]),
+  win('MIXER/FX_MOD', 'MODULATION', () => [
+    enumField({ id: 'type', row: 2, col: 6, width: 15, label: 'Type:', values: ['PHASE SHIFT', 'FLANGE', 'CHORUS', 'ROTARY SPEAKERS', 'FMOD/AUTOPAN', 'PITCH SHIFT'] as const, get: c => multiOf(c).mod.type, set: (c, v) => { multiOf(c).mod.type = v; touchFx(c); } }),
+    { id: 'speed', row: 3, col: 7, width: 5, label: 'Speed:', get: c => `${multiOf(c).mod.speed.toFixed(2)}`.padStart(5, ' '), wheel: (c, d) => { const m = multiOf(c).mod; m.speed = clamp(Math.round((m.speed + d * 0.05) * 100) / 100, 0.05, 10); touchFx(c); } },
+    intField({ id: 'depth', row: 3, col: 20, width: 3, label: 'Depth:', min: 0, max: 100, get: c => multiOf(c).mod.depth, set: (c, v) => { multiOf(c).mod.depth = v; touchFx(c); } }),
+    intField({ id: 'fb', row: 4, col: 10, width: 3, label: 'Feedback:', min: 0, max: 100, get: c => multiOf(c).mod.feedback, set: (c, v) => { multiOf(c).mod.feedback = v; touchFx(c); } }),
+    boolField({ id: 'on', row: 5, col: 3, width: 3, label: 'ON:', get: c => multiOf(c).mod.on, set: (c, v) => setModuleOn(c, 'MOD', v) }),
+  ]),
+  win('MIXER/FX_ECHO', 'DELAY/ECHO', () => [
+    enumField({ id: 'type', row: 2, col: 6, width: 10, label: 'Type:', values: ['MONO LEFT', 'MONO L+R', 'X-OVER L&R', 'STEREO'] as const, get: c => multiOf(c).echo.type, set: (c, v) => { multiOf(c).echo.type = v; touchFx(c); } }),
+    intField({ id: 'delay', row: 3, col: 15, width: 3, label: 'Feedback delay:', min: 0, max: 670, step: 5, get: c => multiOf(c).echo.delayMs, set: (c, v) => { multiOf(c).echo.delayMs = v; touchFx(c); } }),
+    intField({ id: 'fb', row: 4, col: 10, width: 3, label: 'Feedback:', min: 0, max: 100, get: c => multiOf(c).echo.feedback, set: (c, v) => { multiOf(c).echo.feedback = v; touchFx(c); } }),
+    intField({ id: 'hf', row: 4, col: 27, width: 3, label: 'HF damping:', min: 0, max: 100, get: c => multiOf(c).echo.hfDamp, set: (c, v) => { multiOf(c).echo.hfDamp = v; touchFx(c); } }),
+    boolField({ id: 'on', row: 5, col: 3, width: 3, label: 'ON:', get: c => multiOf(c).echo.on, set: (c, v) => setModuleOn(c, 'ECHO', v) }),
+  ]),
+  win('MIXER/FX_REV', 'REVERB', () => reverbFields(2)),
+  win('MIXER/FX_MIX', 'Effect Mixer', () => [
+    boolField({ id: 'direct', row: 2, col: 12, width: 3, label: 'Direct sig:', get: c => multiOf(c).mix.direct, set: (c, v) => { multiOf(c).mix.direct = v; touchFx(c); } }),
+    intField({ id: 'lvl', row: 3, col: 12, width: 3, label: 'Level:', min: 0, max: 100, get: c => multiOf(c).mix.level, set: (c, v) => { multiOf(c).mix.level = v; touchFx(c); } }),
+    boolField({ id: 'on', row: 5, col: 3, width: 3, label: 'ON:', get: c => multiOf(c).mix.on, set: (c, v) => setModuleOn(c, 'MIX', v) }),
+  ]),
+];
 
 export const mixerEntry: ScreenDef = {
   id: 'MIXER',
@@ -146,5 +250,7 @@ export const mixerEntry: ScreenDef = {
   onEnter(c) { c.fw.setPage('STEREO'); },
 };
 
-export const mixerScreens: ScreenDef[] = [mixerEntry, stereoPage, channelWindow, setupPage, stub('INDIV', 'Individual outputs'), stub('FXSEND', 'Effect send'), stub('FXEDIT', 'Effect edit')];
+const indivStub: ScreenDef = { id: 'MIXER/INDIV', fields: () => [], draw(c, f) { text(f, 0, 0, 'Individual outputs'); text(f, 3, 0, 'The browser has one stereo output; INDIV is not installed.', ATTR_DIM); void c; }, softKeys: pageKeys('INDIV') };
+
+export const mixerScreens: ScreenDef[] = [mixerEntry, stereoPage, channelWindow, setupPage, indivStub, fxSendPage, fxEditPage, ...fxWindows];
 void setAttr;
