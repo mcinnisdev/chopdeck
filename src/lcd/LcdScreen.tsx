@@ -1,0 +1,92 @@
+// Paints an LcdFrame as 8 rows of monospace runs. The glass measures itself and sizes the font so
+// exactly 48 columns fit; the grid never changes, only the cell size.
+import { useLayoutEffect, useRef, useState, CSSProperties, memo } from 'react';
+import { LcdFrame, ATTR_INVERSE, ATTR_DIM, ATTR_FRAME, ATTR_BLINK, SOFTKEY_ROW } from './frame';
+
+let charRatio = 0.5; // VT323 advance width / font-size; measured once the font is available
+function measureRatio(): number {
+  try {
+    const c = document.createElement('canvas').getContext('2d');
+    if (!c) return charRatio;
+    c.font = '100px VT323, monospace';
+    const w = c.measureText('0000000000').width / 10;
+    if (w > 20 && w < 80) charRatio = w / 100;
+  } catch { /* keep default */ }
+  return charRatio;
+}
+
+interface Run { text: string; attr: number }
+function rowRuns(f: LcdFrame, r: number): Run[] {
+  const runs: Run[] = [];
+  let cur: Run | null = null;
+  for (let c = 0; c < f.cols; c++) {
+    const i = r * f.cols + c;
+    const ch = String.fromCharCode(f.chars[i]);
+    const attr = f.attrs[i];
+    if (cur && cur.attr === attr) cur.text += ch;
+    else { cur = { text: ch, attr }; runs.push(cur); }
+  }
+  return runs;
+}
+
+function runStyle(attr: number): CSSProperties | undefined {
+  if (!attr) return undefined;
+  const s: CSSProperties = {};
+  if (attr & ATTR_INVERSE) { s.background = 'var(--lcd-ink)'; s.color = 'var(--surface-lcd)'; }
+  if (attr & ATTR_DIM) s.color = attr & ATTR_INVERSE ? 'var(--lcd-2)' : 'var(--text-lcd-dim)';
+  if (attr & ATTR_FRAME) { s.boxShadow = 'inset 0 0 0 1px var(--lcd-ink)'; }
+  if (attr & ATTR_BLINK) s.animation = 'lcd-blink 1s steps(2, start) infinite';
+  return s;
+}
+
+export interface LcdScreenProps {
+  frame: LcdFrame;
+  onSoftKey?: (index: number) => void;
+  style?: CSSProperties;
+}
+
+export const LcdScreen = memo(function LcdScreen({ frame, onSoftKey, style }: LcdScreenProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [fontSize, setFontSize] = useState(20);
+  useLayoutEffect(() => {
+    const el = ref.current; if (!el) return;
+    const fit = () => { const ratio = measureRatio(); setFontSize(Math.floor((el.clientWidth / frame.cols) / ratio * 100) / 100); };
+    fit();
+    const ro = new ResizeObserver(fit); ro.observe(el);
+    document.fonts?.ready.then(fit).catch(() => {});
+    return () => ro.disconnect();
+  }, [frame.cols]);
+
+  const rows = [];
+  for (let r = 0; r < frame.rows; r++) rows.push(rowRuns(frame, r));
+
+  return (
+    <div ref={ref} style={{ width: '100%', fontFamily: 'var(--font-lcd)', fontSize, lineHeight: 1, color: 'var(--text-lcd)', whiteSpace: 'pre', textTransform: 'none', userSelect: 'none', position: 'relative', ...style }}>
+      <style>{'@keyframes lcd-blink{50%{opacity:0}}'}</style>
+      {rows.map((runs, r) => (
+        <div key={r} style={{ height: fontSize, display: 'flex' }}>
+          {r === SOFTKEY_ROW && onSoftKey
+            ? Array.from({ length: 6 }, (_, i) => {
+                const slot = frame.cols / 6;
+                const seg = runs.length ? sliceRuns(runs, i * slot, slot) : [];
+                return <span key={i} onPointerDown={() => onSoftKey(i)} style={{ cursor: 'pointer', display: 'inline-block' }}>{seg.map((run, j) => <span key={j} style={runStyle(run.attr)}>{run.text}</span>)}</span>;
+              })
+            : runs.map((run, j) => <span key={j} style={runStyle(run.attr)}>{run.text}</span>)}
+        </div>
+      ))}
+    </div>
+  );
+});
+
+function sliceRuns(runs: Run[], start: number, len: number): Run[] {
+  const out: Run[] = [];
+  let pos = 0;
+  for (const r of runs) {
+    const rs = pos, re = pos + r.text.length;
+    const s = Math.max(rs, start), e = Math.min(re, start + len);
+    if (e > s) out.push({ text: r.text.slice(s - rs, e - rs), attr: r.attr });
+    pos = re;
+    if (pos >= start + len) break;
+  }
+  return out;
+}

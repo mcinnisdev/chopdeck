@@ -212,17 +212,17 @@ sounds first, then recording, then chopping, then depth.
 
 Turn the design system into a codebase.
 
-- [ ] `git init`, Vite + React 18 + TypeScript scaffold at repo root; `design-system/` stays as the source
+- [x] `git init`, Vite + React 18 + TypeScript scaffold at repo root; `design-system/` stays as the source
       of truth for tokens and component specs, `src/ds/` holds the ported components.
-- [ ] Port all 13 components and tokens; drop unpkg/Babel; pin React. Rename the bundle global (it still
+- [x] Port all 13 components and tokens; drop unpkg/Babel; pin React. Rename the bundle global (it still
       says `FunMPC`).
-- [ ] `LcdScreen` framebuffer renderer + `LcdFrame` type + golden-screen test harness.
-- [ ] Firmware kernel: screen definitions, cursor, DATA wheel, numeric entry, SHIFT, window stack, Name
+- [x] `LcdScreen` framebuffer renderer + `LcdFrame` type + golden-screen test harness.
+- [x] Firmware kernel: screen definitions, cursor, DATA wheel, numeric entry, SHIFT, window stack, Name
       window, confirm window, MAIN SCREEN key.
-- [ ] Panel corrections from section 4, including `DataWheel`, `Keypad`, `Pad` velocity/release,
+- [x] Panel corrections from section 4, including `DataWheel`, `Keypad`, `Pad` velocity/release,
       `HardButton` hold.
-- [ ] Machine model types + empty-machine factory + JSON (de)serialisation.
-- [ ] Keyboard map. Vitest + Playwright wired. CI that runs both.
+- [x] Machine model types + empty-machine factory + JSON (de)serialisation.
+- [x] Keyboard map. Vitest + Playwright wired. CI that runs both.
 
 Done when: the chassis renders from a real machine store, every hardware key dispatches, SHIFT+digit
 switches modes to placeholder screens, the Name window works with pads, and the MAIN screen's fields

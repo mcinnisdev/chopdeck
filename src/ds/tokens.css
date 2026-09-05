@@ -1,0 +1,6 @@
+/* Chop Deck design tokens. This file is the ONLY place in src/ that imports the
+   design system; design-system/styles.css stays the source of truth (fonts,
+   colours, typography, spacing/geometry, bevels/motion, base). Vite resolves the
+   nested @imports relative to styles.css and hoists the Google Fonts import
+   (Barlow Condensed, Barlow, VT323) declared in design-system/tokens/fonts.css. */
+@import '../../design-system/styles.css';
