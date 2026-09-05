@@ -8,16 +8,27 @@ import {
 } from '@/lcd/frame';
 import { HwKey, ModeId, SHIFT_MODES, isDigit, softKeyIndex } from './keys';
 import { Session, newSession, RecordMode } from './session';
-import { Ctx, Field, FirmwareApi, ScreenDef, ConfirmOpts, TransportApi, SoftKeyDef } from './screen';
+import { Ctx, Field, FirmwareApi, ScreenDef, ConfirmOpts, TransportApi, SoftKeyDef, SoundApi, HostApi, NoteVar } from './screen';
+import { sixteenLevelValue, sliderValue } from '@/audio/params';
+import { TRACK_TYPES } from '@/model/types';
 
 const NAME_CHARS = ' ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&\'()+,-.;=@[]^_`{}~';
 export const PAD_LETTERS = ['AB', 'CD', 'EF', 'GH', 'IJ', 'KL', 'MN', 'OP', 'QR', 'ST', 'UV', 'WX', 'YZ', '&#', '-_.', '0123456789'];
 const PAD_CYCLE_MS = 800;
 
 export interface PadHooks {
-  padDown?(pad: number, vel: number): void;
-  padUp?(pad: number): void;
   padPressure?(pad: number, value: number): void;
+}
+
+/** Installed until the audio engine boots. */
+export class NullSound implements SoundApi {
+  noteOn() {}
+  noteOff() {}
+  playSound() {}
+  stopAll() {}
+  async decode(): Promise<{ pcm: Float32Array[]; rate: number }> { throw new Error('audio engine not running'); }
+  mixerChanged() {}
+  ready() { return false; }
 }
 
 /** Phase 0 transport: flips flags so LEDs and the LCD respond. Replaced by the real sequencer in Phase 2. */
@@ -35,7 +46,10 @@ export class Firmware {
   s: Session;
   version = 0;
   transport: TransportApi;
+  sound: SoundApi = new NullSound();
+  host: HostApi = { pickFiles() {} };
   hooks: PadHooks = {};
+  private heldPads = new Map<number, { drum: number; note: number }>();
   private screens = new Map<string, ScreenDef>();
   private listeners = new Set<() => void>();
   private undoSnapshot: { seq: number; data: Sequence } | null = null;
@@ -70,11 +84,13 @@ export class Firmware {
     touch: () => this.touch(),
     snapshotForUndo: () => this.snapshotForUndo(),
     get transport() { return undefined as unknown as TransportApi; },
+    get sound() { return undefined as unknown as SoundApi; },
+    get host() { return undefined as unknown as HostApi; },
   };
 
   ctx(): Ctx {
     // transport is looked up live so Phase 2 can swap the implementation
-    const api = Object.create(this.api, { transport: { get: () => this.transport } }) as FirmwareApi;
+    const api = Object.create(this.api, { transport: { get: () => this.transport }, sound: { get: () => this.sound }, host: { get: () => this.host } }) as FirmwareApi;
     return { m: this.m, s: this.s, fw: api };
   }
 
@@ -196,7 +212,9 @@ export class Firmware {
       case 'BANK_A': case 'BANK_B': case 'BANK_C': case 'BANK_D':
         s.padBank = ['BANK_A', 'BANK_B', 'BANK_C', 'BANK_D'].indexOf(k); this.touch(); return;
       case 'FULL_LEVEL': s.fullLevel = !s.fullLevel; this.touch(); return;
-      case 'SIXTEEN_LEVELS': s.sixteenLevels = !s.sixteenLevels; this.touch(); return;
+      case 'SIXTEEN_LEVELS':
+        if (s.sixteenLevels) { s.sixteenLevels = false; this.touch(); } else this.api.openWindow('SIXTEEN_LEVELS');
+        return;
       case 'AFTER':
         if (s.shift) this.setMode('ASSIGN'); else { s.after = !s.after; this.touch(); }
         return;
@@ -241,14 +259,41 @@ export class Firmware {
     if (cf?.field?.name) { this.beginNameEdit(cf.field.nameValue?.(ctx) ?? cf.field.get(ctx), n => cf.field!.nameCommit?.(ctx, n)); this.namePad(pad); return; }
     if (cf?.field?.pad) { cf.field.pad(ctx, pad, v); this.touch(); return; }
     if (cf?.def.onPad?.(ctx, pad, v, true)) { this.touch(); return; }
-    this.hooks.padDown?.(pad, v);
+    this.triggerPad(pad, v);
     this.touch();
+  }
+  /** Play a pad through the sampler, honouring 16 LEVELS and the NOTE VARIATION slider. */
+  triggerPad(pad: number, vel: number) {
+    const s = this.s; const m = this.m;
+    const { drum, note } = this.padTarget(pad);
+    let playNote = note; let v = vel; let nv: NoteVar | undefined;
+    const i = pad % 16;
+    const { low, high, param, note: nvNote } = m.noteVariation;
+    if (s.sixteenLevels) {
+      playNote = s.sixteen.note;
+      if (s.sixteen.param === 'VELOCITY') v = (i + 1) * 8 - 1;
+      else nv = sixteenLevelValue(s.sixteen.type, i, s.sixteen.origPad, low, high);
+    } else if (nvNote === playNote) nv = sliderValue(param, s.nvValue, low, high);
+    this.heldPads.set(pad, { drum, note: playNote });
+    this.sound.noteOn(drum, playNote, v, nv);
   }
   padUp(pad: number) {
     const ctx = this.ctx();
     if (!this.s.nameEdit) this.current()?.onPad?.(ctx, pad, 0, false);
-    this.hooks.padUp?.(pad);
+    const held = this.heldPads.get(pad) ?? this.padTarget(pad);
+    this.heldPads.delete(pad);
+    this.sound.noteOff(held.drum, held.note);
     this.touch();
+  }
+  /** Which DRUM slot and note a pad slot (0..63) plays right now. */
+  padTarget(pad: number): { drum: number; note: number; program: number } {
+    const tr = this.m.sequences[this.s.seq].tracks[this.s.track];
+    const ti = TRACK_TYPES.indexOf(tr.type);
+    const drum = ti > 0 ? ti - 1 : this.s.drum;
+    const program = this.m.drums[drum].pgm;
+    const pg = this.m.programs[program];
+    const map = pg.padAssign === 'MASTER' ? this.m.masterPadToNote : pg.padToNote;
+    return { drum, note: map[pad], program };
   }
   padPressure(pad: number, value: number) { this.hooks.padPressure?.(pad, value); }
 

@@ -6,13 +6,16 @@ import { HwKey } from '@/kernel/keys';
 import { PAD_LETTERS } from '@/kernel/firmware';
 import { useFirmware } from './store';
 import { useKeyboard } from './useKeyboard';
+import { useHostEvents } from './host';
+import { AudioEngine } from '@/audio/engine';
 
 const CHASSIS_W = 1240;
 const BANKS = ['A', 'B', 'C', 'D'] as const;
 
-export function Chassis() {
+export function Chassis({ engine }: { engine: AudioEngine }) {
   const fw = useFirmware();
   useKeyboard(fw);
+  useHostEvents(fw, engine);
   const s = fw.s;
   const frame = fw.render();
   const soft = fw.softKeyLabels();
@@ -32,6 +35,7 @@ export function Chassis() {
   const lbl: CSSProperties = { fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--cream)', lineHeight: 1 };
   const [vol, setVol] = useState(80);
   const [gain, setGain] = useState(40);
+  useEffect(() => { engine.setVolume(Math.pow(vol / 100, 1.5)); }, [vol, engine]);
 
   return (
     <div style={{ height: h || 'auto', position: 'relative' }}>

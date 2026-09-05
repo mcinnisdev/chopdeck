@@ -57,6 +57,11 @@ export interface Session {
   pad: number;                          // selected pad slot 0..63 (ASSIGN page)
   sound: number;                        // selected sound index
 
+  // 16 LEVELS settings (window) and the import tray for LOAD
+  sixteen: { note: number; param: 'VELOCITY' | 'NOTE VAR'; type: import('@/model/types').NvParam; origPad: number };
+  importFiles: { name: string; size: number; blob: Blob }[];
+  importIndex: number;
+
   // undo
   undoAvailable: boolean;
 
@@ -73,6 +78,8 @@ export function newSession(): Session {
     padBank: 0, fullLevel: false, sixteenLevels: false, after: false, nvValue: 64, lastPad: null, lastVel: 0,
     litPads: new Set(),
     drum: 0, program: 0, note: 60, pad: 0, sound: 0,
+    sixteen: { note: 35, param: 'VELOCITY', type: 'TUNING', origPad: 4 },
+    importFiles: [], importIndex: 0,
     undoAvailable: false,
     message: null,
   };

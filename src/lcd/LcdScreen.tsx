@@ -1,7 +1,8 @@
 // Paints an LcdFrame as 8 rows of monospace runs. The glass measures itself and sizes the font so
 // exactly 48 columns fit; the grid never changes, only the cell size.
-import { useLayoutEffect, useRef, useState, CSSProperties, memo } from 'react';
+import { useLayoutEffect, useRef, useState, useEffect, CSSProperties, memo } from 'react';
 import { LcdFrame, ATTR_INVERSE, ATTR_DIM, ATTR_FRAME, ATTR_BLINK, SOFTKEY_ROW } from './frame';
+import { drawGraphics } from './graphics';
 
 let charRatio = 0.5; // VT323 advance width / font-size; measured once the font is available
 function measureRatio(): number {
@@ -60,9 +61,26 @@ export const LcdScreen = memo(function LcdScreen({ frame, onSoftKey, style }: Lc
   const rows = [];
   for (let r = 0; r < frame.rows; r++) rows.push(rowRuns(frame, r));
 
+  // graphics layer
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const cv = canvasRef.current; const el = ref.current; if (!cv || !el) return;
+    const dpr = window.devicePixelRatio || 1;
+    const w = el.clientWidth, h = fontSize * frame.rows;
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    const g = cv.getContext('2d'); if (!g) return;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+    if (!frame.graphics.length) return;
+    const cs = getComputedStyle(el);
+    const ink = cs.getPropertyValue('--lcd-ink').trim() || '#1C2814', dim = cs.getPropertyValue('--lcd-dim').trim() || '#5C6B44', glass = cs.getPropertyValue('--lcd').trim() || '#B7C58C';
+    drawGraphics(g, frame.graphics, { cellW: w / frame.cols, cellH: fontSize }, ink, dim, glass);
+  }, [frame, fontSize]);
+
   return (
     <div ref={ref} style={{ width: '100%', fontFamily: 'var(--font-lcd)', fontSize, lineHeight: 1, color: 'var(--text-lcd)', whiteSpace: 'pre', textTransform: 'none', userSelect: 'none', position: 'relative', ...style }}>
       <style>{'@keyframes lcd-blink{50%{opacity:0}}'}</style>
+      <canvas ref={canvasRef} aria-hidden style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: fontSize * frame.rows, pointerEvents: 'none', imageRendering: 'pixelated' }} />
       {rows.map((runs, r) => (
         <div key={r} style={{ height: fontSize, display: 'flex' }}>
           {r === SOFTKEY_ROW && onSoftKey

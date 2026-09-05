@@ -25,6 +25,31 @@ export interface FirmwareApi {
   snapshotForUndo(): void;
   // hooks filled in by later phases (audio, transport); kept here so screens can call them now
   transport: TransportApi;
+  sound: SoundApi;
+  host: HostApi;
+}
+
+/** Browser-side services the kernel cannot provide itself. */
+export interface HostApi {
+  pickFiles(): void;
+}
+
+/** A note-variation override: the parameter in its own units (tune in tenths of a semitone, decay/attack 0..100, filter -50..50). */
+export interface NoteVar { param: import('@/model/types').NvParam; value: number }
+
+/** The sampler as screens see it. A silent implementation is installed until the audio engine boots. */
+export interface SoundApi {
+  /** Play a program note through a DRUM slot (0..3). Velocity 1..127. nv = note-variation slider value (0..127) or undefined. */
+  noteOn(drum: number, note: number, vel: number, nv?: NoteVar): void;
+  noteOff(drum: number, note: number): void;
+  /** Audition raw sound data (TRIM / LOAD windows), optionally a range in frames. */
+  playSound(sound: string | import('@/model/types').Sound, opts?: { from?: number; to?: number; loop?: boolean }): void;
+  stopAll(): void;
+  /** Decode a file into PCM; resolves to channels + sample rate. */
+  decode(file: Blob): Promise<{ pcm: Float32Array[]; rate: number }>;
+  /** Per-note stereo level/pan changed on the mixer; engine updates live voices. */
+  mixerChanged(): void;
+  ready(): boolean;
 }
 
 export interface TransportApi {

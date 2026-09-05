@@ -233,21 +233,21 @@ cursor-navigable and wheel-editable against the model with no audio yet.
 
 Make it an instrument.
 
-- [ ] Audio engine core: context lifecycle (unlock on first gesture), voice pool, voice graph, allocator,
+- [x] Audio engine core: context lifecycle (unlock on first gesture), voice pool, voice graph, allocator,
       master and DRUM buses, MAIN VOLUME knob, meters.
-- [ ] LOAD: drag-and-drop anywhere on the LCD and file picker; decode WAV/AIFF/MP3/FLAC; "Load a Sound"
+- [x] LOAD: drag-and-drop anywhere on the LCD and file picker; decode WAV/AIFF/MP3/FLAC; "Load a Sound"
       window with `Assign to note:` + `PLAY` / `DSCARD` / `KEEP`. Sounds list with Memory/Size/Name order.
 - [ ] PROGRAM mode: DRUM 1-4 select; ASSIGN (pad->note, note->sound, PROGRAM/MASTER pad assign,
       NORMAL/SIMULT/VEL SW/DCY SW, Assignment View window, Program window with NEW/COPY/DELETE/rename);
       PARAMS (envelope, decay mode, filter, tune, voice overlap, and the four OPEN WINDOW sub-pages:
       velocity->envelope, velocity/env->filter, velocity->pitch, mute assign; Copy Note Parameters);
       DRUM page; PURGE; AUTO chromatic.
-- [ ] Pad performance: banks A-D, FULL LEVEL, 16 LEVELS window (VELOCITY and NOTE VAR types), NOTE
+- [x] Pad performance: banks A-D, FULL LEVEL, 16 LEVELS window (VELOCITY and NOTE VAR types), NOTE
       VARIATION slider with ASSIGN screen and AFTER key, pressure where available.
-- [ ] MIXER STEREO page (16 strips per bank, pan row / level row, pad selects channel, SHIFT+pad
+- [x] MIXER STEREO page (16 strips per bank, pan row / level row, pad selects channel, SHIFT+pad
       multi-select, ALL CH link), Channel Settings window, SETUP page (master level, mix source PROGRAM vs
       DRUM, copy pgm mix to drum).
-- [ ] Bundled starter kit: a handful of public-domain drum hits and one break so first load is playable.
+- [x] Bundled starter kit: synthesised in code (kick, snare, hats, clap, rim, toms, bass, keys) so first load is playable with nothing to license.
 
 Done when: load a kit, tweak filter/decay/tune per pad, play with mouse, touch and keyboard at low
 latency, mix it, and the whole state survives a reload (Phase 4 does the real disk, Phase 1 autosaves the
