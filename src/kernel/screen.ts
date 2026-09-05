@@ -32,6 +32,8 @@ export interface FirmwareApi {
 /** Browser-side services the kernel cannot provide itself. */
 export interface HostApi {
   pickFiles(): void;
+  /** Hand the viewer a file to save (export to the OS). */
+  download(name: string, bytes: Uint8Array, mime?: string): void;
 }
 
 /** A note-variation override: the parameter in its own units (tune in tenths of a semitone, decay/attack 0..100, filter -50..50). */

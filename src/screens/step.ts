@@ -77,13 +77,13 @@ function fields(c: Ctx): Field[] {
 
 /** Index of the event row under the cursor (or -1 on the header). */
 function cursorEvent(c: Ctx): number {
-  const all = fields(c).sort((a, b) => a.row - b.row || a.col - b.col);
+  const all = fields(c).filter(f => !f.skip && !f.hidden?.(c)).sort((a, b) => a.row - b.row || a.col - b.col);
   const id = all[clamp(c.s.cursor.STEP ?? 0, 0, all.length - 1)]?.id ?? '';
   const m = /^e(\d+)\./.exec(id);
   return m ? parseInt(m[1], 10) : -1;
 }
 function cursorFieldKey(c: Ctx): string {
-  const all = fields(c).sort((a, b) => a.row - b.row || a.col - b.col);
+  const all = fields(c).filter(f => !f.skip && !f.hidden?.(c)).sort((a, b) => a.row - b.row || a.col - b.col);
   return all[clamp(c.s.cursor.STEP ?? 0, 0, all.length - 1)]?.id.split('.')[1] ?? '';
 }
 function selectedEvents(c: Ctx): SeqEvent[] {
@@ -145,7 +145,7 @@ export const stepScreen: ScreenDef = {
       if (i < 0 || !n) return true;
       if (stepState.anchor == null) stepState.anchor = i;
       // move the cursor to the same field on the neighbouring row
-      const all = fields(c).sort((a, b) => a.row - b.row || a.col - b.col);
+      const all = fields(c).filter(f => !f.skip && !f.hidden?.(c)).sort((a, b) => a.row - b.row || a.col - b.col);
       const cur = all[clamp(c.s.cursor.STEP ?? 0, 0, all.length - 1)];
       const target = clamp(i + (k === 'DOWN' ? 1 : -1), 0, Math.min(n, ROWS) - 1);
       const idx = all.findIndex(f => f.row === 1 + target && f.col === cur.col);

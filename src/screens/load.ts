@@ -6,6 +6,8 @@ import { NOTE_MIN, NOTE_MAX, Sound } from '@/model/types';
 import { newSound } from '@/model/factory';
 import { notePad, bytesStr, rpad } from '@/model/format';
 import { enumField } from './util';
+import { decodeWav } from '@/disk/wav';
+import { decodeSnd } from '@/disk/formats';
 
 const VIEWS = ['ALL Files', '.WAV', '.AIF', '.MP3', '.FLAC', '.OGG'] as const;
 type View = typeof VIEWS[number];
@@ -47,7 +49,7 @@ export const loadScreen: ScreenDef = {
   onEnter(c) { void c; },
 };
 
-function defaultNote(c: Ctx): number {
+export function defaultNote(c: Ctx): number {
   // first note of the current program without a sound, following the pad order
   const pg = c.m.programs[c.m.drums[c.s.drum].pgm];
   const map = programMap(c);
@@ -55,7 +57,7 @@ function defaultNote(c: Ctx): number {
   return 0;
 }
 
-interface LoadParams { file: { name: string; size: number; blob: Blob }; note: number; sound?: Sound; error?: string; decoding?: boolean }
+export interface LoadParams { file: { name: string; size: number; blob?: Blob; bytes?: Uint8Array }; note: number; sound?: Sound; error?: string; decoding?: boolean }
 const params = (c: Ctx) => c.s.windows[c.s.windows.length - 1]?.params as unknown as LoadParams;
 
 export const loadSoundWindow: ScreenDef = {
@@ -89,8 +91,15 @@ export const loadSoundWindow: ScreenDef = {
     const p = params(c);
     if (p.sound || p.decoding) return;
     p.decoding = true;
-    c.fw.sound.decode(p.file.blob).then(({ pcm, rate }) => {
-      const base = p.file.name.replace(/\.[^.]+$/, '').toUpperCase().replace(/[^A-Z0-9 _\-#&.]/g, '_').slice(0, 16);
+    const base = p.file.name.replace(/\.[^.]+$/, '').toUpperCase().replace(/[^A-Z0-9 _\-#&.]/g, '_').slice(0, 16) || 'SOUND';
+    if (p.file.bytes) {
+      // disk files decode without the audio engine
+      if (/\.snd$/i.test(p.file.name)) { const s = decodeSnd(p.file.bytes); if (s) p.sound = s; else p.error = 'not a sound file'; }
+      else { const d = decodeWav(p.file.bytes); if (d) p.sound = newSound(base, d.pcm, d.rate); else if (!p.file.blob) p.error = 'unsupported wav'; }
+      // a WAV the pure decoder cannot read falls through to the browser decoder when the original file is at hand
+      if (p.sound || p.error || !p.file.blob) { p.decoding = false; c.fw.touch(); return; }
+    }
+    c.fw.sound.decode(p.file.blob!).then(({ pcm, rate }) => {
       p.sound = newSound(base || 'SOUND', pcm, rate);
       p.decoding = false; c.fw.touch();
     }).catch((e: unknown) => { p.error = e instanceof Error ? e.message : String(e); p.decoding = false; c.fw.touch(); });
@@ -100,7 +109,7 @@ export const loadSoundWindow: ScreenDef = {
 
 /** Called by the host when files arrive (drop or picker). */
 export function importFiles(c: { s: Ctx['s']; fw: Ctx['fw'] }, files: File[]) {
-  const audio = files.filter(f => /\.(wav|aif|aiff|mp3|flac|ogg|m4a|webm)$/i.test(f.name) || f.type.startsWith('audio/'));
+  const audio = files.filter(f => /\.(wav|aif|aiff|mp3|flac|ogg|m4a|webm|all|aps|pgm|snd|seq|mid|midi|chopdeck|zip)$/i.test(f.name) || f.type.startsWith('audio/'));
   if (!audio.length) return;
   for (const f of audio) c.s.importFiles.push({ name: f.name, size: f.size, blob: f });
   c.s.importIndex = c.s.importFiles.length - audio.length;

@@ -91,9 +91,10 @@ describe('LOAD flow', () => {
     fw.s.importFiles.push({ name: 'break.wav', size: 2048, blob: new Blob([new Uint8Array(4)]) });
     fw.setMode('LOAD');
     expect(lines(fw)[1]).toContain('File:BREAK.WAV');
-    fw.key('F6'); // DO IT
+    fw.key('F6'); // DO IT (reads the file, then opens the window)
+    await new Promise(r => setTimeout(r, 10));
     expect(fw.s.windows[0].id).toBe('LOAD/SOUND');
-    await new Promise(r => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 10));
     expect(lines(fw)[5]).toContain('MONO  44100Hz');
     const before = m.sounds.length;
     fw.key('F5'); // KEEP

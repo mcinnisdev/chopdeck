@@ -31,7 +31,8 @@ export class AudioEngine implements SoundApi {
   /** SAMPLE mode input; taps the master bus for RESAMPLE. */
   readonly recorder = new Recorder(() => this.boot(), () => this.analyser);
 
-  constructor(private getMachine: () => Machine) {}
+  /** `opts.context` renders offline (bounce); `opts.now` supplies the virtual clock the scheduler follows. */
+  constructor(private getMachine: () => Machine, private opts: { context?: BaseAudioContext; now?: () => number } = {}) {}
 
   sampleRate(): number { return this.ctx?.sampleRate ?? 44100; }
 
@@ -39,7 +40,7 @@ export class AudioEngine implements SoundApi {
   boot(): AudioContext {
     if (!this.ctx) {
       const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      this.ctx = new Ctor({ latencyHint: 'interactive' });
+      this.ctx = (this.opts.context as AudioContext | undefined) ?? new Ctor({ latencyHint: 'interactive' });
       const c = this.ctx;
       this.master = c.createGain(); this.master.gain.value = this.volume;
       this.limiter = c.createDynamicsCompressor();
@@ -48,7 +49,7 @@ export class AudioEngine implements SoundApi {
       this.master.connect(this.limiter); this.limiter.connect(this.analyser); this.analyser.connect(c.destination);
       for (let i = 0; i < 4; i++) { const g = c.createGain(); g.connect(this.master); this.drumBus.push(g); }
     }
-    if (this.ctx.state === 'suspended') void this.ctx.resume();
+    if (!this.opts.context && this.ctx.state === 'suspended') void this.ctx.resume();
     return this.ctx;
   }
 
@@ -164,7 +165,7 @@ export class AudioEngine implements SoundApi {
     for (const v of [...this.voices]) if (v.drum === drum && v.note === note && v.releaseOnOff && v.startedAt <= now) this.release(v, now, v.tau > 0.01 ? v.tau : 0.004);
   }
 
-  now(): number { return this.ctx?.currentTime ?? 0; }
+  now(): number { return this.opts.now ? this.opts.now() : (this.ctx?.currentTime ?? 0); }
 
   /** Metronome: a short sine blip, higher for the accent. */
   click(accent: boolean, volume01: number, when?: number) {

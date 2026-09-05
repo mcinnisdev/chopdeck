@@ -53,7 +53,7 @@ function fields(c: Ctx): Field[] {
   return f;
 }
 function selectedStep(c: Ctx): number {
-  const all = fields(c).sort((a, b) => a.row - b.row || a.col - b.col);
+  const all = fields(c).filter(f => !f.skip && !f.hidden?.(c)).sort((a, b) => a.row - b.row || a.col - b.col);
   const id = all[clamp(c.s.cursor.SONG ?? 0, 0, all.length - 1)]?.id ?? '';
   const m = /^[sr](\d+)$/.exec(id);
   return m ? parseInt(m[1], 10) : -1;

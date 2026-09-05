@@ -41,7 +41,7 @@ export class Firmware {
   version = 0;
   transport: TransportApi;
   sound: SoundApi = new NullSound();
-  host: HostApi = { pickFiles() {} };
+  host: HostApi = { pickFiles() {}, download() {} };
   hooks: PadHooks = {};
   private heldPads = new Map<number, { drum: number; note: number }>();
   private gotoCombo = false;

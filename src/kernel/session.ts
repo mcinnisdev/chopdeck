@@ -66,6 +66,8 @@ export interface Session {
   // 16 LEVELS settings (window) and the import tray for LOAD
   sixteen: { note: number; param: 'VELOCITY' | 'NOTE VAR'; type: import('@/model/types').NvParam; origPad: number };
   importFiles: { name: string; size: number; blob: Blob }[];
+  diskFolder: string;                   // current folder on the browser disk
+  diskIndex: number;
   importIndex: number;
 
   // undo
@@ -87,7 +89,7 @@ export function newSession(): Session {
     litPads: new Set(),
     drum: 0, program: 0, note: 60, pad: 0, sound: 0,
     sixteen: { note: 35, param: 'VELOCITY', type: 'TUNING', origPad: 4 },
-    importFiles: [], importIndex: 0,
+    importFiles: [], importIndex: 0, diskFolder: '', diskIndex: 0,
     undoAvailable: false,
     message: null,
   };

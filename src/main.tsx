@@ -12,6 +12,8 @@ import { FirmwareContext } from '@/app/store';
 import { Chassis } from '@/app/Chassis';
 import { installHost } from '@/app/host';
 import { installSamplerInput, keep } from '@/screens/sample';
+import { installDrive } from '@/screens/disk';
+import { IdbDrive } from '@/disk/drive';
 import '@/ds';
 
 const style = document.createElement('style');
@@ -28,6 +30,7 @@ async function powerOn() {
   firmware.sound = engine;
   firmware.transport = new Transport(firmware, new WorkerClock());
   installHost(firmware, engine);
+  installDrive(new IdbDrive());
   // SAMPLE mode input: the engine's recorder, meters throttled to the LCD
   installSamplerInput({ open: (i, mon) => engine.recorder.open(i, mon), close: () => engine.recorder.close(), setMonitor: on => engine.recorder.setMonitor(on), arm: o => engine.recorder.arm(o), startNow: () => engine.recorder.startNow(), stop: () => engine.recorder.stop(), cancel: () => engine.recorder.cancel(), take: () => engine.recorder.take(), status: () => engine.recorder.status(), resetPeak: () => engine.recorder.resetPeak(), rate: () => engine.sampleRate() });
   let meterAt = 0;
