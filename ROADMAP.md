@@ -305,20 +305,20 @@ boundary in the fine window, slice to a new program, play the chops from the pad
 
 Make it a DAW.
 
-- [ ] STEP EDIT: event list with View filters, TC pop-up, COPY / DELETE / INSERT / PASTE, multi-select +
+- [x] STEP EDIT: event list with View filters, TC pop-up, COPY / DELETE / INSERT / PASTE, multi-select +
       Edit Multiple, Insert Event window for every event type, step recording, Step Edit Options.
-- [ ] EDIT screen: EVENTS (COPY with REPLACE/MERGE and Copies, DURATION, VELOCITY, TRANSPOSE), BARS copy,
+- [x] EDIT screen: EVENTS (COPY with REPLACE/MERGE and Copies, DURATION, VELOCITY, TRANSPOSE), BARS copy,
       TrMOVE.
-- [ ] MISC: Auto punch, playback TRANS with FIX, 2ndSEQ.
-- [ ] SONG mode: 20 songs, step list, reps, loop window, tempo window, Song window (rename/delete/all/
+- [x] MISC: Auto punch, playback TRANS with FIX, 2ndSEQ.
+- [x] SONG mode: 20 songs, step list, reps, loop window, tempo window, Song window (rename/delete/all/
       copy), CONVRT to sequence with the three track-status modes, transport in song context.
-- [ ] DISK: IndexedDB device with folders; LOAD page with View filter, Directory window (delete, delete
+- [x] DISK: IndexedDB device with folders; LOAD page with View filter, Directory window (delete, delete
       ALL by type, rename, new folder); SAVE page with the five save types; file types: project bundle
       (`.ALL` equivalent), program + sounds (`.PGM`/`.APS` equivalents), sound as WAV, sequence as standard
       MIDI file type 0/1; import of the same plus WAV/MIDI from the OS; export to the OS as a download or
       straight into a chosen folder via the File System Access API.
-- [ ] Bounce sequence/song to WAV (a new `Type:` on the SAVE page).
-- [ ] Autosave the whole machine on every change, with a "power-on" restore.
+- [x] Bounce sequence/song to WAV (a new `Type:` on the SAVE page).
+- [x] Autosave the whole machine on every change, with a "power-on" restore.
 
 Done when: build a song from four sequences, step-edit a fill, save the project, reload the browser,
 load it back, export a MIDI file and a mixdown.

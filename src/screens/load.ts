@@ -76,12 +76,12 @@ export const loadSoundWindow: ScreenDef = {
   },
   softKeys: () => [null, null,
     { label: 'PLAY', kind: 'action', press: c => { const p = params(c); if (p.sound) c.fw.sound.playSound(p.sound); } },
-    { label: 'DSCARD', kind: 'action', press: c => { const p = params(c); c.s.importFiles = c.s.importFiles.filter(x => x !== p.file); c.fw.sound.stopAll(); c.fw.closeWindow(); } },
+    { label: 'DSCARD', kind: 'action', press: c => { const p = params(c); c.s.importFiles = c.s.importFiles.filter(x => x.name !== p.file.name); c.fw.sound.stopAll(); c.fw.closeWindow(); } },
     { label: 'KEEP', kind: 'action', press: c => {
       const p = params(c); if (!p.sound) return;
       c.m.sounds.push(p.sound);
       if (p.note) { const pg = c.m.programs[c.m.drums[c.s.drum].pgm]; pg.notes[p.note - NOTE_MIN].snd = p.sound.id; pg.used = true; }
-      c.s.importFiles = c.s.importFiles.filter(x => x !== p.file);
+      c.s.importFiles = c.s.importFiles.filter(x => x.name !== p.file.name);
       c.s.importIndex = Math.max(0, Math.min(c.s.importIndex, c.s.importFiles.length - 1));
       c.fw.sound.stopAll();
       c.fw.closeWindow();

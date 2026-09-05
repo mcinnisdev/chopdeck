@@ -14,7 +14,8 @@ export interface DiskFile {
 const DB = 'chopdeck';
 const STORE = 'files';
 
-function openDb(): Promise<IDBDatabase> {
+/** One database for the project autosave and the file store; every opener shares this version and upgrade. */
+export function openChopdeckDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB, 2);
     req.onupgradeneeded = () => {
@@ -27,7 +28,7 @@ function openDb(): Promise<IDBDatabase> {
   });
 }
 function tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T>): Promise<T> {
-  return openDb().then(db => new Promise<T>((resolve, reject) => { const t = db.transaction(STORE, mode); const r = fn(t.objectStore(STORE)); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); t.oncomplete = () => db.close(); }));
+  return openChopdeckDb().then(db => new Promise<T>((resolve, reject) => { const t = db.transaction(STORE, mode); const r = fn(t.objectStore(STORE)); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); t.oncomplete = () => db.close(); }));
 }
 
 export const typeOf = (name: string): FileType => { const ext = name.split('.').pop()?.toUpperCase() ?? ''; return (['ALL', 'APS', 'PGM', 'SND', 'WAV', 'MID', 'SEQ'] as FileType[]).includes(ext as FileType) ? (ext as FileType) : 'WAV'; };

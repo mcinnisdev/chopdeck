@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 const modes: [string, string, string][] = [
   ['7', 'MIXER', 'Stereo mix'],
   ['6', 'PROGRAM', 'Pgm:'],
-  ['3', 'LOAD', 'Drop audio'],
+  ['3', 'LOAD', 'Device:'],
   ['5', 'TRIM', 'Snd:'],
   ['4', 'SAMPLE', 'Threshold:'],
 ];

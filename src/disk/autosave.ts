@@ -1,19 +1,11 @@
 // Autosave the whole machine to IndexedDB. The real DISK mode (Phase 4) builds on the same store.
 import { Machine } from '@/model/types';
 import { serializeMachine, deserializeMachine, SerializedProject } from '@/model/serialize';
+import { openChopdeckDb } from './drive';
 
-const DB = 'chopdeck';
 const STORE = 'project';
 const KEY = 'autosave';
-
-function openDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB, 1);
-    req.onupgradeneeded = () => { const db = req.result; if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE); };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
+const openDb = openChopdeckDb;
 
 export async function saveAutosave(m: Machine): Promise<void> {
   const db = await openDb();
