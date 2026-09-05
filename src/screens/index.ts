@@ -11,10 +11,11 @@ import { trimScreens } from './trim';
 import { stepScreens } from './step';
 import { editScreens } from './edit';
 import { miscScreens } from './misc';
+import { songScreens } from './song';
 import { placeholderScreens } from './placeholders';
 
 // Placeholders come first so any real screen registered later replaces them by id.
 export const allScreens: ScreenDef[] = [
   ...placeholderScreens, mainScreen, ...mainWindows, ...mainWindowScreens, ...programScreens, ...loadScreens, ...performScreens,
-  ...mixerScreens, ...phase2Screens, ...sampleScreens, ...trimScreens, ...stepScreens, ...editScreens, ...miscScreens,
+  ...mixerScreens, ...phase2Screens, ...sampleScreens, ...trimScreens, ...stepScreens, ...editScreens, ...miscScreens, ...songScreens,
 ];

@@ -40,6 +40,11 @@ export interface Session {
   soloTrack: number | null;
   masterTempo: number;
   punch: { mode: 'PUNCH IN ONLY' | 'PUNCH OUT ONLY' | 'PUNCH IN OUT'; in: number; out: number } | null;
+  // song playback
+  song: number;                         // selected song
+  songStep: number;                     // current step while playing a song
+  songRep: number;                      // repeats done of the current step
+  songPlaying: boolean;
 
   // pads and performance
   padBank: number;                      // 0..3
@@ -77,6 +82,7 @@ export function newSession(): Session {
     seq: 0, track: 0, now: 0, playing: false, record: 'OFF', nextSeq: null, secondSeq: null, soloTrack: null,
     masterTempo: 120,
     punch: null,
+    song: 0, songStep: 0, songRep: 0, songPlaying: false,
     padBank: 0, fullLevel: false, sixteenLevels: false, after: false, nvValue: 64, lastPad: null, lastVel: 0,
     litPads: new Set(),
     drum: 0, program: 0, note: 60, pad: 0, sound: 0,

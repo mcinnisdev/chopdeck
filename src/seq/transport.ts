@@ -50,7 +50,24 @@ export class Transport implements TransportApi {
   private get m() { return this.host.m; }
   private get s() { return this.host.s; }
   private seq(): Sequence { return this.m.sequences[this.s.seq]; }
-  private baseTempo(seq = this.seq()): number { return seq.tempoSource === 'MAS' ? this.s.masterTempo : seq.tempo; }
+  private baseTempo(seq = this.seq()): number {
+    if (this.s.songPlaying) { const song = this.m.songs[this.s.song]; if (song.tempoSource === 'MAS') return song.tempo; }
+    return seq.tempoSource === 'MAS' ? this.s.masterTempo : seq.tempo;
+  }
+  /** Song: move to the next repeat/step. Returns false when the song is over. */
+  private advanceSong(): boolean {
+    const song = this.m.songs[this.s.song]; const s = this.s;
+    const step = song.steps[s.songStep]; if (!step) return false;
+    if (step.reps === 0) return false;
+    if (s.songRep + 1 < step.reps) { s.songRep++; return true; }
+    s.songRep = 0; s.songStep++;
+    if (s.songStep >= song.steps.length || (song.loop.on && s.songStep >= song.loop.last)) {
+      if (!song.loop.on) return false;
+      s.songStep = Math.max(0, song.loop.first - 1);
+    }
+    s.seq = song.steps[s.songStep].seq;
+    return true;
+  }
   private tempoSignature(): string { const q = this.seq(); return `${this.baseTempo(q)}|${q.tempoChangeOn}|${q.tempoChanges.map(c => `${c.tick}:${c.ratio}`).join(',')}`; }
   // the tempo map in force since the last anchor; live edits take effect at the next re-anchor
   private map = { base: 120, on: false, changes: [{ tick: 0, ratio: 1 }] as Sequence['tempoChanges'] };
@@ -62,7 +79,7 @@ export class Transport implements TransportApi {
 
   private loopRegion(): { start: number; end: number } | null {
     const q = this.seq();
-    if (!q.loop.on) return null;
+    if (!q.loop.on || this.s.songPlaying) return null;
     const start = barStartTick(q.tsigs, Math.max(0, q.loop.first - 1));
     const endBar = q.loop.last === 'END' ? q.bars : Math.min(q.loop.last, Math.max(q.bars, q.loop.first));
     const end = barStartTick(q.tsigs, Math.max(endBar, q.loop.first));
@@ -80,6 +97,15 @@ export class Transport implements TransportApi {
   // ---------- TransportApi ----------
   play(fromStart: boolean) {
     if (this.running) { if (fromStart) this.locate(0); return; }
+    this.s.songPlaying = false;
+    if (this.s.mode === 'SONG') {
+      const song = this.m.songs[this.s.song];
+      if (!song.steps.length) return;
+      if (fromStart || this.s.songStep >= song.steps.length) { this.s.songStep = 0; this.s.songRep = 0; this.s.now = 0; }
+      this.s.seq = song.steps[this.s.songStep].seq;
+      this.s.songPlaying = true;
+      this.armed = 'OFF';
+    }
     const q = this.seq();
     if (fromStart) this.s.now = 0;
     const loop = this.loopRegion();
@@ -120,6 +146,7 @@ export class Transport implements TransportApi {
     this.armed = 'OFF';
     this.s.playing = false;
     this.s.record = 'OFF';
+    this.s.songPlaying = false;
     this.s.litPads.clear();
     this.host.sound.stopAll();
     this.host.touch();
@@ -254,8 +281,9 @@ export class Transport implements TransportApi {
       let wrapAt: number | null = null;
       if (loop && this.scheduledTo < loop.end && to >= loop.end) { to = loop.end; wrapAt = loop.end; }
       else if (!loop && seqEnd > 0 && this.scheduledTo < seqEnd && to >= seqEnd) {
-        if (this.recording !== 'OFF') { q.bars += 1; continue; }   // auto-append while recording
-        if (this.s.nextSeq != null) { to = seqEnd; wrapAt = seqEnd; }
+        if (this.s.songPlaying) { to = seqEnd; wrapAt = seqEnd; }
+        else if (this.recording !== 'OFF') { q.bars += 1; continue; }   // auto-append while recording
+        else if (this.s.nextSeq != null) { to = seqEnd; wrapAt = seqEnd; }
         else { to = seqEnd; this.stopAtEnd = true; }
       }
       this.scheduleRange(this.scheduledTo, to);
@@ -263,7 +291,8 @@ export class Transport implements TransportApi {
       if (wrapAt != null) {
         const t = this.timeAtTick(wrapAt);
         this.finishPending(wrapAt);
-        if (this.s.nextSeq != null) { this.s.seq = this.s.nextSeq; this.s.nextSeq = null; this.s.message = null; this.reanchor(0, t); this.scheduledTo = 0; this.erasedTo = 0; this.recordedNow.clear(); }
+        if (this.s.songPlaying) { if (this.advanceSong()) { this.reanchor(0, t); this.scheduledTo = 0; } else { this.stopAtEnd = true; break; } }
+        else if (this.s.nextSeq != null) { this.s.seq = this.s.nextSeq; this.s.nextSeq = null; this.s.message = null; this.reanchor(0, t); this.scheduledTo = 0; this.erasedTo = 0; this.recordedNow.clear(); }
         else { const start = loop!.start; this.reanchor(start, t); this.scheduledTo = start; this.erasedTo = start; this.recordedNow.clear(); if (this.recording === 'REC') { this.recording = 'OVERDUB'; this.armed = 'OVERDUB'; this.s.record = 'OVERDUB'; } }
       }
       if (this.stopAtEnd) break;
