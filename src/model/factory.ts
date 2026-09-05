@@ -99,6 +99,7 @@ export function newMachine(): Machine {
       syncIn: { mode: 'OFF', shiftEarlyMs: 0, receiveMmc: false },
       syncOut: { mode: 'OFF', sendMmc: false },
       footswitches: [{ cc: 10, fn: 'PLAY STRT' }, { cc: 26, fn: 'PLAY' }, { cc: 69, fn: 'STOP' }, { cc: 127, fn: 'REC+PLAY' }],
+      inPort: '', outA: '', outB: '',
     },
     tapAveraging: 3,
     defaults: { ...DEFAULTS },

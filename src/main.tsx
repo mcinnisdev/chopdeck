@@ -13,6 +13,9 @@ import { Chassis } from '@/app/Chassis';
 import { installHost } from '@/app/host';
 import { installSamplerInput, keep } from '@/screens/sample';
 import { installDrive } from '@/screens/disk';
+import { installMidiPorts } from '@/screens/midi';
+import { MidiIO } from '@/midi/io';
+import { handleMidiIn } from '@/kernel/midi-in';
 import { IdbDrive } from '@/disk/drive';
 import '@/ds';
 
@@ -31,6 +34,14 @@ async function powerOn() {
   firmware.transport = new Transport(firmware, new WorkerClock());
   installHost(firmware, engine);
   installDrive(new IdbDrive());
+  // MIDI: ports bound from the model, input routed through the kernel, output timestamped against the audio clock
+  const midi = new MidiIO();
+  midi.audioToPerf = when => performance.now() + Math.max(0, when - engine.now()) * 1000;
+  midi.onMessage = msg => handleMidiIn(firmware, msg);
+  midi.onPorts = () => firmware.touch();
+  installMidiPorts(midi);
+  Object.assign(firmware, { midi });
+  void midi.init().then(() => midi.bind(firmware.m.midi));
   // SAMPLE mode input: the engine's recorder, meters throttled to the LCD
   installSamplerInput({ open: (i, mon) => engine.recorder.open(i, mon), close: () => engine.recorder.close(), setMonitor: on => engine.recorder.setMonitor(on), arm: o => engine.recorder.arm(o), startNow: () => engine.recorder.startNow(), stop: () => engine.recorder.stop(), cancel: () => engine.recorder.cancel(), take: () => engine.recorder.take(), status: () => engine.recorder.status(), resetPeak: () => engine.recorder.resetPeak(), rate: () => engine.sampleRate() });
   let meterAt = 0;

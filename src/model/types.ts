@@ -198,6 +198,10 @@ export interface MidiSettings {
   syncIn: { mode: 'OFF' | 'MIDI CLOCK' | 'MIDI TIME CODE'; shiftEarlyMs: number; receiveMmc: boolean };
   syncOut: { mode: 'OFF' | 'MIDI CLOCK' | 'MIDI TIME CODE'; sendMmc: boolean };
   footswitches: { cc: number; fn: string }[];
+  // port bindings (Web MIDI device names; empty = none)
+  inPort: string;
+  outA: string;
+  outB: string;
 }
 
 export interface Machine {

@@ -188,7 +188,7 @@ export const zonePage: ScreenDef = {
     ensureZones(s);
     const z = s.zones[st.zone];
     drawWave(c, f, [z.st, z.end], s.zones.map(x => x.st).concat([s.end]));
-    text(f, 5, 0, `Zone ${st.zone + 1}: ${secs(z.end - z.st, s.rate)}   OPEN WINDOW on Zone: number of zones`, ATTR_DIM);
+    text(f, 5, 0, `Zone ${st.zone + 1}: ${secs(z.end - z.st, s.rate)}   WINDOW on Zone: no. of zones`, ATTR_DIM);
   },
   softKeys: pageKeys('ZONE'),
 };

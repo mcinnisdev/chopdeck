@@ -11,6 +11,7 @@ export interface TransportHost {
   m: Machine;
   s: Session;
   sound: SoundApi;
+  midi?: import('@/midi/io').MidiOutApi;
   touch(): void;
   snapshotForUndo(): void;
   /** Which DRUM slot / note a pad plays right now. */
@@ -128,6 +129,7 @@ export class Transport implements TransportApi {
     this.running = true;
     this.s.playing = true;
     this.s.record = this.recording;
+    this.midiStart(this.timeAtTick(this.s.now), this.s.now > 0);
     if (!this.waiting) this.clock.start(() => this.pump(), PUMP_MS);
     this.host.touch();
   }
@@ -139,6 +141,7 @@ export class Transport implements TransportApi {
       this.finishPending(tick);
       this.s.now = this.clampToSeq(tick);
     }
+    if (this.running) this.midiStop(this.host.sound.now());
     this.clock.stop();
     this.running = false;
     this.waiting = false;
@@ -346,7 +349,7 @@ export class Transport implements TransportApi {
     const play = (tracks: Sequence['tracks'], primary: boolean) => tracks.forEach((tr, ti) => {
       if (!tr.on || (primary && this.s.soloTrack != null && this.s.soloTrack !== ti)) return;
       const ti0 = TRACK_TYPES.indexOf(tr.type);
-      if (ti0 <= 0) return; // MIDI tracks: Phase 5
+      if (ti0 <= 0) { this.scheduleMidiTrack(tr, f0, to); return; }
       const drum = ti0 - 1;
       for (const e of eventsInRange(tr.events, f0, to)) {
         if (e.kind !== 'note') continue;
@@ -360,6 +363,7 @@ export class Transport implements TransportApi {
     });
     play(q.tracks, true);
     if (second) play(second.tracks, false);
+    this.scheduleClock(f0, to);
 
     // note repeat: held pads on the timing grid
     if (this.repeatHeld && this.heldPads.size && this.m.timing !== 'OFF') {
@@ -382,6 +386,33 @@ export class Transport implements TransportApi {
       }
     }
   }
+
+  // ---------- MIDI out ----------
+  private outFor(ch: number): { out: 'A' | 'B'; midiCh: number } | null { if (ch <= 0) return null; return ch <= 16 ? { out: 'A', midiCh: ch - 1 } : { out: 'B', midiCh: ch - 17 }; }
+  private scheduleMidiTrack(tr: Sequence['tracks'][number], from: number, to: number) {
+    const midi = this.host.midi; const dest = this.outFor(tr.channel); if (!midi || !dest) return;
+    for (const e of eventsInRange(tr.events, from, to)) {
+      if (this.recordedNow.has(e)) continue;
+      const when = this.timeAtTick(e.tick);
+      switch (e.kind) {
+        case 'note': { const n = Math.max(0, Math.min(127, e.note + tr.transpose)); midi.noteOn(dest.out, dest.midiCh, n, Math.min(127, Math.max(1, Math.round(e.vel * tr.veloPct / 100))), when); midi.noteOff(dest.out, dest.midiCh, n, this.timeAtTick(e.tick + e.dur)); break; }
+        case 'cc': midi.cc(dest.out, dest.midiCh, e.cc, e.value, when); break;
+        case 'pgm': midi.pgm(dest.out, dest.midiCh, e.value, when); break;
+        case 'bend': midi.bend(dest.out, dest.midiCh, e.value, when); break;
+        case 'chpress': midi.chpress(dest.out, dest.midiCh, e.value, when); break;
+        case 'polypress': midi.polypress(dest.out, dest.midiCh, e.note, e.value, when); break;
+        case 'sysex': midi.sysex(dest.out, e.bytes, when); break;
+        default: break;
+      }
+    }
+  }
+  private scheduleClock(from: number, to: number) {
+    const midi = this.host.midi; const sync = this.m.midi.syncOut; if (!midi || sync.mode !== 'MIDI CLOCK') return;
+    const step = PPQ / 24;
+    for (let t = Math.ceil(from / step) * step; t < to; t += step) midi.clock('A', this.timeAtTick(t));
+  }
+  private midiStart(when: number, cont: boolean) { const midi = this.host.midi; if (midi && this.m.midi.syncOut.mode === 'MIDI CLOCK') midi.start('A', when, cont); }
+  private midiStop(when: number) { const midi = this.host.midi; if (midi && this.m.midi.syncOut.mode === 'MIDI CLOCK') midi.stop('A', when); }
 
   private updateLitPads(tick: number) {
     const q = this.seq();

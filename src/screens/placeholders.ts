@@ -39,6 +39,4 @@ function placeholder(id: ModeId, title: string, keys: (SoftKeyDef | null)[], pag
 }
 
 export const placeholderScreens: ScreenDef[] = [
-  ...placeholder('OTHER', 'OTHER', [page('OTHERS', 'OTHERS'), page('INIT', 'INIT'), page('VER.', 'VER'), null, null, null], ['OTHERS', 'INIT', 'VER']),
-  ...placeholder('MIDI', 'MIDI/SYNC', [page('SYNC', 'SYNC'), page('DUMP', 'DUMP'), page('MIDIsw', 'MIDISW'), null, null, null], ['SYNC', 'DUMP', 'MIDISW']),
 ];

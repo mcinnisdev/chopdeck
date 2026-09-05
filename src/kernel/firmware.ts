@@ -42,6 +42,8 @@ export class Firmware {
   transport: TransportApi;
   sound: SoundApi = new NullSound();
   host: HostApi = { pickFiles() {}, download() {} };
+  /** MIDI output, installed by the app; the transport reads it through the host. */
+  midi?: import('@/midi/io').MidiOutApi;
   hooks: PadHooks = {};
   private heldPads = new Map<number, { drum: number; note: number }>();
   private gotoCombo = false;
