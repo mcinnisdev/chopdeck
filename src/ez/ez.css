@@ -1,0 +1,33 @@
+/* EZ mode layout: the design system's ez.css, kit-level responsive rules; materials come from the tokens */
+body[data-panel="ez"] { background: var(--cream) var(--texture-grain); padding: 0; }
+.ez { max-width: 1280px; margin: 0 auto; padding: 16px; box-sizing: border-box; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 380px; grid-template-areas: "head head" "links links" "nav pads" "panel pads"; align-items: start; color: var(--ink); font-family: var(--font-body); }
+.ez-head { grid-area: head; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 2px solid var(--ink); }
+.ez-links { grid-area: links; display: flex; gap: 6px 14px; flex-wrap: wrap; align-items: center; font-family: var(--font-label); font-weight: 600; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-top: -6px; }
+.ez-links a { color: var(--red-deep); text-decoration: none; border-bottom: 1px solid currentColor; }
+.ez-brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+.ez-transport { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; }
+.ez-bpm { display: flex; align-items: center; gap: 8px; margin-left: 8px; }
+.ez-bpm-read { font-family: var(--font-lcd); font-size: var(--lcd-lg, 28px); line-height: 1; background: var(--lcd); color: var(--lcd-ink); padding: 4px 8px 2px; border-radius: var(--radius-lcd, 4px); box-shadow: var(--lcd-inset); min-width: 64px; text-align: right; }
+.ez-bpm-read small { font-size: var(--lcd-sm, 15px); }
+.ez-nav { grid-area: nav; display: flex; gap: 10px; }
+.ez-nav > * { flex: 1; }
+.ez-panel { grid-area: panel; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.ez-title { margin: 0; font-family: var(--font-label); font-weight: 700; font-size: 22px; line-height: 1; letter-spacing: .02em; text-transform: uppercase; }
+.ez-help { font-family: var(--font-body); font-size: 13px; line-height: 1.4; color: var(--ink-3); margin: 0; }
+.ez-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+.ez-lcd-body { text-transform: none; white-space: normal; font-family: var(--font-lcd); font-size: var(--lcd-sm, 15px); color: var(--lcd-dim); }
+.ez-pads { grid-area: pads; display: flex; flex-direction: column; gap: 10px; background: var(--cream-2, #F1E6C8); border: var(--stroke-w) solid var(--ink); border-radius: var(--radius-panel); padding: 12px; box-shadow: var(--recess, inset 0 2px 6px rgba(0,0,0,.2)); position: sticky; top: 16px; }
+.ez-bank { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ez-bank-label { font-family: var(--font-label); font-weight: 600; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.ez-status { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-lcd); font-size: var(--lcd-sm, 15px); background: var(--lcd); color: var(--lcd-ink); padding: 2px 6px; border-radius: 2px; box-shadow: var(--lcd-inset); white-space: nowrap; }
+.ez-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--pad-gap, 10px); }
+.ez-grid > div { width: auto !important; }
+.ez-hint { margin: 0; font-size: 12px; color: var(--ink-3); text-align: center; }
+.ez-well { background: var(--cream-2, #F1E6C8); border: var(--stroke-w) solid var(--ink); border-radius: var(--radius-panel); box-shadow: var(--recess, inset 0 2px 6px rgba(0,0,0,.2)); }
+.ez-field { font: inherit; font-size: 15px; padding: 7px 10px; border: 2px solid var(--ink); border-radius: 3px; background: var(--white); color: var(--ink); }
+.ez-list { display: grid; gap: 4px; max-height: 240px; overflow-y: auto; }
+.ez-list > div { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; background: var(--white); border: 2px solid var(--ink); borderRadius: 4px; border-radius: 4px; padding: 4px 8px; }
+.ez-footer { grid-column: 1 / -1; font-family: var(--font-label); font-weight: 600; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); text-align: center; opacity: .8; }
+.ez-footer a { color: inherit; text-decoration: none; border-bottom: 1px solid currentColor; }
+@media (max-width: 1000px) { .ez { grid-template-columns: 1fr; grid-template-areas: "head" "links" "nav" "panel" "pads"; } .ez-pads { position: static; } .ez-grid { max-width: 420px; margin: 0 auto; width: 100%; } }
+@media (max-width: 600px) { .ez { padding: 12px; gap: 12px; grid-template-areas: "head" "links" "panel" "nav" "pads"; } .ez-head { justify-content: center; } .ez-transport { width: 100%; justify-content: center; } .ez-nav { position: sticky; top: 0; z-index: 5; background: var(--cream); padding: 6px 0; } .ez-title { font-size: 18px; } .ez-bpm-read { font-size: var(--lcd-md, 20px); } }

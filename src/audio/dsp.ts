@@ -119,4 +119,27 @@ export function sliceZones(sound: Sound, endMargin = 0): Sound[] {
 }
 
 /** Beat-loop tempo of a region: beats over (end-st) frames. */
+/**
+ * Onsets for auto-chopping: energy in 10 ms hops, a rise over the recent average marks a hit, hits at
+ * least 60 ms apart, the strongest `max` kept in time order. Frame 0 is always the first.
+ */
+export function detectOnsets(pcm: Pcm, rate: number, max = 16): number[] {
+  const n = pcm[0]?.length ?? 0; if (!n) return [0];
+  const hop = Math.max(1, Math.round(rate * 0.01));
+  const frames = Math.ceil(n / hop);
+  const energy = new Float32Array(frames);
+  for (let f = 0; f < frames; f++) { let e = 0; const a = f * hop, b = Math.min(n, a + hop); for (const ch of pcm) for (let i = a; i < b; i++) e += ch[i] * ch[i]; energy[f] = Math.sqrt(e / Math.max(1, (b - a) * pcm.length)); }
+  const cands: { f: number; s: number }[] = [];
+  const minGap = Math.round(0.06 / 0.01);
+  let avg = energy[0];
+  for (let f = 1; f < frames; f++) {
+    const rise = energy[f] - avg;
+    avg = avg * 0.85 + energy[f] * 0.15;
+    if (rise > 0.02 && energy[f] > 0.03 && (!cands.length || f - cands[cands.length - 1].f >= minGap)) cands.push({ f, s: rise });
+    else if (cands.length && f - cands[cands.length - 1].f < minGap && rise > cands[cands.length - 1].s) cands[cands.length - 1] = { f, s: rise };
+  }
+  const keep = cands.filter(c => c.f > 2).sort((a, b) => b.s - a.s).slice(0, Math.max(0, max - 1)).map(c => c.f * hop).sort((a, b) => a - b);
+  return [0, ...keep];
+}
+
 export function regionTempo(rate: number, st: number, end: number, beats: number): number { const sec = Math.max(1, end - st) / rate; return Math.round((60 / (sec / Math.max(1, beats))) * 10) / 10; }

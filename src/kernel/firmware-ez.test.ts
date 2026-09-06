@@ -90,6 +90,61 @@ describe('kernel methods for the EZ panel', () => {
     expect(fw.chopToPads('nope', 4, 'new')).toEqual([]);
   });
 
+  it('keeps chops as zones, finds hits, and puts one chop on one pad', () => {
+    const fw = boot();
+    const a = new Float32Array(16000);
+    for (const h of [0, 4000, 8000, 12000]) for (let i = 0; i < 800; i++) a[h + i] = Math.sin(i * 0.4) * Math.exp(-i / 200);
+    const s = fw.addSound('HITS', [a], 16000);
+    expect(fw.zoneStarts(s.id)).toEqual([0, .125, .25, .375, .5, .625, .75, .875]);
+    fw.setZoneStarts(s.id, [0.5, 0, 0.25, 0.25, 1.2]);
+    expect(s.zones.map(z => [z.st, z.end])).toEqual([[0, 4000], [4000, 8000], [8000, 16000]]);
+    expect(fw.zoneStarts(s.id)).toEqual([0, .25, .5]);
+    fw.chopOnsets(s.id, 16);
+    expect(s.zones.length).toBe(4);
+    expect(s.zones.map(z => Math.round(z.st / 1000))).toEqual([0, 4, 8, 12]);
+    const sl = fw.assignChopToPad(s.id, 2, 13)!;
+    expect(sl.name).toBe('HITS3');
+    expect(sl.length).toBe(4000);
+    const pg = fw.m.programs[fw.m.drums[0].pgm];
+    expect(pg.notes[pg.padToNote[13] - 35].snd).toBe(sl.id);
+    // all zones onto the current kit, as they are
+    const all = fw.chopToPads(s.id, null, 'current');
+    expect(all.length).toBe(4);
+    expect(pg.notes[pg.padToNote[0] - 35].snd).toBe(all[0].id);
+  });
+
+  it('shows and edits the current track on a 1/16 grid, undoably', () => {
+    const fw = boot();
+    fw.m.sequences[0].bars = 1;
+    let g = fw.stepGrid();
+    expect(g.steps).toBe(16);
+    expect(g.rows.length).toBe(16);
+    expect(g.rows.every(r => r.every(c => !c))).toBe(true);
+    fw.toggleStep(0, 0); fw.toggleStep(0, 8); fw.toggleStep(1, 4);
+    g = fw.stepGrid();
+    expect(g.rows[0][0] && g.rows[0][8] && g.rows[1][4]).toBe(true);
+    expect(fw.m.sequences[0].tracks[fw.s.track].events.length).toBe(3);
+    fw.toggleStep(0, 8);
+    expect(fw.stepGrid().rows[0][8]).toBe(false);
+    expect(fw.s.undoAvailable).toBe(true);
+    fw.undo();
+    expect(fw.stepGrid().rows[0][8]).toBe(true);
+    fw.setBars(2);
+    expect(fw.stepGrid().steps).toBe(32);
+    fw.setLoop(false); expect(fw.m.sequences[0].loop.on).toBe(false);
+    fw.clearTrack();
+    expect(fw.m.sequences[0].tracks[fw.s.track].events.length).toBe(0);
+  });
+
+  it('reads and sets a pad level and the bank', () => {
+    const fw = boot();
+    expect(fw.padLevel(0)).toBe(100);
+    fw.setPadLevel(0, 63.4); expect(fw.padLevel(0)).toBe(63);
+    fw.setPadLevel(0, 500); expect(fw.padLevel(0)).toBe(100);
+    fw.setPadBank(2); expect(fw.s.padBank).toBe(2);
+    fw.setPadBank(9); expect(fw.s.padBank).toBe(3);
+  });
+
   it('loads a whole project and rewinds', () => {
     const fw = boot();
     fw.s.seq = 4; fw.s.now = 384; fw.s.sound = 2;

@@ -1,7 +1,8 @@
 // The firmware kernel: owns machine + session, routes all input, renders the LCD frame.
 import { Machine, Sequence, Sound, NAME_LEN, TIMING_TICKS, TEMPO_MIN, TEMPO_MAX, NUM_SEQUENCES, NUM_PROGRAMS, NOTE_MIN } from '@/model/types';
 import { newSound, newProgram } from '@/model/factory';
-import { equalZones, sliceZones } from '@/audio/dsp';
+import { equalZones, sliceZones, detectOnsets } from '@/audio/dsp';
+import { insertEvent, noteEvent } from '@/seq/events';
 import { barStartTick, tickToBBT, sequenceLengthTicks } from '@/model/time';
 import { rpad } from '@/model/format';
 import {
@@ -370,6 +371,42 @@ export class Firmware {
   }
   /** Arm REC and play from the top: the count-in and loop settings apply as they would from the panel. */
   recordFromStart() { this.transport.setRecord('REC'); this.transport.play(true); }
+  setLoop(on: boolean) { this.m.sequences[this.s.seq].loop.on = on; this.touch(); }
+  setBars(n: number) { this.m.sequences[this.s.seq].bars = Math.max(1, Math.min(999, Math.round(n))); this.touch(); }
+
+  /** The current track's notes on a 1/16 grid, one row per pad of the program the track plays. */
+  stepGrid(): { steps: number; rows: boolean[][]; per: number } {
+    const q = this.m.sequences[this.s.seq]; const tr = q.tracks[this.s.track];
+    const per = TIMING_TICKS['1/16'];
+    const steps = Math.max(16, Math.round(sequenceLengthTicks(q) / per));
+    const rows = Array.from({ length: 16 }, (_, pad) => {
+      const note = this.padTarget(pad).note; const row: boolean[] = new Array(steps).fill(false);
+      for (const e of tr.events) if (e.kind === 'note' && e.note === note) { const st = Math.round(e.tick / per); if (st >= 0 && st < steps) row[st] = true; }
+      return row;
+    });
+    return { steps, rows, per };
+  }
+  /** Place or remove a hit for a pad at a 1/16 step on the current track (undoable). */
+  toggleStep(pad: number, step: number) {
+    const q = this.m.sequences[this.s.seq]; const tr = q.tracks[this.s.track];
+    const per = TIMING_TICKS['1/16']; const note = this.padTarget(pad).note; if (!note) return;
+    const lo = step * per - per / 2, hi = step * per + per / 2;
+    const i = tr.events.findIndex(e => e.kind === 'note' && e.note === note && e.tick >= lo && e.tick < hi);
+    this.snapshotForUndo();
+    if (i >= 0) tr.events.splice(i, 1); else insertEvent(tr.events, noteEvent(step * per, note, 100, Math.round(per / 2)));
+    tr.used = true; q.used = true;
+    this.touch();
+  }
+  /** Empty the current track (undoable). */
+  clearTrack() { this.snapshotForUndo(); this.m.sequences[this.s.seq].tracks[this.s.track].events = []; this.touch(); }
+
+  /** Level of the sound on a pad, 0 to 100 (the note's mixer volume). */
+  padLevel(pad: number, drum = 0): number { const pg = this.m.programs[this.m.drums[drum].pgm]; const map = pg.padAssign === 'MASTER' ? this.m.masterPadToNote : pg.padToNote; const n = map[pad]; return n ? pg.notes[n - NOTE_MIN].vol : 0; }
+  setPadLevel(pad: number, v: number, drum = 0) {
+    const pg = this.m.programs[this.m.drums[drum].pgm]; const map = pg.padAssign === 'MASTER' ? this.m.masterPadToNote : pg.padToNote; const n = map[pad]; if (!n) return;
+    pg.notes[n - NOTE_MIN].vol = Math.max(0, Math.min(100, Math.round(v)));
+    this.sound.mixerChanged?.(); this.touch();
+  }
 
   /** Add a sound to memory and make it the current one. */
   addSound(name: string, pcm: Float32Array[], rate: number): Sound {
@@ -411,14 +448,46 @@ export class Firmware {
     this.touch();
     return i;
   }
+  setPadBank(i: number) { this.s.padBank = Math.max(0, Math.min(3, Math.round(i))); this.touch(); }
+  /** The sound's zones from chop starts given as fractions of its length (the first is 0). */
+  setZoneStarts(soundId: string, fractions: number[]) {
+    const s = this.m.sounds.find(x => x.id === soundId); if (!s) return;
+    const fr = Array.from(new Set([0, ...fractions.map(f => Math.max(0, Math.min(1, f)))])).sort((a, b) => a - b).slice(0, 16);
+    s.zones = fr.map((f, i) => ({ st: Math.round(f * s.length), end: Math.round((fr[i + 1] ?? 1) * s.length) })).filter(z => z.end > z.st);
+    this.touch();
+  }
+  /** Chop starts as fractions of the sound; equal eighths when the sound has no zones yet. */
+  zoneStarts(soundId: string): number[] {
+    const s = this.m.sounds.find(x => x.id === soundId); if (!s || !s.length) return [0];
+    // a fresh sound carries one zone spanning itself; that is "not chopped yet"
+    if (s.zones.length <= 1) return Array.from({ length: 8 }, (_, i) => i / 8);
+    return s.zones.map(z => z.st / s.length);
+  }
+  /** Put a chop at every hit the sound has, up to `max`. */
+  chopOnsets(soundId: string, max = 16) {
+    const s = this.m.sounds.find(x => x.id === soundId); if (!s) return;
+    this.setZoneStarts(soundId, detectOnsets(s.pcm, s.rate, max).map(f => f / s.length));
+  }
+  /** Slice one zone of a sound into its own sound and put it on a pad. */
+  assignChopToPad(soundId: string, zone: number, pad: number, drum = 0): Sound | null {
+    const s = this.m.sounds.find(x => x.id === soundId); if (!s || !s.zones[zone]) return null;
+    const [sl] = sliceZones({ ...s, zones: [s.zones[zone]] }, 0);
+    sl.name = `${s.name.slice(0, 15 - String(zone + 1).length)}${zone + 1}`;
+    this.m.sounds.push(sl);
+    this.assignPad(pad, sl.id, drum);
+    return sl;
+  }
   /**
-   * Chop a region of a sound into `n` equal slices and put them on pads: onto a new program named after
-   * the sound, or onto the current program's pads from pad 1. The same operation as TRIM's SLICE SOUND.
+   * Chop a region of a sound into `n` equal slices (or its existing zones when `n` is null) and put them
+   * on pads: onto a new program named after the sound, or onto the current program's pads from pad 1.
+   * The same operation as TRIM's SLICE SOUND.
    */
-  chopToPads(soundId: string, n: number, target: 'new' | 'current', st?: number, end?: number, drum = 0): Sound[] {
+  chopToPads(soundId: string, n: number | null, target: 'new' | 'current', st?: number, end?: number, drum = 0): Sound[] {
     const s = this.m.sounds.find(x => x.id === soundId); if (!s) return [];
-    const a = Math.max(0, Math.min(s.length, Math.round(st ?? s.st))), b = Math.max(a + 1, Math.min(s.length, Math.round(end ?? s.end)));
-    s.zones = equalZones(a, b, Math.max(1, Math.min(16, Math.round(n))));
+    if (n != null || s.zones.length <= 1) {
+      const a = Math.max(0, Math.min(s.length, Math.round(st ?? s.st))), b = Math.max(a + 1, Math.min(s.length, Math.round(end ?? s.end)));
+      s.zones = equalZones(a, b, Math.max(1, Math.min(16, Math.round(n ?? 8))));
+    }
     const slices = sliceZones(s, 0);
     this.m.sounds.push(...slices);
     const pgmIndex = target === 'new' ? this.newProgram(s.name.slice(0, 16), drum) : this.m.drums[drum].pgm;

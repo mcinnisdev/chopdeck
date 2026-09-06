@@ -393,8 +393,13 @@ state and no engine; every operation is a kernel method the OG screens can use t
       patterns 1 to 8, save and load, the site's links; phones start on EZ.
 - [x] EZ 3: sounds in memory, add files or drop them, audition, put on a pad, edit pads, chop a
       region into 4/8/16 slices onto a new kit or the current one, new kit, kit name.
-- [ ] EZ 2: the step grid, recording from the pads, undo, pattern length.
-- [ ] EZ 4: faders and pans, export, publish from EZ.
+- [x] EZ 2: the step grid on the current track, live recording, undo, clear, loop, bars, swing, tap
+      tempo, patterns 1 to 8, track choice.
+- [x] Refreshed layout from the design system: cream page, header transport with a tempo knob, four
+      panels (Chop / Sequence / Library / Mix), pads always on screen, phone and tablet reflow; the
+      library panel plays the public-domain crate on a turntable and sends records to the chopper;
+      Mix has a fader per pad.
+- [ ] EZ 4: pans, export, publish from EZ, sampling from the microphone.
 - [ ] EZ 5: the touch pass.
 
 ## 6. Decisions to make now

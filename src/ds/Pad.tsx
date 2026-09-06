@@ -22,6 +22,10 @@ export interface PadProps {
   lit?: boolean;
   /** CSS size override (default var(--pad-size)) */
   size?: string | number;
+  /** Fill the container's width and keep a square (EZ pads) */
+  fluid?: boolean;
+  /** Accessible name when it should say more than the printed label (e.g. "Pad 1: KICK") */
+  ariaLabel?: string;
   /** Always send this velocity (FULL LEVEL) */
   fixedVelocity?: number;
   /** Pad struck; velocity 1..127 */
@@ -37,7 +41,7 @@ const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n
 /** Real pressure hardware reports something other than the 0.5 mouse/touch default. */
 const hasPressure = (e: PointerEvent) => e.pressure > 0 && e.pressure !== 0.5;
 
-export function Pad({ label = 'PAD 1', note, letters, hotkey, color = 'red', lit = false, size, fixedVelocity, onTrigger, onRelease, onPressure, style }: PadProps) {
+export function Pad({ label = 'PAD 1', note, letters, hotkey, color = 'red', lit = false, size, fluid = false, ariaLabel, fixedVelocity, onTrigger, onRelease, onPressure, style }: PadProps) {
   const [down, setDown] = useState(false);
   const held = useRef<number | null>(null);
   const last = useRef(-1);
@@ -45,7 +49,7 @@ export function Pad({ label = 'PAD 1', note, letters, hotkey, color = 'red', lit
   cbs.current = { onTrigger, onRelease, onPressure };
   const active = down || lit;
   const bg = color === 'grey' ? 'var(--surface-pad-alt)' : 'var(--surface-pad)';
-  const s = size ?? 'var(--pad-size)';
+  const s = fluid ? '100%' : (size ?? 'var(--pad-size)');
 
   /** 0 at the top edge, 1 at the bottom edge. */
   const posT = (e: PointerEvent<HTMLButtonElement>) => {
@@ -89,7 +93,7 @@ export function Pad({ label = 'PAD 1', note, letters, hotkey, color = 'red', lit
       </div>
       <button
         type="button"
-        aria-label={label}
+        aria-label={ariaLabel ?? label}
         aria-pressed={active}
         onPointerDown={onDown}
         onPointerMove={onMove}
@@ -97,7 +101,7 @@ export function Pad({ label = 'PAD 1', note, letters, hotkey, color = 'red', lit
         onPointerCancel={release}
         onLostPointerCapture={release}
         style={{
-          appearance: 'none', position: 'relative', width: s, height: s, padding: 0,
+          appearance: 'none', position: 'relative', width: s, height: fluid ? 'auto' : s, aspectRatio: fluid ? '1 / 1' : undefined, padding: 0,
           border: 'var(--stroke-w) solid var(--stroke)', borderRadius: 'var(--radius-pad)',
           background: active ? (color === 'grey' ? 'var(--cream)' : 'var(--red-soft)') : bg,
           boxShadow: active ? (color === 'grey' ? 'var(--bevel-pad-pressed)' : 'var(--bevel-pad-pressed), var(--pad-glow)') : 'var(--bevel-pad)',

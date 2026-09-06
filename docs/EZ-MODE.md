@@ -65,6 +65,12 @@ to one column under 900 px, pads full width, the transport pinned to the bottom.
   browser tests (record a pattern on the grid, switch to OG, see the notes on the step screen, and
   back).
 
+## Where it stands
+
+The refreshed design (`ui_kits/chopdeck-app/ez.html` in the design system: cream page, transport in the
+header, four hard buttons swapping one panel, pads always on screen, phone / tablet / desktop reflow)
+is what ships. Chop, Sequence, Library and Mix exist; each grows toward parity from here.
+
 ## Phases
 
 Each ships on its own and is usable.

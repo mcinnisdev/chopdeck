@@ -13,74 +13,73 @@ function wav(): Buffer {
 
 test.use({ launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } });
 
-// The EZ panel: the same machine behind a simpler front. What you change on EZ shows on OG's LCD.
-test('EZ plays, sets tempo and pattern, and OG sees the same machine', async ({ page }) => {
+// The EZ panel: the same machine behind the refreshed front. What you do on EZ shows on OG's LCD.
+test('EZ: transport, sequence grid and pattern; OG sees the same machine', async ({ page }) => {
   await page.goto('/?panel=ez');
   const ez = page.getByRole('region', { name: 'EZ panel' });
   await expect(ez).toBeVisible();
-  const toOg = () => page.getByRole('switch', { name: 'EZ mode' }).click();
+  const flip = () => page.getByRole('switch', { name: 'EZ mode' }).click();
   // pads carry the kit's sound names; the keyboard still plays them
-  await expect(ez.getByRole('button', { name: /Pad 1: KICK/ })).toBeVisible();
+  const pads = ez.getByRole('region', { name: 'Pads' });
+  const pad1 = pads.getByRole('button', { name: 'Pad 1: KICK' });
+  await expect(pad1).toBeVisible();
   await page.keyboard.down('KeyZ');
-  await expect(ez.getByRole('button', { name: /Pad 1: KICK/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(pad1).toHaveAttribute('aria-pressed', 'true');
   await page.keyboard.up('KeyZ');
   // transport
   await ez.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(ez.getByRole('button', { name: 'Play', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await ez.getByRole('button', { name: 'Stop', exact: true }).click();
   await expect(ez.getByRole('button', { name: 'Play', exact: true })).toHaveAttribute('aria-pressed', 'false');
-  // tempo and pattern
-  await ez.getByLabel('Tempo').fill('100');
-  await ez.getByLabel('Tempo').press('Enter');
-  await ez.getByRole('button', { name: /Pattern 2/ }).click();
-  await expect(ez.getByRole('button', { name: /Pattern 2/ })).toHaveAttribute('aria-pressed', 'true');
-  // the OG panel shows the same machine: sequence 2 selected; back on 1, the tempo we set
-  await toOg();
+  // the sequence panel: pattern 3, the grid, place hits, undo one
+  await ez.getByRole('button', { name: 'Sequence' }).click();
+  const patterns = ez.getByRole('group', { name: 'Patterns' });
+  await patterns.getByRole('button', { name: '3', exact: true }).click();
+  await expect(patterns.getByRole('button', { name: '3', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  const grid = ez.getByRole('grid', { name: 'Step sequencer' });
+  await expect(grid).toBeVisible();
+  const cell = grid.getByRole('gridcell', { name: /^1 .* step 1$/ });
+  await expect(cell).toHaveAttribute('aria-pressed', 'false');
+  await cell.click();
+  await expect(cell).toHaveAttribute('aria-pressed', 'true');
+  await ez.getByRole('button', { name: 'Undo' }).click();
+  await expect(cell).toHaveAttribute('aria-pressed', 'false');
+  await cell.click();
+  await grid.getByRole('gridcell', { name: /^1 .* step 9$/ }).click();
+  // OG shows the same machine: sequence 3 with two notes
+  await flip();
   const lcd = page.getByRole('region', { name: 'LCD' });
-  await expect(lcd).toContainText('Sq:02');
-  await page.getByRole('switch', { name: 'EZ mode' }).click();
-  await ez.getByRole('button', { name: /Pattern 1/ }).click();
-  await toOg();
-  await expect(lcd).toContainText('100.0');
-  // the choice is remembered
-  await page.reload();
-  await expect(page.getByRole('region', { name: 'LCD' })).toBeVisible();
-  await page.getByRole('switch', { name: 'EZ mode' }).click();
+  await expect(lcd).toContainText('Sq:03');
+  await expect(lcd).toContainText('2 notes');
+  // the panel choice is remembered across a reload
+  await flip();
   await page.reload();
   await expect(page.getByRole('region', { name: 'EZ panel' })).toBeVisible();
+  await expect(page.getByRole('grid', { name: 'Step sequencer' })).toBeVisible();
 });
 
-test('EZ adds a sound, puts it on a pad, chops a break into a new kit, and OG has it all', async ({ page }) => {
+test('EZ: add a sound, chop it, put chops on pads, name the kit; OG has it all', async ({ page }) => {
   await page.goto('/?panel=ez');
   const ez = page.getByRole('region', { name: 'EZ panel' });
-  await expect(ez).toBeVisible();
-  // add a file: it appears in the sounds list
-  await ez.getByLabel('Add sounds').setInputFiles({ name: 'tone_a4.wav', mimeType: 'audio/wav', buffer: wav() });
-  await expect(ez.getByRole('button', { name: 'Put TONE_A4 on a pad' })).toBeVisible({ timeout: 15_000 });
-  // put it on an empty pad
-  await ez.getByRole('button', { name: 'Put TONE_A4 on a pad' }).click();
-  await expect(ez.getByRole('status').filter({ hasText: 'Tap a pad' })).toContainText('Tap a pad for TONE_A4');
-  await ez.getByRole('button', { name: 'Pad 13, empty' }).click();
-  await expect(ez.getByRole('button', { name: 'Pad 13: TONE_A4' })).toBeVisible();
-  // edit pads: clear it again through the pad editor
-  await ez.getByRole('button', { name: 'Edit pads' }).click();
-  await ez.getByRole('button', { name: 'Pad 13: TONE_A4' }).click();
-  await expect(ez.getByRole('dialog', { name: 'Pad 13' })).toBeVisible();
-  await ez.getByRole('button', { name: 'Clear' }).click();
-  await expect(ez.getByRole('button', { name: 'Pad 13, empty' })).toBeVisible();
-  await ez.getByRole('button', { name: 'Done' }).click();
-  await ez.getByRole('button', { name: 'Edit pads' }).click();
-  // chop the demo break into eight slices on a new kit
-  await ez.getByRole('button', { name: 'Chop BREAK 93', exact: true }).click();
-  const chop = ez.getByRole('dialog', { name: 'Chop BREAK 93', exact: true });
-  await expect(chop).toBeVisible();
-  await chop.getByRole('button', { name: '8 slices' }).click();
-  await chop.getByRole('button', { name: 'Put on pads in a new kit' }).click();
-  await expect(ez.getByLabel('Kit name')).toHaveValue('BREAK 93');
-  await expect(ez.getByRole('button', { name: /Pad 1: BREAK 931/ })).toBeVisible();
-  await expect(ez.getByRole('button', { name: /Pad 8: BREAK 938/ })).toBeVisible();
-  await expect(ez.getByRole('button', { name: 'Pad 9, empty' })).toBeVisible();
-  // rename the kit; OG's PROGRAM screen shows it on DRUM1
+  await ez.getByRole('button', { name: 'Library' }).click();
+  await ez.locator('input[aria-label="Add sounds"]').setInputFiles({ name: 'tone_a4.wav', mimeType: 'audio/wav', buffer: wav() });
+  // adding a file opens Chop on it
+  await expect(ez.getByRole('heading', { name: 'Chop' })).toBeVisible({ timeout: 15_000 });
+  await expect(ez.getByLabel('Sound to chop').locator('option:checked')).toHaveText('TONE_A4');
+  await ez.getByRole('button', { name: '4 slices' }).click();
+  await expect(ez.getByRole('slider', { name: 'Chop 3 start' })).toBeVisible();
+  await expect(ez.getByRole('slider', { name: 'Chop 5 start' })).toHaveCount(0);
+  // select chop 2 and tap pad 13: the slice lands there
+  await ez.getByRole('slider', { name: 'Chop 2 start' }).click();
+  const pads = ez.getByRole('region', { name: 'Pads' });
+  await pads.getByRole('button', { name: 'Pad 13, empty' }).click();
+  await expect(pads.getByRole('button', { name: 'Pad 13: TONE_A42' })).toBeVisible();
+  // all chops onto the pads from pad 1
+  await ez.getByRole('button', { name: 'All to pads' }).click();
+  await expect(pads.getByRole('button', { name: 'Pad 1: TONE_A41' })).toBeVisible();
+  await expect(pads.getByRole('button', { name: 'Pad 4: TONE_A44' })).toBeVisible();
+  // the mixer: rename the kit; OG's PROGRAM screen shows it on DRUM1
+  await ez.getByRole('button', { name: 'Mix' }).click();
   await ez.getByLabel('Kit name').fill('MY CHOPS');
   await ez.getByLabel('Kit name').press('Enter');
   await page.getByRole('switch', { name: 'EZ mode' }).click();
@@ -88,10 +87,13 @@ test('EZ adds a sound, puts it on a pad, chops a break into a new kit, and OG ha
   await expect(page.getByRole('region', { name: 'LCD' })).toContainText('MY CHOPS');
 });
 
-test('a phone-sized first visit starts on EZ', async ({ browser }) => {
+test('a phone-sized first visit starts on EZ with the pads under the panel', async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 420, height: 860 }, hasTouch: true, isMobile: true, storageState: { cookies: [], origins: [] } });
   const page = await ctx.newPage();
   await page.goto('/');
   await expect(page.getByRole('region', { name: 'EZ panel' })).toBeVisible();
+  const nav = await page.getByRole('navigation', { name: 'Panels' }).boundingBox();
+  const pads = await page.getByRole('region', { name: 'Pads' }).boundingBox();
+  expect(pads!.y).toBeGreaterThan(nav!.y);
   await ctx.close();
 });

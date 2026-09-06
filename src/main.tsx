@@ -13,7 +13,7 @@ import { FirmwareContext } from '@/app/store';
 import { Chassis } from '@/app/Chassis';
 import { EzPanel } from '@/ez/EzPanel';
 import { panel } from '@/app/panel';
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { TipProvider } from '@/app/Tip';
 import { installHost } from '@/app/host';
 import { installSamplerInput, keep } from '@/screens/sample';
@@ -35,6 +35,7 @@ document.head.appendChild(style);
 /** OG or EZ: two front panels over the same firmware. */
 function Root({ engine }: { engine: AudioEngine }) {
   const which = useSyncExternalStore(fn => panel.subscribe(fn), () => panel.snapshot);
+  useEffect(() => { document.body.dataset.panel = which; }, [which]);
   return which === 'ez' ? <EzPanel engine={engine} /> : <Chassis engine={engine} />;
 }
 
