@@ -35,6 +35,7 @@ export const HELP: Record<string, HelpEntry> = {
   manual: { title: "Owner's Manual", text: 'The full manual: every mode, every window, and a keyboard reference.', anchor: '' },
   tips: { title: 'TIPS', text: 'Switch these hover tips on or off. The choice is remembered in this browser.', anchor: 'panel' },
   quickStart: { title: 'Quick start', text: 'A short guided tour of the machine: play the demo, hit the pads, drop in your own sounds, chop them and record a beat. Escape closes it.', anchor: 'quick-start' },
+  panel: { title: 'OG or EZ', text: 'Two front panels over the same machine. OG is the original workflow with the LCD and modes; EZ is the simple one with plain words and a step grid. Switch any time; nothing is converted.', anchor: 'ez' },
   account: { title: 'Account', text: 'Sign in and the machine keeps your work in your account, so it follows you to any browser. Signed in, this shows your handle and whether the last change has synced.', anchor: '' },
   kits: { title: 'Kit library', text: 'Pad banks other people made on Chop Deck: sixteen sounds with their tuning, envelopes and levels. Play them in the page and send one to the machine; it lands in the LOAD tray.', anchor: 'loading' },
   samples: { title: 'Samples library', text: 'Records, breaks and hits people have shared for chopping. Play one in the page and send it to the machine; it lands in the LOAD tray with the Load a Sound window open. Put it on a pad, then slice it from the ZONE page of TRIM.', anchor: 'zone' },

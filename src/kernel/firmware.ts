@@ -1,5 +1,5 @@
 // The firmware kernel: owns machine + session, routes all input, renders the LCD frame.
-import { Machine, Sequence, NAME_LEN, TIMING_TICKS } from '@/model/types';
+import { Machine, Sequence, NAME_LEN, TIMING_TICKS, TEMPO_MIN, TEMPO_MAX, NUM_SEQUENCES, NUM_PROGRAMS } from '@/model/types';
 import { barStartTick, tickToBBT, sequenceLengthTicks } from '@/model/time';
 import { rpad } from '@/model/format';
 import {
@@ -79,6 +79,7 @@ export class Firmware {
     editName: (current, commit) => this.beginNameEdit(current, commit),
     confirm: (opts) => this.api.openWindow('CONFIRM', { opts }),
     message: (t) => { this.s.message = t; this.touch(); },
+    loadProject: (p) => this.loadProject(p),
     touch: () => this.touch(),
     snapshotForUndo: () => this.snapshotForUndo(),
     get transport() { return undefined as unknown as TransportApi; },
@@ -330,6 +331,43 @@ export class Firmware {
     return { drum, note: map[pad], program };
   }
   padPressure(pad: number, value: number) { this.transport.padPressure?.(pad, value); this.hooks.padPressure?.(pad, value); }
+
+  // ---------- plain operations, shared by the OG screens and the EZ panel ----------
+  /** The tempo the current sequence plays at: its own, or the master tempo when it follows MAS. */
+  tempo(): number { const q = this.m.sequences[this.s.seq]; return q.tempoSource === 'MAS' ? this.s.masterTempo : q.tempo; }
+  /** Set the tempo where the current sequence takes it from, to a tenth of a beat, within the machine's range. */
+  setTempo(bpm: number) {
+    const t = Math.min(TEMPO_MAX, Math.max(TEMPO_MIN, Math.round(bpm * 10) / 10));
+    const q = this.m.sequences[this.s.seq];
+    if (q.tempoSource === 'MAS') this.s.masterTempo = t; else q.tempo = t;
+    this.touch();
+  }
+  setSwing(pct: number) { this.m.swing = Math.min(75, Math.max(50, Math.round(pct))); this.touch(); }
+  /** Choose a sequence: now while stopped, or as the next one while playing. */
+  setSequence(i: number) {
+    const n = Math.min(NUM_SEQUENCES - 1, Math.max(0, Math.round(i)));
+    if (this.s.playing) this.s.nextSeq = n; else this.s.seq = n;
+    this.touch();
+  }
+  /** Put a program on a DRUM slot. */
+  setProgram(drum: number, pgm: number) {
+    const p = Math.min(NUM_PROGRAMS - 1, Math.max(0, Math.round(pgm)));
+    this.m.drums[drum].pgm = p;
+    this.m.programs[p].used = true;
+    this.sound.mixerChanged?.();
+    this.touch();
+  }
+  /** Replace everything on the machine with a loaded project and rewind. */
+  loadProject(p: { machine: Machine; masterTempo: number }) {
+    if (this.s.playing) this.transport.stop();
+    Object.assign(this.m, p.machine);
+    this.s.masterTempo = p.masterTempo;
+    this.s.seq = 0; this.s.now = 0; this.s.sound = 0;
+    this.sound.mixerChanged?.();
+    this.touch();
+  }
+  /** Arm REC and play from the top: the count-in and loop settings apply as they would from the panel. */
+  recordFromStart() { this.transport.setRecord('REC'); this.transport.play(true); }
 
   wheel(delta: number) {
     const s = this.s;

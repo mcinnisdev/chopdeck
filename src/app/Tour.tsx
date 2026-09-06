@@ -14,7 +14,7 @@ export interface TourStep { title: string; text: string; keys?: string; target: 
 
 export const TOUR_STEPS: TourStep[] = [
   { title: 'Welcome to Chop Deck', target: '[data-tip=play]', anchor: 'quick-start',
-    text: 'This is a drum machine: sixteen pads, a small green screen, a sequencer behind it. A demo beat is already loaded. Press PLAY to hear it and STOP when you have had enough. The machine keeps running while this tour is open, so try everything as you go.',
+    text: 'This is the OG panel: sixteen pads, a small green screen, a sequencer behind it, the original workflow. EZ in the header is the simple panel over the same machine. A demo beat is already loaded. Press PLAY to hear it and STOP when you have had enough. The machine keeps running while this tour is open, so try everything as you go.',
     keys: 'Space plays and stops. Shift+Space plays from the start.' },
   { title: 'Hit the pads', target: '[data-tip=pads]', anchor: 'pads',
     text: 'The pads play the sounds of the current program. Strike near the bottom edge for a soft hit, near the top for a hard one. FULL LEVEL makes every hit loud; 16 LEVELS spreads one sound over the pads at sixteen velocities. PAD BANK A to D gives you four sets of sixteen.',

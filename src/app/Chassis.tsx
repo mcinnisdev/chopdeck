@@ -11,15 +11,10 @@ import { AudioEngine } from '@/audio/engine';
 import { Tip, useTips } from './Tip';
 import { MANUAL_URL, softKeyHelp } from './help';
 import { Tour, shouldAutoStartTour } from './Tour';
-import { sync, type SyncState } from '@/disk/sync';
+import { sync } from '@/disk/sync';
+import { accountLabel } from './account-label';
+import { panel } from './panel';
 
-/** The account link's text: SIGN IN, or the handle and a one-word sync state. */
-function accountLabel(s: SyncState): string {
-  if (!s.user) return s.status === 'booting' ? '' : 'SIGN IN';
-  const who = s.user.handle ? `@${s.user.handle.toUpperCase()}` : 'ACCOUNT';
-  const word = { booting: '', standalone: '', 'signed-out': '', idle: '', syncing: 'SYNCING', synced: 'SYNCED', offline: 'OFFLINE', error: 'SYNC ERROR' }[s.status];
-  return word ? `${who} · ${word}` : who;
-}
 import { fieldHelp } from './field-help';
 
 const CHASSIS_W = 1240;
@@ -68,6 +63,8 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ ...lbl, opacity: .8 }}>
               INTEGRATED RHYTHM MACHINE · 16 BIT SAMPLER · SEQUENCER ·{' '}
+              <Tip id="panel"><span><span aria-current="true" style={{ borderBottom: '1px solid var(--cream)' }}>OG</span>{' · '}<button type="button" aria-label="EZ" onClick={() => panel.set('ez')} style={{ ...lbl, background: 'none', border: 0, padding: 0, cursor: 'pointer', color: 'var(--led-amber)', borderBottom: '1px solid var(--led-amber)' }}>EZ</button></span></Tip>
+              {' · '}
               <Tip id="quickStart"><button type="button" onClick={() => setTour(true)} style={{ ...lbl, background: 'none', border: 0, padding: 0, cursor: 'pointer', color: 'var(--led-amber)', borderBottom: '1px solid var(--led-amber)' }}>QUICK START</button></Tip>
               {' · '}
               <Tip id="manual"><a href={MANUAL_URL} target="_blank" rel="noopener" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>OWNER'S MANUAL</a></Tip>

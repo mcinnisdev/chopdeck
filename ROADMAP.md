@@ -389,6 +389,13 @@ plain words, big pads, a step grid, a chop flow, faders, and the touch layout fo
 state and no engine; every operation is a kernel method the OG screens can use too. Planned in
 [docs/EZ-MODE.md](docs/EZ-MODE.md) in five steps: play, sequence, chop, mix and share, touch.
 
+- [x] EZ 1: the OG · EZ switch, pads with names, kit picker, transport with tempo and swing,
+      patterns 1 to 8, save and load, the site's links; phones start on EZ.
+- [ ] EZ 2: the step grid, recording from the pads, undo, pattern length.
+- [ ] EZ 3: chop a file or a sample onto the pads.
+- [ ] EZ 4: faders and pans, export, publish from EZ.
+- [ ] EZ 5: the touch pass.
+
 ## 6. Decisions to make now
 
 Recommendations first; each is cheap to change now and expensive later.

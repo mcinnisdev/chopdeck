@@ -120,7 +120,7 @@ test('sign in, sync from the machine, pull on another browser, delete', async ({
   const b = await signIn(ctxB, email);
   await expect(b.locator('#project-line')).toContainText('Synced Beat');
   await b.goto('/');
-  await expect(b.getByRole('region', { name: 'LCD' })).toContainText('Sq:01-Synced Beat');
+  await expect(b.getByRole('region', { name: 'LCD' })).toContainText('Sq:01-Synced Beat', { timeout: 30_000 });
   await expect(b.locator('a[href="/account/"]')).toContainText(`@${handle.toUpperCase()}`);
 
   // a stranger never sees the blobs

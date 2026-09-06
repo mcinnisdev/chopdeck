@@ -56,12 +56,16 @@ export class SyncClient {
     const known = readMark().revision;
     if (!me.project) { if (hasLocal) this.schedule(); return null; }
     if (hasLocal && me.project.revision <= known) return null;
-    try {
-      const pulled = await this.pull();
-      writeMark({ revision: pulled.revision, pushedAt: new Date().toISOString() });
-      this.set({ status: 'synced', revision: pulled.revision });
-      return pulled;
-    } catch (e) { this.set({ status: 'error', error: String(e) }); return null; }
+    // one retry: a cold start or a busy server should not cost the visitor their project
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const pulled = await this.pull();
+        writeMark({ revision: pulled.revision, pushedAt: new Date().toISOString() });
+        this.set({ status: 'synced', revision: pulled.revision });
+        return pulled;
+      } catch (e) { if (attempt === 1) { this.set({ status: 'error', error: String(e) }); return null; } await new Promise(r => setTimeout(r, 1500)); }
+    }
+    return null;
   }
 
   /** Fetch the account's current project and every blob it names. */

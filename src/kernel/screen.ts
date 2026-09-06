@@ -21,6 +21,8 @@ export interface FirmwareApi {
   editName(current: string, commit: (name: string) => void): void;
   confirm(opts: ConfirmOpts): void;
   message(text: string | null): void;
+  /** Replace everything on the machine with a loaded project and rewind. */
+  loadProject(p: { machine: import('@/model/types').Machine; masterTempo: number }): void;
   touch(): void;                       // mark model dirty (re-render, autosave)
   snapshotForUndo(): void;
   // hooks filled in by later phases (audio, transport); kept here so screens can call them now

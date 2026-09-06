@@ -11,6 +11,9 @@ import { loadAutosave, startAutosave } from '@/disk/autosave';
 import { sync } from '@/disk/sync';
 import { FirmwareContext } from '@/app/store';
 import { Chassis } from '@/app/Chassis';
+import { EzPanel } from '@/ez/EzPanel';
+import { panel } from '@/app/panel';
+import { useSyncExternalStore } from 'react';
 import { TipProvider } from '@/app/Tip';
 import { installHost } from '@/app/host';
 import { installSamplerInput, keep } from '@/screens/sample';
@@ -28,6 +31,12 @@ import '@/ds';
 const style = document.createElement('style');
 style.textContent = 'html,body{min-height:100%}body{margin:0;background:var(--surface-app-bg) var(--texture-grain);padding:28px 20px;box-sizing:border-box}';
 document.head.appendChild(style);
+
+/** OG or EZ: two front panels over the same firmware. */
+function Root({ engine }: { engine: AudioEngine }) {
+  const which = useSyncExternalStore(fn => panel.subscribe(fn), () => panel.snapshot);
+  return which === 'ez' ? <EzPanel engine={engine} /> : <Chassis engine={engine} />;
+}
 
 async function powerOn() {
   const restored = await loadAutosave();
@@ -85,7 +94,7 @@ async function powerOn() {
   createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
       <FirmwareContext.Provider value={firmware}>
-        <TipProvider><Chassis engine={engine} /></TipProvider>
+        <TipProvider><Root engine={engine} /></TipProvider>
       </FirmwareContext.Provider>
     </React.StrictMode>,
   );
