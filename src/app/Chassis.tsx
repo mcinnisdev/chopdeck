@@ -205,7 +205,7 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
             {' · '}
             <Tip id="publishBeat"><a href="/publish/" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>PUBLISH THIS BEAT</a></Tip>
           </span>}
-          <span style={{ ...lbl, opacity: .45, textAlign: 'center', fontSize: 8 }}>FREE AND OPEN SOURCE · BUILT BY <a href="https://mcinnis.dev" style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>MCINNIS.DEV</a></span>
+          <span style={{ ...lbl, opacity: .45, textAlign: 'center', fontSize: 8 }}>FREE AND <a href="https://github.com/mcinnisdev/chopdeck" style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>OPEN SOURCE</a> · BUILT BY <a href="https://mcinnis.dev" style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>MCINNIS.DEV</a></span>
         </div>
       </div>
     </div>
