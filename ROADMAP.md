@@ -391,8 +391,9 @@ state and no engine; every operation is a kernel method the OG screens can use t
 
 - [x] EZ 1: the OG · EZ switch, pads with names, kit picker, transport with tempo and swing,
       patterns 1 to 8, save and load, the site's links; phones start on EZ.
+- [x] EZ 3: sounds in memory, add files or drop them, audition, put on a pad, edit pads, chop a
+      region into 4/8/16 slices onto a new kit or the current one, new kit, kit name.
 - [ ] EZ 2: the step grid, recording from the pads, undo, pattern length.
-- [ ] EZ 3: chop a file or a sample onto the pads.
 - [ ] EZ 4: faders and pans, export, publish from EZ.
 - [ ] EZ 5: the touch pass.
 

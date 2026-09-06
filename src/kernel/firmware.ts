@@ -1,5 +1,7 @@
 // The firmware kernel: owns machine + session, routes all input, renders the LCD frame.
-import { Machine, Sequence, NAME_LEN, TIMING_TICKS, TEMPO_MIN, TEMPO_MAX, NUM_SEQUENCES, NUM_PROGRAMS } from '@/model/types';
+import { Machine, Sequence, Sound, NAME_LEN, TIMING_TICKS, TEMPO_MIN, TEMPO_MAX, NUM_SEQUENCES, NUM_PROGRAMS, NOTE_MIN } from '@/model/types';
+import { newSound, newProgram } from '@/model/factory';
+import { equalZones, sliceZones } from '@/audio/dsp';
 import { barStartTick, tickToBBT, sequenceLengthTicks } from '@/model/time';
 import { rpad } from '@/model/format';
 import {
@@ -368,6 +370,67 @@ export class Firmware {
   }
   /** Arm REC and play from the top: the count-in and loop settings apply as they would from the panel. */
   recordFromStart() { this.transport.setRecord('REC'); this.transport.play(true); }
+
+  /** Add a sound to memory and make it the current one. */
+  addSound(name: string, pcm: Float32Array[], rate: number): Sound {
+    const s = newSound(name.replace(/\.[^.]+$/, '').toUpperCase().replace(/[^A-Z0-9 _-]/g, '').slice(0, 16) || 'SOUND', pcm, rate);
+    this.m.sounds.push(s);
+    this.s.sound = this.m.sounds.length - 1;
+    this.touch();
+    return s;
+  }
+  /** Decode audio files with the engine and add each as a sound. Files the browser cannot decode are skipped. */
+  async importAudio(files: File[]): Promise<Sound[]> {
+    const out: Sound[] = [];
+    for (const f of files) {
+      try { const d = await this.sound.decode(f); if (d.pcm[0]?.length) out.push(this.addSound(f.name, d.pcm.slice(0, 2), d.rate)); }
+      catch { /* not audio, or not a format this browser decodes */ }
+    }
+    return out;
+  }
+  /** Put a sound (or nothing) on a pad of the program on a DRUM slot. */
+  assignPad(pad: number, soundId: string | null, drum = 0) {
+    const pg = this.m.programs[this.m.drums[drum].pgm];
+    const map = pg.padAssign === 'MASTER' ? this.m.masterPadToNote : pg.padToNote;
+    const note = map[pad]; if (!note) return;
+    pg.notes[note - NOTE_MIN].snd = soundId;
+    pg.used = true;
+    this.sound.mixerChanged?.();
+    this.touch();
+  }
+  renameProgram(pgm: number, name: string) { this.m.programs[pgm].name = name.slice(0, NAME_LEN).padEnd(0); this.touch(); }
+  /** A fresh, empty program on a DRUM slot; the first unused one, or the slot's own if all are used. */
+  newProgram(name: string, drum = 0): number {
+    let i = this.m.programs.findIndex(p => !p.used);
+    if (i < 0) i = this.m.drums[drum].pgm;
+    const pg = newProgram(i, name.slice(0, NAME_LEN)); pg.used = true;
+    this.m.programs[i] = pg;
+    this.m.drums[drum].pgm = i;
+    this.s.program = i;
+    this.sound.mixerChanged?.();
+    this.touch();
+    return i;
+  }
+  /**
+   * Chop a region of a sound into `n` equal slices and put them on pads: onto a new program named after
+   * the sound, or onto the current program's pads from pad 1. The same operation as TRIM's SLICE SOUND.
+   */
+  chopToPads(soundId: string, n: number, target: 'new' | 'current', st?: number, end?: number, drum = 0): Sound[] {
+    const s = this.m.sounds.find(x => x.id === soundId); if (!s) return [];
+    const a = Math.max(0, Math.min(s.length, Math.round(st ?? s.st))), b = Math.max(a + 1, Math.min(s.length, Math.round(end ?? s.end)));
+    s.zones = equalZones(a, b, Math.max(1, Math.min(16, Math.round(n))));
+    const slices = sliceZones(s, 0);
+    this.m.sounds.push(...slices);
+    const pgmIndex = target === 'new' ? this.newProgram(s.name.slice(0, 16), drum) : this.m.drums[drum].pgm;
+    const pg = this.m.programs[pgmIndex];
+    const map = pg.padAssign === 'MASTER' ? this.m.masterPadToNote : pg.padToNote;
+    slices.forEach((sl, k) => { if (k < 16 && map[k]) pg.notes[map[k] - NOTE_MIN].snd = sl.id; });
+    pg.used = true;
+    this.s.sound = this.m.sounds.length - 1;
+    this.sound.mixerChanged?.();
+    this.touch();
+    return slices;
+  }
 
   wheel(delta: number) {
     const s = this.s;

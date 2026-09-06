@@ -1,10 +1,11 @@
 # EZ mode
 
 Two front panels, one machine. **OG** is the panel we have: the original workflow, LCD, soft keys,
-modes on the keypad, everything the 2000XL could do. **EZ** is a second panel for people who came to
-make a beat in the next five minutes, not to learn a machine: the same pads, sequencer, sampler and
-sounds, laid out the way a browser can lay them out, with plain words on everything. A toggle in the
-header switches between them, and switching is lossless because there is nothing to convert.
+modes on the keypad, everything the 2000XL could do. **EZ** is a second panel over the same machine
+with plain words on everything, laid out the way a browser can lay it out, working across device
+sizes. Its goal is parity with OG, reached one workflow at a time, without OG's learning curve. A
+physical switch beside the wordmark flips between them, and switching is lossless because there is
+nothing to convert.
 
 ## The one rule
 
@@ -30,14 +31,17 @@ Words in EZ are the plain ones; each maps onto a machine concept, and the manual
 | Steps | events at 1/16 grid ticks on the DRUM1 track | A 16-step row per pad; longer bars scroll; off-grid notes show as dots |
 | Swing | `Timing` swing % | One slider |
 | Record | REC + PLAY START with count-in and loop on | The red button; UNDO is a button too |
-| Chop | TRIM, ZONE, SLICE SOUND | Drop a file or pick a sample, drag the region, choose 4/8/16 slices, "Put on pads" |
+| Sounds | the sounds in memory, LOAD for files | Add files or drop them anywhere; audition; Put on pad; Chop |
+| Chop | TRIM, ZONE, SLICE SOUND | Drag the region on the waveform, choose 4/8/16 slices, put on pads in a new kit or this one |
+| Edit pads, New kit, Kit name | PROGRAM mode | Tap a pad to choose its sound or clear it; a fresh program on DRUM1; its name |
 | Mixer | per-note level and pan on the kit | A fader and a pan knob per pad |
 | Song | song 1 | A row of pattern chips in order; later |
 | Save, Load | `.CHOPDECK` files, and the browser disk | Two buttons; autosave and sync keep working underneath |
 
-Not in EZ, by design: the other sequences and tracks, MIDI tracks and settings, programs beyond the
-one on DRUM1, DRUM2 to DRUM4, disk folders, effects routing, note variation, step edit of parameters
-other than velocity. All of it is one toggle away in OG, and the EZ chapter says where.
+Not in EZ yet: the other sequences and tracks, MIDI tracks and settings, programs beyond the one on
+DRUM1, DRUM2 to DRUM4, disk folders, effects routing, note variation, step edit of parameters other
+than velocity. Each arrives in EZ when its workflow gets a plain shape; until then it is one flick of
+the switch away in OG, and the EZ chapter says where. Parity is the goal, not a fence.
 
 ## How it looks
 
@@ -87,8 +91,8 @@ Each ships on its own and is usable.
 
 ## Risks
 
-- **Scope creep toward a second machine.** The rule above and the table of what EZ shows are the
-  fence. When something is missing in EZ, the answer is "it is in OG", not a new EZ feature.
+- **Two machines instead of one.** EZ grows toward parity, but only through kernel methods the OG
+  screens share. An EZ feature that needs its own model or its own audio path is the wrong shape.
 - **Diverging behaviour.** Any operation EZ needs goes into the kernel as a method, never into the
   EZ component, so OG and EZ cannot disagree about what a step or a slice is.
 - **Two panels to keep in the design system's voice.** EZ uses the same components (`src/ds`) and

@@ -13,7 +13,7 @@ import { MANUAL_URL, softKeyHelp } from './help';
 import { Tour, shouldAutoStartTour } from './Tour';
 import { sync } from '@/disk/sync';
 import { accountLabel } from './account-label';
-import { panel } from './panel';
+import { PanelSwitch } from './PanelSwitch';
 
 import { fieldHelp } from './field-help';
 
@@ -63,8 +63,6 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ ...lbl, opacity: .8 }}>
               INTEGRATED RHYTHM MACHINE · 16 BIT SAMPLER · SEQUENCER ·{' '}
-              <Tip id="panel"><span><span aria-current="true" style={{ borderBottom: '1px solid var(--cream)' }}>OG</span>{' · '}<button type="button" aria-label="EZ" onClick={() => panel.set('ez')} style={{ ...lbl, background: 'none', border: 0, padding: 0, cursor: 'pointer', color: 'var(--led-amber)', borderBottom: '1px solid var(--led-amber)' }}>EZ</button></span></Tip>
-              {' · '}
               <Tip id="quickStart"><button type="button" onClick={() => setTour(true)} style={{ ...lbl, background: 'none', border: 0, padding: 0, cursor: 'pointer', color: 'var(--led-amber)', borderBottom: '1px solid var(--led-amber)' }}>QUICK START</button></Tip>
               {' · '}
               <Tip id="manual"><a href={MANUAL_URL} target="_blank" rel="noopener" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>OWNER'S MANUAL</a></Tip>
@@ -159,7 +157,7 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
         {/* ---------- RIGHT: brand, knobs, bank, pads ---------- */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><img src="/logo.webp" alt="" style={{ width: 44, height: 44 }} /><Wordmark onDark /></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}><img src="/logo.webp" alt="" style={{ width: 44, height: 44 }} /><Wordmark onDark /><Tip id="panel"><PanelSwitch /></Tip></div>
             <div style={{ display: 'flex', gap: 18 }}>
               <Tip id="recGain"><Knob label="REC GAIN" size="sm" ticks={false} value={gain} onChange={setGain} onDark /></Tip>
               <Tip id="volume"><Knob label="MAIN VOLUME" size="sm" ticks={false} value={vol} onChange={setVol} onDark /></Tip>
