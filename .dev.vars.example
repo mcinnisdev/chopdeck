@@ -8,3 +8,5 @@ DEV_MAGIC_LINKS=1
 # GOOGLE_CLIENT_SECRET=
 # GITHUB_CLIENT_ID=
 # GITHUB_CLIENT_SECRET=
+# Curation routes under /api/admin (seeding scripts); any long random string
+ADMIN_TOKEN=dev-admin-token-not-for-production

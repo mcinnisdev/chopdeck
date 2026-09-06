@@ -248,6 +248,35 @@ describe('api', () => {
     expect(await env.BLOBS.get(`blobs/${hash}`)).toBeNull();
   }, 60_000);
 
+  it('curates through the admin routes with a token', async () => {
+    env.ADMIN_TOKEN = 'a-long-enough-admin-token';
+    const auth = { authorization: `Bearer ${env.ADMIN_TOKEN}` };
+    const snd = new TextEncoder().encode('a public domain 78');
+    const hash = await sha256Hex(snd);
+    expect((await call(`/api/admin/blobs/${hash}`, { method: 'POST', body: snd })).status).toBe(401);
+    expect((await call(`/api/admin/blobs/${hash}`, { method: 'POST', body: snd, headers: { authorization: 'Bearer wrong-token-wrong-token' } })).status).toBe(401);
+    expect((await call(`/api/admin/blobs/${hash}?license=PD`, { method: 'POST', body: snd, headers: auth })).status).toBe(200);
+    let r = await call('/api/admin/samples', { method: 'POST', headers: { ...auth, 'content-type': 'application/json' }, body: JSON.stringify({ hash, title: 'Africa', description: 'Original Memphis Five, 1924.', source: 'https://archive.org/details/x', tags: ['78rpm', 'jazz'], license: 'PD', durationMs: 180000, rate: 44100, channels: 1, peaks: [0.5], featured: true, slug: 'africa_original-memphis-five' }) });
+    expect(r.status, await r.clone().text()).toBe(200);
+    const pub = await r.json() as { id: string; slug: string };
+    expect(pub.slug).toBe('chopdeck-africa-original-memphis-five');
+    const list = await (await call('/api/samples')).json() as { samples: { slug: string; handle: string | null; featured: boolean; license: string }[] };
+    const mine = list.samples.find(s => s.slug === pub.slug)!;
+    expect(mine.handle).toBeNull();
+    expect(mine.featured).toBe(true);
+    expect(mine.license).toBe('PD');
+    expect(list.samples[0].slug).toBe(pub.slug); // featured sorts first
+    expect((await call(`/api/blobs/${hash}`)).status).toBe(200);
+    // flag and unlist
+    expect((await call(`/api/admin/samples/${pub.slug}`, { method: 'PUT', headers: { ...auth, 'content-type': 'application/json' }, body: JSON.stringify({ takedown: true }) })).status).toBe(200);
+    expect((await call(`/api/samples/${pub.slug}`)).status).toBe(404);
+    expect((await call(`/api/blobs/${hash}`)).status).toBe(401);
+    const all = await (await call('/api/admin/samples', { headers: auth })).json() as { items: { slug: string; takedown: number }[] };
+    expect(all.items.find(i => i.slug === pub.slug)?.takedown).toBe(1);
+    expect((await call(`/api/admin/samples/${pub.id}`, { method: 'DELETE', headers: auth })).status).toBe(200);
+    delete env.ADMIN_TOKEN;
+  }, 30_000);
+
   it('enforces the quota', async () => {
     const cookie = await signIn('quota@example.com');
     const big = new Uint8Array(1024);

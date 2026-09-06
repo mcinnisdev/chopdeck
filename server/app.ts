@@ -5,6 +5,8 @@ import { Hono } from 'hono';
 import { makeAuth, sessionUser, type SessionUser } from './auth';
 import { kits } from './kits';
 import { samples } from './samples';
+import { admin } from './admin';
+import { sha256Hex } from './hash';
 import { MAX_BLOB_BYTES, PLAN_QUOTA_BYTES, REVISIONS_KEPT, type Env } from './env';
 
 type Vars = { user: SessionUser };
@@ -15,11 +17,7 @@ const RESERVED = new Set(['admin', 'chopdeck', 'chop-deck', 'support', 'help', '
 
 export function quotaFor(plan: string): number { return PLAN_QUOTA_BYTES[plan] ?? PLAN_QUOTA_BYTES.free; }
 
-export async function sha256Hex(bytes: ArrayBuffer | Uint8Array): Promise<string> {
-  const buf = bytes instanceof Uint8Array ? bytes.slice().buffer : bytes;
-  const d = await crypto.subtle.digest('SHA-256', buf);
-  return Array.from(new Uint8Array(d), b => b.toString(16).padStart(2, '0')).join('');
-}
+export { sha256Hex };
 
 const now = () => new Date().toISOString();
 const newId = () => crypto.randomUUID();
@@ -56,7 +54,7 @@ const PUBLIC = (c: { req: { path: string; method: string } }) => {
   return false;
 };
 app.use('/*', async (c, next) => {
-  if (c.req.path.startsWith('/api/auth/') || c.req.path === '/api/health') return next();
+  if (c.req.path.startsWith('/api/auth/') || c.req.path === '/api/health' || c.req.path.startsWith('/api/admin/')) return next();
   const user = await sessionUser(makeAuth(c.env), c.req.raw);
   if (user) c.set('user', user);
   else if (!PUBLIC(c)) return c.json({ error: 'sign in first' }, 401);
@@ -65,6 +63,7 @@ app.use('/*', async (c, next) => {
 
 app.route('/kits', kits);
 app.route('/samples', samples);
+app.route('/admin', admin);
 
 app.get('/me', async c => {
   const u = c.get('user');

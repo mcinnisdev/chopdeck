@@ -10,3 +10,6 @@ test-results/
 # Cloudflare local state and secrets
 .wrangler/
 .dev.vars
+
+# curation token for scripts/seed-*.ts
+.admin-token

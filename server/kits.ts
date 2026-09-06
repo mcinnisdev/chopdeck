@@ -7,7 +7,7 @@ import type { SessionUser } from './auth';
 type Vars = { user: SessionUser };
 export const kits = new Hono<{ Bindings: Env; Variables: Vars }>();
 
-export const LICENSES = ['CC0', 'CC-BY', 'CC-BY-NC', 'CHOPDECK'] as const;
+export const LICENSES = ['PD', 'CC0', 'CC-BY', 'CC-BY-NC', 'CHOPDECK'] as const;
 const slugify = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'kit';
 const cleanTags = (tags: unknown): string[] => Array.isArray(tags) ? Array.from(new Set(tags.map(t => String(t).toLowerCase().trim().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '')).filter(t => t.length > 0 && t.length <= 24))).slice(0, 5) : [];
 const now = () => new Date().toISOString();

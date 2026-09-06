@@ -10,6 +10,8 @@ export interface Env {
   GOOGLE_CLIENT_SECRET?: string;
   GITHUB_CLIENT_ID?: string;
   GITHUB_CLIENT_SECRET?: string;
+  /** Bearer token for the curation routes under /api/admin (seeding, featured, takedown). */
+  ADMIN_TOKEN?: string;
   /** '1' to store magic links in dev_links instead of emailing them (local development and tests). */
   DEV_MAGIC_LINKS?: string;
 }

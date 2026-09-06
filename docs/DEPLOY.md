@@ -115,6 +115,7 @@ Pages reads the bindings from `wrangler.toml`, so nothing needs adding in the da
    | `RESEND_API_KEY` | From resend.com. Sign-in links go out from `hello@mail.chopdeck.com`, on the verified domain `mail.chopdeck.com`. Replies and the contact address are `hello@chopdeck.com`. |
    | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional. Google Cloud console, OAuth client, web application, redirect URI `https://chopdeck.com/api/auth/callback/google`. |
    | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | Optional. GitHub, Developer settings, OAuth app, callback `https://chopdeck.com/api/auth/callback/github`. |
+   | `ADMIN_TOKEN` | A long random string for the curation routes under `/api/admin` (seeding, featured, takedown). Kept locally in `.admin-token` (ignored by git) for the scripts. |
 
    Without the Google or GitHub pair the account page simply does not show that button. Never set
    `DEV_MAGIC_LINKS` in production: it stores sign-in links in the database instead of emailing them.
@@ -148,6 +149,28 @@ npx wrangler d1 execute chopdeck --remote --command "UPDATE samples SET featured
 
 To take something down without deleting it (it disappears from the library and its audio stops being
 public), set `takedown = 1` the same way. Samples are at most four minutes; kits at most 64 sounds.
+
+The same flags are reachable over the API with the admin token, which is what the scripts use:
+
+```
+curl -X PUT https://chopdeck.com/api/admin/samples/<slug> -H "authorization: Bearer $(cat .admin-token)" \
+     -H "content-type: application/json" -d '{"featured":true}'
+curl https://chopdeck.com/api/admin/kits -H "authorization: Bearer $(cat .admin-token)"      # everything, live or not
+```
+
+**Seeding the samples library** with public-domain 78s from the Internet Archive's Great 78 Project:
+
+```
+npx vite-node scripts/seed-great78.ts --dry                      # list what would be picked
+CHOPDECK_ADMIN_TOKEN=$(cat .admin-token) npx vite-node scripts/seed-great78.ts --count 24
+```
+
+The script picks recordings the Archive dates up to the last year that is public domain in the United
+States today (pre-1923 since 2022, then one more year each January), restricted to instrumental, jazz,
+blues, ragtime and dance subjects, screened against a list of slurs and against performers who only
+recorded later (Archive dates are sometimes wrong). Each pick is decoded in headless Chromium, made
+mono at 44.1 kHz, cut to four minutes, and published as a "Chop Deck" sample with the Archive item as
+its source. Re-running skips audio that is already uploaded. Review the picks with `--dry` first.
 
 ### 7.4 What to check after deploying
 

@@ -9,7 +9,7 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 const api = (path: string, init?: RequestInit) => fetch(`/api${path}`, { credentials: 'same-origin', ...init });
 const fmtBytes = (n: number) => n < 1024 * 1024 ? `${Math.round(n / 1024)} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`;
 const fmtTime = (ms: number) => { const s = Math.round(ms / 1000); return s < 60 ? `${s}s` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
-const LICENSE_NAMES: Record<string, string> = { CC0: 'CC0, public domain', 'CC-BY': 'CC BY, credit the maker', 'CC-BY-NC': 'CC BY-NC, credit, no commercial use', CHOPDECK: 'Chop Deck licence, use here' };
+const LICENSE_NAMES: Record<string, string> = { PD: 'Public domain', CC0: 'CC0, public domain', 'CC-BY': 'CC BY, credit the maker', 'CC-BY-NC': 'CC BY-NC, credit, no commercial use', CHOPDECK: 'Chop Deck licence, use here' };
 
 let me: { handle: string | null } | null = null;
 let q = '', tag = '', offset = 0;
