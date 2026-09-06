@@ -116,6 +116,32 @@ CREATE TABLE IF NOT EXISTS kit_blobs (
 );
 CREATE INDEX IF NOT EXISTS kit_blobs_hash ON kit_blobs(hash);
 
+-- Published samples: one sound each (a record, a break, a hit) for people to chop. The blob is a .SND.
+CREATE TABLE IF NOT EXISTS samples (
+  id TEXT PRIMARY KEY,
+  owner_id TEXT REFERENCES user(id) ON DELETE CASCADE,
+  hash TEXT NOT NULL REFERENCES blobs(hash),
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  tags TEXT NOT NULL DEFAULT '[]',
+  license TEXT NOT NULL,
+  source TEXT NOT NULL DEFAULT '',
+  duration_ms INTEGER NOT NULL DEFAULT 0,
+  rate INTEGER NOT NULL DEFAULT 44100,
+  channels INTEGER NOT NULL DEFAULT 1,
+  bytes INTEGER NOT NULL DEFAULT 0,
+  peaks TEXT NOT NULL DEFAULT '[]',
+  downloads INTEGER NOT NULL DEFAULT 0,
+  featured INTEGER NOT NULL DEFAULT 0,
+  takedown INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE INDEX IF NOT EXISTS samples_owner ON samples(owner_id);
+CREATE INDEX IF NOT EXISTS samples_hash ON samples(hash);
+CREATE INDEX IF NOT EXISTS samples_created ON samples(created_at);
+
 -- Development only: magic links land here when no email provider is configured.
 CREATE TABLE IF NOT EXISTS dev_links (
   email TEXT NOT NULL,

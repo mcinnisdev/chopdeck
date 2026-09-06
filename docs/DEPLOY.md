@@ -135,21 +135,19 @@ and the pages but cannot sign anyone in; that is intended.
 - `npm test` runs the API against an in-process Miniflare D1 and R2; `npm run test:e2e` starts both
   servers itself and signs in, syncs and deletes a throwaway account.
 
-### 7.3 The kit library
+### 7.3 The libraries
 
-Kits (`/kits/`, publishing at `/kits/publish/`) use the same database and bucket. After any schema
-change, including the first deploy of the library, run `npm run db:remote` again. To feature a kit at
-the top of the library:
+Kits (`/kits/`, publishing at `/kits/publish/`) and samples (`/samples/`, `/samples/publish/`) use
+the same database and bucket. After any schema change run `npm run db:remote` again. Both tables have
+`featured` and `takedown` flags. To feature something at the top of its library:
 
 ```
 npx wrangler d1 execute chopdeck --remote --command "UPDATE kits SET featured = 1 WHERE slug = 'handle-kit-name'"
+npx wrangler d1 execute chopdeck --remote --command "UPDATE samples SET featured = 1 WHERE slug = 'handle-sample-name'"
 ```
 
-To take a kit down without deleting it (it disappears from the library and its sounds stop being public):
-
-```
-npx wrangler d1 execute chopdeck --remote --command "UPDATE kits SET takedown = 1 WHERE slug = 'handle-kit-name'"
-```
+To take something down without deleting it (it disappears from the library and its audio stops being
+public), set `takedown = 1` the same way. Samples are at most four minutes; kits at most 64 sounds.
 
 ### 7.4 What to check after deploying
 

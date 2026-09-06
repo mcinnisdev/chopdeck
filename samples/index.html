@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Samples · Chop Deck</title>
+<meta name="description" content="Public-domain records, breaks and hits to chop on the Chop Deck drum machine. Play them in the page, send one to the machine, slice it across the pads." />
+<link rel="canonical" href="https://chopdeck.com/samples/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Chop Deck" />
+<meta property="og:url" content="https://chopdeck.com/samples/" />
+<meta property="og:title" content="Chop Deck samples" />
+<meta property="og:description" content="Records, breaks and hits to chop. Play in the page, send to the machine, slice across the pads." />
+<meta property="og:image" content="https://chopdeck.com/og.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="/icon-192.png" type="image/png" />
+<link rel="stylesheet" href="../src/ds/tokens.css" />
+<link rel="stylesheet" href="../src/site/site.css" />
+<style>
+  .page { max-width: 1040px; }
+  .tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 16px 0; }
+  .tools input { max-width: 320px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font-family: var(--font-label); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: 11px; padding: 3px 8px; border: 1px solid var(--ink); border-radius: 3px; background: var(--white); color: var(--ink); cursor: pointer; box-shadow: none; }
+  .chip.on { background: var(--ink); color: var(--cream); }
+  .list { display: grid; gap: 14px; margin-top: 12px; }
+  .smp { background: var(--cream); border: 2px solid var(--ink); border-radius: 6px; padding: 12px 14px; box-shadow: 0 3px 0 var(--ink); display: grid; grid-template-columns: 56px 1fr auto; gap: 8px 14px; align-items: center; }
+  .smp:target, .smp.hit { outline: 3px solid var(--led-amber); }
+  .smp h3 { margin: 0; font-family: var(--font-label); font-weight: 700; font-size: 18px; letter-spacing: .02em; text-transform: uppercase; color: var(--ink); }
+  .smp .by { font-family: var(--font-label); font-weight: 600; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+  .smp .by b { color: var(--red-deep); }
+  .smp p { margin: 0; font-size: 14px; }
+  .smp .meta { font-family: var(--font-label); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); display: flex; gap: 10px; flex-wrap: wrap; }
+  .smp .wave { grid-column: 1 / -1; height: 64px; background: var(--lcd); border: 2px solid var(--ink); border-radius: 4px; box-shadow: inset 0 3px 8px rgba(0,0,0,.25); display: block; width: 100%; cursor: pointer; }
+  .play { width: 56px; height: 56px; border-radius: 50%; background: var(--red); border: 3px solid var(--ink); box-shadow: inset 0 2px 0 rgba(255,255,255,.35), inset 0 -4px 0 rgba(0,0,0,.22), 0 2px 0 var(--ink); color: var(--cream); font-size: 20px; padding: 0; display: grid; place-items: center; }
+  .play.on { background: var(--led-amber); color: var(--ink); }
+  .smp .actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+  .smp button.send { font-size: 11px; padding: 6px 10px; }
+  .empty-state { margin: 40px 0; }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <img src="/logo.webp" alt="" />
+  <div><div class="mark"><b>Chop</b><i>Deck</i></div><div class="sub">Samples</div></div>
+  <a class="back" href="/">Back to the machine</a>
+</header>
+
+<h1>Samples</h1>
+<p>Records, breaks and hits to chop: public-domain recordings and sounds people have chosen to share. Play one here, then <strong>Send to machine</strong>: it lands in the machine's LOAD tray with the Load a Sound window open. Put it on a pad, go to TRIM, and slice it across the pads from the ZONE page. Have a recording to share? <a href="/samples/publish/">Publish it</a>. Kits, sixteen pads ready to play, are <a href="/kits/">over here</a>.</p>
+
+<div class="tools">
+  <input id="q" type="text" placeholder="Search samples" aria-label="Search samples" />
+  <div class="chips" id="tags"></div>
+</div>
+<div id="status" class="note" hidden></div>
+<div id="list" class="list"></div>
+<div id="none" class="empty-state note" hidden>No samples match. Be the first: <a href="/samples/publish/">publish one</a>.</div>
+<div class="row"><button type="button" id="more" hidden>More samples</button></div>
+
+<footer><a href="/">The machine</a><a href="/manual/">Owner's manual</a><a href="/kits/">Kits</a><a href="/samples/publish/">Publish a sample</a><a href="/account/">Account</a><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a></footer>
+</div>
+<script type="module" src="./main.ts"></script>
+</body>
+</html>

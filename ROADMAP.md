@@ -365,9 +365,10 @@ header link above the LCD. In one line each:
 - **Phase 7: Accounts and cloud saves.** Magic-link and OAuth sign-in on `/account/`, content-addressed
   sound blobs on R2, transparent sync of the existing autosave with kept revisions, `SIGN IN` becoming
   the handle and sync state in the header.
-- **Phase 8: Libraries.** `/kits/` (done: browse, audition in the page, publish from `/kits/publish/`,
-  "Send to machine" through the import tray, licences, featured and takedown flags) and `/samples/`
-  (next: public-domain records to chop, with reports and takedowns).
+- **Phase 8: Libraries.** Done. `/kits/` (browse, audition in the page, publish from `/kits/publish/`,
+  "Send to machine" through the import tray) and `/samples/` (records, breaks and hits to chop, with
+  waveforms, publish from a machine sound or a file), both with licences, featured and takedown flags.
+  Still to come: report links on items.
 - **Phase 9: Publish and remix.** `/publish/` reads the machine's autosave and renders a preview; beat
   pages with a player and per-beat share cards; OPEN ON THE MACHINE; REMIX copies the manifest with lineage.
 - **Phase 10: Support and venues.** `/support/` with Buy Me a Coffee now, Stripe supporter tier later;

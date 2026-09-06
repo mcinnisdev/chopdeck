@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Publish a sample · Chop Deck</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" href="/icon-192.png" type="image/png" />
+<link rel="stylesheet" href="../../src/ds/tokens.css" />
+<link rel="stylesheet" href="../../src/site/site.css" />
+<style>
+  .sources { display: grid; gap: 8px; margin: 8px 0 16px; }
+  .src { display: grid; grid-template-columns: auto 1fr auto; gap: 10px 12px; align-items: center; background: var(--cream); border: 2px solid var(--ink); border-radius: 5px; padding: 10px 12px; cursor: pointer; }
+  .src.on { outline: 3px solid var(--led-amber); }
+  .src b { font-family: var(--font-label); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .src .len { font-family: var(--font-lcd); font-size: 16px; color: var(--ink-3); }
+  .drop { border: 2px dashed var(--ink); border-radius: 5px; padding: 18px; text-align: center; background: var(--white); cursor: pointer; }
+  .drop.over { background: var(--cream); }
+  select, textarea { font: inherit; font-size: 16px; padding: 8px 10px; border: 2px solid var(--ink); border-radius: 3px; background: var(--white); color: var(--ink); width: 100%; max-width: 380px; box-sizing: border-box; }
+  textarea { max-width: 560px; min-height: 70px; }
+  .wave { height: 64px; width: 100%; max-width: 560px; background: var(--lcd); border: 2px solid var(--ink); border-radius: 4px; display: block; margin: 8px 0; }
+  .check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; margin: 12px 0; max-width: 560px; }
+  .check input { margin-top: 3px; }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <img src="/logo.webp" alt="" />
+  <div><div class="mark"><b>Chop</b><i>Deck</i></div><div class="sub">Publish a sample</div></div>
+  <a class="back" href="/">Back to the machine</a>
+</header>
+
+<h1>Publish a sample</h1>
+<p>A sample is one sound for other people to chop: a public-domain record, a break you played, a hit you made. It goes into the <a href="/samples/">samples library</a> under your handle. Choose a sound already on the machine, or a file from your computer.</p>
+
+<section id="loading"><p>Reading the machine.</p></section>
+<section id="signed-out" hidden><div class="note">You need an account to publish. <a href="/account/">Sign in</a>, then come back here.</div></section>
+<section id="no-handle" hidden><div class="note">Choose a handle on the <a href="/account/">account page</a> first; samples are published under it.</div></section>
+
+<section id="form-box" hidden>
+  <h2>Which sound</h2>
+  <div id="sources" class="sources"></div>
+  <div id="drop" class="drop">Drop an audio file here, or click to choose one. WAV, AIFF, MP3, FLAC, OGG; up to four minutes.<input id="file" type="file" accept="audio/*,.wav,.aif,.aiff,.mp3,.flac,.ogg,.m4a" hidden /></div>
+  <canvas id="wave" class="wave" hidden></canvas>
+  <form id="form">
+    <label for="title">Title</label>
+    <input id="title" type="text" maxlength="64" required />
+    <label for="description">Description</label>
+    <textarea id="description" maxlength="500" placeholder="What it is and what it is good for."></textarea>
+    <label for="source">Source and attribution</label>
+    <input id="source" type="text" maxlength="300" placeholder="Where the recording came from, e.g. an Internet Archive link, or 'played by me'" />
+    <label for="tags">Tags, comma separated, up to five</label>
+    <input id="tags" type="text" placeholder="break, 78rpm, jazz" />
+    <label for="license">Licence</label>
+    <select id="license">
+      <option value="CC0">CC0: public domain, use anywhere</option>
+      <option value="CC-BY">CC BY: use anywhere with credit</option>
+      <option value="CC-BY-NC">CC BY-NC: non-commercial with credit</option>
+      <option value="CHOPDECK">Chop Deck licence: anyone can use it on Chop Deck</option>
+    </select>
+    <label class="check"><input id="rights" type="checkbox" required /> <span>This recording is in the public domain, or I made it, or I have the right to share it under this licence. See the <a href="/terms/">terms</a>.</span></label>
+    <div class="row"><button type="submit" id="publish">Publish</button><span id="progress"></span></div>
+  </form>
+  <div id="error" class="error" hidden></div>
+  <div id="done" class="note" hidden>Published. <a id="done-link" href="/samples/">See it in the library</a>.</div>
+</section>
+
+<section id="mine-box" hidden>
+  <h2>Your samples</h2>
+  <table id="mine"><tr><th>Sample</th><th>Length</th><th>Sent</th><th></th></tr></table>
+</section>
+
+<footer><a href="/">The machine</a><a href="/samples/">Samples library</a><a href="/kits/">Kits</a><a href="/account/">Account</a><a href="/terms/">Terms</a></footer>
+</div>
+<script type="module" src="./main.ts"></script>
+</body>
+</html>

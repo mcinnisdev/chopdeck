@@ -67,6 +67,25 @@ test('sign in, sync from the machine, pull on another browser, delete', async ({
   await expect(a.getByRole('region', { name: 'LCD' })).toContainText('STARTER.PGM', { timeout: 30_000 });
   await expect(a.getByRole('region', { name: 'LCD' })).toContainText('Load');
 
+  // publish one of the machine's sounds as a sample, find it, send it back: the Load a Sound window opens
+  await a.goto('/samples/publish/');
+  await expect(a.locator('#form-box')).toBeVisible();
+  await a.locator('.src').filter({ hasText: 'KICK' }).first().click();
+  await expect(a.locator('#title')).toHaveValue(/KICK/);
+  await a.fill('#tags', 'e2e, drums');
+  await a.fill('#source', 'synthesised on the machine');
+  await a.check('#rights');
+  await a.getByRole('button', { name: 'Publish', exact: true }).click();
+  await expect(a.locator('#done')).toBeVisible({ timeout: 60_000 });
+  await a.goto('/samples/');
+  const smp = a.locator('article.smp').filter({ hasText: `@${handle}` }).first();
+  await expect(smp).toBeVisible();
+  await expect(smp).toContainText('#e2e');
+  await expect(smp.locator('canvas.wave')).toBeVisible();
+  await smp.getByRole('button', { name: 'Send to machine' }).click();
+  await a.waitForURL(/\/(\?handoff=1)?$/);
+  await expect(a.getByRole('region', { name: 'LCD' })).toContainText('Load a Sound', { timeout: 30_000 });
+
   // a second browser: sign in, and the machine boots with the synced project
   const ctxB = await browser.newContext();
   const b = await signIn(ctxB, email);

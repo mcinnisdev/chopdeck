@@ -4,6 +4,7 @@
 import { Hono } from 'hono';
 import { makeAuth, sessionUser, type SessionUser } from './auth';
 import { kits } from './kits';
+import { samples } from './samples';
 import { MAX_BLOB_BYTES, PLAN_QUOTA_BYTES, REVISIONS_KEPT, type Env } from './env';
 
 type Vars = { user: SessionUser };
@@ -50,7 +51,7 @@ app.get('/dev/magic-link', async c => {
 const PUBLIC = (c: { req: { path: string; method: string } }) => {
   const p = c.req.path, m = c.req.method;
   if (p.startsWith('/api/auth/') || p === '/api/health' || p === '/api/providers' || p.startsWith('/api/dev/')) return true;
-  if (p.startsWith('/api/kits') && (m === 'GET' || p.endsWith('/download'))) return true;
+  if ((p.startsWith('/api/kits') || p.startsWith('/api/samples')) && (m === 'GET' || p.endsWith('/download'))) return true;
   if (p.startsWith('/api/blobs/') && m === 'GET') return true;
   return false;
 };
@@ -63,6 +64,7 @@ app.use('/*', async (c, next) => {
 });
 
 app.route('/kits', kits);
+app.route('/samples', samples);
 
 app.get('/me', async c => {
   const u = c.get('user');
@@ -95,12 +97,14 @@ app.delete('/me', async c => {
   const orphans = await c.env.DB.prepare(
     `SELECT b.hash FROM blobs b WHERE b.uploader_id = ? AND NOT EXISTS (
        SELECT 1 FROM project_blobs pb JOIN projects p ON p.id = pb.project_id WHERE pb.hash = b.hash AND p.owner_id <> ?)
-     AND NOT EXISTS (SELECT 1 FROM kit_blobs kb JOIN kits k ON k.id = kb.kit_id WHERE kb.hash = b.hash AND k.owner_id <> ?)`,
-  ).bind(u.id, u.id, u.id).all<{ hash: string }>();
+     AND NOT EXISTS (SELECT 1 FROM kit_blobs kb JOIN kits k ON k.id = kb.kit_id WHERE kb.hash = b.hash AND k.owner_id <> ?)
+     AND NOT EXISTS (SELECT 1 FROM samples s WHERE s.hash = b.hash AND s.owner_id <> ?)`,
+  ).bind(u.id, u.id, u.id, u.id).all<{ hash: string }>();
   await c.env.DB.batch([
     c.env.DB.prepare('DELETE FROM projects WHERE owner_id = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM kits WHERE owner_id = ?').bind(u.id),
-    c.env.DB.prepare('DELETE FROM blobs WHERE uploader_id = ? AND hash NOT IN (SELECT hash FROM project_blobs) AND hash NOT IN (SELECT hash FROM kit_blobs)').bind(u.id),
+    c.env.DB.prepare('DELETE FROM samples WHERE owner_id = ?').bind(u.id),
+    c.env.DB.prepare('DELETE FROM blobs WHERE uploader_id = ? AND hash NOT IN (SELECT hash FROM project_blobs) AND hash NOT IN (SELECT hash FROM kit_blobs) AND hash NOT IN (SELECT hash FROM samples)').bind(u.id),
     c.env.DB.prepare('DELETE FROM session WHERE userId = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM account WHERE userId = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM user WHERE id = ?').bind(u.id),
@@ -229,7 +233,9 @@ app.get('/blobs/:hash', async c => {
   const hash = c.req.param('hash');
   if (!HASH_RE.test(hash)) return c.json({ error: 'bad hash' }, 400);
   // public while a live kit names it; otherwise yours if you uploaded it or your project references it
-  const isPublic = await c.env.DB.prepare('SELECT 1 AS ok FROM kit_blobs kb JOIN kits k ON k.id = kb.kit_id WHERE kb.hash = ? AND k.takedown = 0 LIMIT 1').bind(hash).first();
+  const isPublic = await c.env.DB.prepare(
+    'SELECT 1 AS ok WHERE EXISTS (SELECT 1 FROM kit_blobs kb JOIN kits k ON k.id = kb.kit_id WHERE kb.hash = ? AND k.takedown = 0) OR EXISTS (SELECT 1 FROM samples s WHERE s.hash = ? AND s.takedown = 0)',
+  ).bind(hash, hash).first();
   if (!isPublic) {
     if (!u) return c.json({ error: 'sign in first' }, 401);
     const ok = await c.env.DB.prepare(

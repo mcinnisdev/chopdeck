@@ -200,6 +200,54 @@ describe('api', () => {
     expect((await call(`/api/blobs/${hash}`)).status).toBe(401);
   }, 60_000);
 
+  it('publishes a sample from an uploaded blob, lists it publicly, and removes it', async () => {
+    const cookie = await signIn('samples@example.com');
+    expect((await call('/api/me', { method: 'PUT', cookie, ...json({ handle: 'digger' }) })).status).toBe(200);
+    const snd = new TextEncoder().encode('a whole record, honest');
+    const hash = await sha256Hex(snd);
+    const body = { hash, title: 'Old 78 Break', description: 'Drums from a 1930s side.', source: 'archive.org/details/example', tags: ['78rpm', 'Break'], license: 'CC0', durationMs: 12_345, rate: 44100, channels: 2, peaks: [0.1, 0.5, 1.2, -1], rights: true };
+    // needs the blob, the rights box, a known licence, and a sane length
+    let r = await call('/api/samples', { method: 'POST', cookie, ...json(body) });
+    expect(r.status).toBe(409);
+    expect((await call(`/api/blobs/${hash}`, { method: 'POST', cookie, body: snd })).status).toBe(200);
+    expect((await call('/api/samples', { method: 'POST', cookie, ...json({ ...body, rights: false }) })).status).toBe(400);
+    expect((await call('/api/samples', { method: 'POST', cookie, ...json({ ...body, license: 'MIT' }) })).status).toBe(400);
+    expect((await call('/api/samples', { method: 'POST', cookie, ...json({ ...body, durationMs: 10 * 60 * 1000 }) })).status).toBe(413);
+    expect((await call(`/api/blobs/${hash}`)).status).toBe(401);
+    r = await call('/api/samples', { method: 'POST', cookie, ...json(body) });
+    const pubText = await r.text();
+    expect(r.status, pubText).toBe(200);
+    const pub = JSON.parse(pubText) as { id: string; slug: string };
+    expect(pub.slug).toBe('digger-old-78-break');
+
+    // public listing with peaks clamped, search by source, blob now public
+    let list = await (await call('/api/samples')).json() as { samples: { slug: string; peaks: number[]; tags: string[]; durationMs: number; channels: number; bytes: number; handle: string }[] };
+    expect(list.samples.length).toBe(1);
+    expect(list.samples[0].peaks).toEqual([0.1, 0.5, 1, 0]);
+    expect(list.samples[0].tags).toEqual(['78rpm', 'break']);
+    expect(list.samples[0].durationMs).toBe(12345);
+    expect(list.samples[0].channels).toBe(2);
+    expect(list.samples[0].bytes).toBe(snd.byteLength);
+    expect(list.samples[0].handle).toBe('digger');
+    list = await (await call('/api/samples?q=archive.org')).json() as typeof list;
+    expect(list.samples.length).toBe(1);
+    list = await (await call('/api/samples?tag=jazz')).json() as typeof list;
+    expect(list.samples.length).toBe(0);
+    expect((await call(`/api/blobs/${hash}`)).status).toBe(200);
+    expect((await call(`/api/samples/${pub.slug}/download`, { method: 'POST' })).status).toBe(200);
+    expect(((await (await call(`/api/samples/${pub.slug}`)).json()) as { downloads: number }).downloads).toBe(1);
+    expect(((await (await call('/api/samples/mine', { cookie })).json()) as { samples: unknown[] }).samples.length).toBe(1);
+
+    // remove: gone from the library, blob private again; deleting the account cleans up too
+    expect((await call(`/api/samples/${pub.id}`, { method: 'DELETE', cookie })).status).toBe(200);
+    expect((await call(`/api/blobs/${hash}`)).status).toBe(401);
+    r = await call('/api/samples', { method: 'POST', cookie, ...json(body) });
+    expect((await r.json() as { slug: string }).slug).toBe('digger-old-78-break');
+    expect((await call('/api/me', { method: 'DELETE', cookie })).status).toBe(200);
+    expect(((await (await call('/api/samples')).json()) as { samples: unknown[] }).samples.length).toBe(0);
+    expect(await env.BLOBS.get(`blobs/${hash}`)).toBeNull();
+  }, 60_000);
+
   it('enforces the quota', async () => {
     const cookie = await signIn('quota@example.com');
     const big = new Uint8Array(1024);
