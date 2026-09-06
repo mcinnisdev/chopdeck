@@ -17,7 +17,7 @@ import { sync, type SyncState } from '@/disk/sync';
 function accountLabel(s: SyncState): string {
   if (!s.user) return s.status === 'booting' ? '' : 'SIGN IN';
   const who = s.user.handle ? `@${s.user.handle.toUpperCase()}` : 'ACCOUNT';
-  const word = { booting: '', 'signed-out': '', idle: '', syncing: 'SYNCING', synced: 'SYNCED', offline: 'OFFLINE', error: 'SYNC ERROR' }[s.status];
+  const word = { booting: '', standalone: '', 'signed-out': '', idle: '', syncing: 'SYNCING', synced: 'SYNCED', offline: 'OFFLINE', error: 'SYNC ERROR' }[s.status];
   return word ? `${who} · ${word}` : who;
 }
 import { fieldHelp } from './field-help';
@@ -73,8 +73,8 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
               <Tip id="manual"><a href={MANUAL_URL} target="_blank" rel="noopener" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>OWNER'S MANUAL</a></Tip>
               {' · '}
               <Tip id="tips"><button type="button" aria-pressed={tips.enabled} onClick={() => tips.setEnabled(!tips.enabled)} style={{ ...lbl, background: 'none', border: 0, padding: 0, cursor: 'pointer', color: tips.enabled ? 'var(--led-amber)' : 'var(--cream)', opacity: tips.enabled ? 1 : .6, borderBottom: '1px solid currentColor' }}>TIPS {tips.enabled ? 'ON' : 'OFF'}</button></Tip>
-              {' · '}
-              <Tip id="account"><a href="/account/" data-sync={syncState.status} style={{ color: syncState.user ? 'var(--cream)' : 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>{accountLabel(syncState)}</a></Tip>
+              {syncState.status !== 'standalone' && ' · '}
+              {syncState.status !== 'standalone' && <Tip id="account"><a href="/account/" data-sync={syncState.status} style={{ color: syncState.user ? 'var(--cream)' : 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>{accountLabel(syncState)}</a></Tip>}
             </span>
             <div style={{ display: 'flex', gap: 14 }}>
               <Led color="green" on={s.playing} label="PLAY" style={{ color: 'var(--cream)' }} />
@@ -191,19 +191,21 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
             </div>
           </Tip>
           <span style={{ ...lbl, opacity: .7, textAlign: 'center' }}>BANK {BANKS[s.padBank]} · {padProgram.name} · HIT A PAD, PRESS PLAY</span>
-          {/* the kit library and publishing live on Chop Deck pages; these links are the pads' doorway to them */}
-          <span style={{ ...lbl, textAlign: 'center' }}>
+          {/* the libraries, beats and publishing live on Chop Deck pages; these links are the pads' doorway to them.
+              A copy served without the site behind it (a fork, a local build) shows none of them. */}
+          {syncState.status !== 'standalone' && <span style={{ ...lbl, textAlign: 'center' }}>
             <Tip id="kits"><a href="/kits/" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>KITS LIBRARY</a></Tip>
             {' · '}
             <Tip id="samples"><a href="/samples/" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>SAMPLES LIBRARY</a></Tip>
             {' · '}
             <Tip id="beats"><a href="/beats/" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>BEATS</a></Tip>
-          </span>
-          <span style={{ ...lbl, textAlign: 'center' }}>
+          </span>}
+          {syncState.status !== 'standalone' && <span style={{ ...lbl, textAlign: 'center' }}>
             <Tip id="publishKit"><a href={`/kits/publish/?pgm=${fw.m.drums[s.drum].pgm}`} style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>PUBLISH THIS KIT</a></Tip>
             {' · '}
             <Tip id="publishBeat"><a href="/publish/" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>PUBLISH THIS BEAT</a></Tip>
-          </span>
+          </span>}
+          <span style={{ ...lbl, opacity: .45, textAlign: 'center', fontSize: 8 }}>FREE AND OPEN SOURCE · BUILT BY <a href="https://mcinnis.dev" style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>MCINNIS.DEV</a></span>
         </div>
       </div>
     </div>

@@ -36,3 +36,18 @@ test('keyboard pads light up while held', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'PAD 13', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await page.keyboard.up('Digit1');
 });
+
+test('served without the site behind it, the machine hides the site links and still runs', async ({ page }) => {
+  // a fork or a local copy: /api answers like a static host would
+  await page.route('**/api/**', r => r.fulfill({ status: 404, contentType: 'text/html', body: '<h1>404</h1>' }));
+  await page.goto('/');
+  const lcd = page.getByRole('region', { name: 'LCD' });
+  await expect(lcd).toContainText('Sq:01-First Beat');
+  await expect(page.locator('a[href="/account/"]')).toHaveCount(0);
+  await expect(page.locator('a[href="/kits/"]')).toHaveCount(0);
+  await expect(page.locator('a[href="/publish/"]')).toHaveCount(0);
+  await expect(page.locator('a[href="https://mcinnis.dev"]')).toBeVisible();
+  await page.keyboard.down('KeyZ');
+  await expect(page.getByRole('button', { name: 'PAD 1', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.up('KeyZ');
+});

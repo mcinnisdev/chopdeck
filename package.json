@@ -39,5 +39,15 @@
     "vite": "^6.0.0",
     "vitest": "^3.2.7",
     "wrangler": "^4.129.0"
+  },
+  "license": "MIT",
+  "homepage": "https://chopdeck.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcinnisdev/chopdeck.git"
+  },
+  "author": "Nick McInnis (https://mcinnis.dev)",
+  "bugs": {
+    "email": "hello@chopdeck.com"
   }
 }

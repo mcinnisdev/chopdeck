@@ -5,7 +5,8 @@ import { Machine } from '@/model/types';
 import { buildManifest, machineFromManifest, isManifest, projectTitle, type ProjectManifest } from './manifest';
 import { getRemixOf } from './remix';
 
-export type SyncStatus = 'booting' | 'signed-out' | 'idle' | 'syncing' | 'synced' | 'offline' | 'error';
+/** 'standalone' means this build is served without the account API (a fork, a local copy, a plain static host). */
+export type SyncStatus = 'booting' | 'standalone' | 'signed-out' | 'idle' | 'syncing' | 'synced' | 'offline' | 'error';
 export interface SyncUser { id: string; email: string; handle: string | null; plan: string }
 export interface SyncState { status: SyncStatus; user: SyncUser | null; revision: number; error: string | null }
 
@@ -32,6 +33,8 @@ export class SyncClient {
   }
 
   get snapshot(): SyncState { return this.state; }
+  /** True when this copy has the site behind it (accounts, libraries, beats). */
+  get online(): boolean { return this.state.status !== 'standalone' && this.state.status !== 'booting'; }
   subscribe(fn: () => void): () => void { this.listeners.add(fn); return () => { this.listeners.delete(fn); }; }
   private set(patch: Partial<SyncState>) { this.state = { ...this.state, ...patch }; for (const fn of this.listeners) fn(); }
 
@@ -44,9 +47,11 @@ export class SyncClient {
     try {
       const r = await api('/me');
       if (r.status === 401) { this.set({ status: 'signed-out', user: null }); return null; }
+      // no API behind this copy of the machine (404, or an HTML fallback page): run standalone
+      if (r.status === 404 || !(r.headers.get('content-type') ?? '').includes('json')) { this.set({ status: 'standalone', user: null }); return null; }
       if (!r.ok) throw new Error(`me ${r.status}`);
       me = await r.json() as typeof me;
-    } catch { this.set({ status: 'offline' }); return null; }
+    } catch { this.set({ status: navigator.onLine === false ? 'offline' : 'standalone', user: null }); return null; }
     this.set({ user: me.user, status: 'idle' });
     const known = readMark().revision;
     if (!me.project) { if (hasLocal) this.schedule(); return null; }

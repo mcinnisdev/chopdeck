@@ -1,6 +1,6 @@
 # Reference: 2000XL feature inventory (derived from the Owner's Manual, OS 1.00)
 
-This is the behavioural spec Chop Deck targets. It was extracted from `design-system/MPC-2000XL_owners_manual.pdf`.
+This is the behavioural spec Chop Deck targets. It was written from the original machine's owner's manual, which is not part of this repository.
 Field labels, soft-key names and window text are quoted verbatim because Chop Deck's LCD imitates that vocabulary.
 Internal reference only. Product copy never uses the third-party trademark.
 

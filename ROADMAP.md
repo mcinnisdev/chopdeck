@@ -374,8 +374,9 @@ header link above the LCD. In one line each:
   tags; `/beats/<handle>/<slug>` pages with share tags filled in at the edge, a player, likes, plays,
   OPEN ON THE MACHINE (the visitor's project is saved to the browser disk first), REMIX with lineage,
   download where the licence allows; `/beats/<handle>/` per person.
-- **Phase 10: Support and venues.** `/support/` with Buy Me a Coffee now, Stripe supporter tier later;
-  Tauri desktop builds, itch.io, then Steam; a touch layout for phones.
+- **Phase 10: Support and venues.** `/support/` with Buy Me a Coffee (done), the open-source
+  release (done: MIT licence, CONTRIBUTING, standalone builds that hide the site's links), Stripe
+  supporter tier later; Tauri desktop builds, itch.io, then Steam; a touch layout for phones.
 
 ---
 
@@ -428,5 +429,5 @@ Recommendations first; each is cheap to change now and expensive later.
 6. Stand up the audio engine with one voice and one pad, then scale to 32 voices and PROGRAM mode.
 
 References: `docs/mpc2000xl-feature-inventory.md` (the spec, screen by screen),
-`design-system/readme.md` (visual and copy rules), `design-system/MPC-2000XL_owners_manual.pdf`
+`design-system/readme.md` (visual and copy rules), the original machine's owner's manual (not in the repository)
 (source of truth when the inventory is ambiguous).
