@@ -382,6 +382,13 @@ header link above the LCD. In one line each:
 
 ---
 
+### Phase 11: EZ mode
+
+A second front panel over the same machine for casual visitors, toggled OG · EZ in the header:
+plain words, big pads, a step grid, a chop flow, faders, and the touch layout for phones. It owns no
+state and no engine; every operation is a kernel method the OG screens can use too. Planned in
+[docs/EZ-MODE.md](docs/EZ-MODE.md) in five steps: play, sequence, chop, mix and share, touch.
+
 ## 6. Decisions to make now
 
 Recommendations first; each is cheap to change now and expensive later.
