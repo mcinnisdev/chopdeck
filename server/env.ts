@@ -2,6 +2,8 @@
 // Pages secrets or .dev.vars (everything else).
 export interface Env {
   DB: D1Database;
+  /** Pages' static assets, for functions that serve a built page with rewritten tags. */
+  ASSETS: Fetcher;
   BLOBS: R2Bucket;
   SITE_URL: string;
   BETTER_AUTH_SECRET: string;

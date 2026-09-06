@@ -4,7 +4,7 @@ import { openChopdeckDb } from './drive';
 
 const STORE = 'project';
 const KEY = 'handoff';
-export interface Handoff { name: string; bytes: Uint8Array; note?: string }
+export interface Handoff { name: string; bytes: Uint8Array; note?: string; /** save the machine's current state to the browser disk before loading */ setAside?: boolean }
 
 export async function putHandoff(h: Handoff): Promise<void> {
   const db = await openChopdeckDb();

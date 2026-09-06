@@ -369,8 +369,11 @@ header link above the LCD. In one line each:
   "Send to machine" through the import tray) and `/samples/` (records, breaks and hits to chop, with
   waveforms, publish from a machine sound or a file), both with licences, featured and takedown flags.
   Still to come: report links on items.
-- **Phase 9: Publish and remix.** `/publish/` reads the machine's autosave and renders a preview; beat
-  pages with a player and per-beat share cards; OPEN ON THE MACHINE; REMIX copies the manifest with lineage.
+- **Phase 9: Publish and remix.** Done. `/publish/` reads the machine's autosave, renders the preview
+  with the machine's engine and draws the share card in the browser; `/beats/` feed with sorts and
+  tags; `/beats/<handle>/<slug>` pages with share tags filled in at the edge, a player, likes, plays,
+  OPEN ON THE MACHINE (the visitor's project is saved to the browser disk first), REMIX with lineage,
+  download where the licence allows; `/beats/<handle>/` per person.
 - **Phase 10: Support and venues.** `/support/` with Buy Me a Coffee now, Stripe supporter tier later;
   Tauri desktop builds, itch.io, then Steam; a touch layout for phones.
 

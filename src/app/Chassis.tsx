@@ -197,7 +197,12 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
             {' · '}
             <Tip id="samples"><a href="/samples/" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>SAMPLES LIBRARY</a></Tip>
             {' · '}
+            <Tip id="beats"><a href="/beats/" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>BEATS</a></Tip>
+          </span>
+          <span style={{ ...lbl, textAlign: 'center' }}>
             <Tip id="publishKit"><a href={`/kits/publish/?pgm=${fw.m.drums[s.drum].pgm}`} style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>PUBLISH THIS KIT</a></Tip>
+            {' · '}
+            <Tip id="publishBeat"><a href="/publish/" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>PUBLISH THIS BEAT</a></Tip>
           </span>
         </div>
       </div>

@@ -172,7 +172,16 @@ recorded later (Archive dates are sometimes wrong). Each pick is decoded in head
 mono at 44.1 kHz, cut to four minutes, and published as a "Chop Deck" sample with the Archive item as
 its source. Re-running skips audio that is already uploaded. Review the picks with `--dry` first.
 
-### 7.4 What to check after deploying
+### 7.4 Beats
+
+Beats (`/beats/`, `/publish/`, `/beats/<handle>/<slug>`) use the same tables and bucket. The beat
+pages are the built `beat/index.html` served by `functions/beats/[handle]/[slug].ts`, which fills in
+the title, description, share card and audio tags from the database so links unfurl; the per-person
+feed at `/beats/<handle>/` works the same way. Previews are MP3s rendered on the publisher's computer
+and stored as blobs; cards are PNGs drawn there too. `featured` and `takedown` flags exist on `beats`
+as on kits and samples.
+
+### 7.5 What to check after deploying
 
 1. `https://chopdeck.com/api/health` answers `{"ok":true}`.
 2. `/account/`: request a link, receive the email from `hello@mail.chopdeck.com`, land back signed in.

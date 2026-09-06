@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Publish a beat · Chop Deck</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" href="/icon-192.png" type="image/png" />
+<link rel="stylesheet" href="../src/ds/tokens.css" />
+<link rel="stylesheet" href="../src/site/site.css" />
+<style>
+  .sources { display: grid; gap: 8px; margin: 8px 0 16px; }
+  .src { display: grid; grid-template-columns: auto 1fr auto; gap: 10px 12px; align-items: center; background: var(--cream); border: 2px solid var(--ink); border-radius: 5px; padding: 10px 12px; cursor: pointer; }
+  .src.on { outline: 3px solid var(--led-amber); }
+  .src b { font-family: var(--font-label); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .src .len { font-family: var(--font-lcd); font-size: 16px; color: var(--ink-3); }
+  select, textarea { font: inherit; font-size: 16px; padding: 8px 10px; border: 2px solid var(--ink); border-radius: 3px; background: var(--white); color: var(--ink); width: 100%; max-width: 380px; box-sizing: border-box; }
+  textarea { max-width: 560px; min-height: 70px; }
+  .check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; margin: 12px 0; max-width: 560px; }
+  .check input { margin-top: 3px; }
+  #card { width: 100%; max-width: 600px; border: 2px solid var(--ink); border-radius: 6px; display: block; margin: 10px 0; }
+  audio { width: 100%; max-width: 600px; display: block; margin: 8px 0; }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <img src="/logo.webp" alt="" />
+  <div><div class="mark"><b>Chop</b><i>Deck</i></div><div class="sub">Publish a beat</div></div>
+  <a class="back" href="/">Back to the machine</a>
+</header>
+
+<h1>Publish a beat</h1>
+<p>A beat is a sequence or a song from the machine, published with the whole project behind it: every sound, every pad, every setting. It gets a page with a player and a share card, anyone can open it on their machine to hear it exactly as made, and anyone can remix it. The mixdown is rendered here on your computer, by the machine's own engine.</p>
+
+<section id="loading"><p>Reading the machine.</p></section>
+<section id="signed-out" hidden><div class="note">You need an account to publish. <a href="/account/">Sign in</a>, then come back here.</div></section>
+<section id="no-handle" hidden><div class="note">Choose a handle on the <a href="/account/">account page</a> first; beats are published under it.</div></section>
+<section id="nothing" hidden><div class="note">The machine has no sequences with notes in them yet. Record something, then come back.</div></section>
+
+<section id="form-box" hidden>
+  <div id="remix-box" class="note" hidden>This project was started from <a id="remix-link" href="/beats/">a beat</a>. It will be published as a remix, with credit. <label class="check" style="margin:6px 0 0"><input id="keep-lineage" type="checkbox" checked /> <span>Keep the remix credit</span></label></div>
+  <h2>What to publish</h2>
+  <div id="sources" class="sources"></div>
+  <form id="form">
+    <label for="title">Title</label>
+    <input id="title" type="text" maxlength="64" required />
+    <label for="description">Description</label>
+    <textarea id="description" maxlength="1000" placeholder="How it was made, what went into it."></textarea>
+    <label for="tags">Tags, comma separated, up to five</label>
+    <input id="tags" type="text" placeholder="boom-bap, lofi, 93bpm" />
+    <label for="license">Licence</label>
+    <select id="license">
+      <option value="CHOPDECK">Chop Deck licence: anyone can open and remix it here</option>
+      <option value="CC-BY">CC BY: also downloadable, use anywhere with credit</option>
+      <option value="CC-BY-NC">CC BY-NC: downloadable, non-commercial with credit</option>
+      <option value="CC0">CC0: public domain</option>
+    </select>
+    <label class="check"><input id="rights" type="checkbox" required /> <span>Every sound in this project is mine to share, from the libraries, or from a beat that allows remixing. See the <a href="/terms/">terms</a>.</span></label>
+    <div class="row"><button type="submit" id="publish">Render and publish</button><span id="progress"></span></div>
+  </form>
+  <canvas id="card" hidden></canvas>
+  <audio id="preview" controls hidden></audio>
+  <div id="error" class="error" hidden></div>
+  <div id="done" class="note" hidden>Published. <a id="done-link" href="/beats/">Open the beat's page</a>.</div>
+</section>
+
+<section id="mine-box" hidden>
+  <h2>Your beats</h2>
+  <table id="mine"><tr><th>Beat</th><th>Plays</th><th>Likes</th><th>Remixes</th><th></th></tr></table>
+</section>
+
+<footer><a href="/">The machine</a><a href="/beats/">Beats</a><a href="/kits/">Kits</a><a href="/samples/">Samples</a><a href="/account/">Account</a><a href="/terms/">Terms</a></footer>
+</div>
+<script type="module" src="./main.ts"></script>
+</body>
+</html>

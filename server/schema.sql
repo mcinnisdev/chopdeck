@@ -142,6 +142,47 @@ CREATE INDEX IF NOT EXISTS samples_owner ON samples(owner_id);
 CREATE INDEX IF NOT EXISTS samples_hash ON samples(hash);
 CREATE INDEX IF NOT EXISTS samples_created ON samples(created_at);
 
+-- Published beats: a project manifest (the machine as made), a preview MP3 and a share card by hash.
+CREATE TABLE IF NOT EXISTS beats (
+  id TEXT PRIMARY KEY,
+  owner_id TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+  slug TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  tags TEXT NOT NULL DEFAULT '[]',
+  license TEXT NOT NULL,
+  source_kind TEXT NOT NULL DEFAULT 'sequence',
+  source_index INTEGER NOT NULL DEFAULT 0,
+  bpm REAL NOT NULL DEFAULT 120,
+  duration_ms INTEGER NOT NULL DEFAULT 0,
+  manifest TEXT NOT NULL,
+  preview_hash TEXT NOT NULL REFERENCES blobs(hash),
+  cover_hash TEXT REFERENCES blobs(hash),
+  peaks TEXT NOT NULL DEFAULT '[]',
+  parent_beat_id TEXT REFERENCES beats(id) ON DELETE SET NULL,
+  plays INTEGER NOT NULL DEFAULT 0,
+  likes INTEGER NOT NULL DEFAULT 0,
+  remixes INTEGER NOT NULL DEFAULT 0,
+  featured INTEGER NOT NULL DEFAULT 0,
+  takedown INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  UNIQUE (owner_id, slug)
+);
+CREATE INDEX IF NOT EXISTS beats_created ON beats(created_at);
+CREATE INDEX IF NOT EXISTS beats_parent ON beats(parent_beat_id);
+CREATE TABLE IF NOT EXISTS beat_blobs (
+  beat_id TEXT NOT NULL REFERENCES beats(id) ON DELETE CASCADE,
+  hash TEXT NOT NULL REFERENCES blobs(hash),
+  PRIMARY KEY (beat_id, hash)
+);
+CREATE INDEX IF NOT EXISTS beat_blobs_hash ON beat_blobs(hash);
+CREATE TABLE IF NOT EXISTS beat_likes (
+  user_id TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+  beat_id TEXT NOT NULL REFERENCES beats(id) ON DELETE CASCADE,
+  PRIMARY KEY (user_id, beat_id)
+);
+
 -- Development only: magic links land here when no email provider is configured.
 CREATE TABLE IF NOT EXISTS dev_links (
   email TEXT NOT NULL,

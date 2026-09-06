@@ -19,6 +19,7 @@
     "db:remote": "wrangler d1 execute chopdeck --remote --file=server/schema.sql"
   },
   "dependencies": {
+    "@breezystack/lamejs": "^1.2.7",
     "better-auth": "^1.7.3",
     "hono": "^4.13.7",
     "kysely": "^0.29.5",

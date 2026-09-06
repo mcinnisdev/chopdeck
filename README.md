@@ -52,8 +52,9 @@ npm run build
 npm run assets      # re-render public/og.png and the PNG icons from scripts/og/card.html
 ```
 
-Accounts (sign-in, cloud sync) and the kit library (`/kits/`, publishing at `/kits/publish/`) are a
-Cloudflare Pages Function in `functions/` with the code in `server/`. The machine itself stays at
+Accounts (sign-in, cloud sync), the kit and samples libraries (`/kits/`, `/samples/`, each with a
+publish page) and beats (`/beats/`, `/publish/`, a page per beat with share tags filled in at the
+edge) are Cloudflare Pages Functions in `functions/` with the code in `server/`. The machine itself stays at
 parity with the original; everything new is a page, and a kit reaches the machine through the same
 import tray a dropped file uses. To run them locally: `cp .dev.vars.example .dev.vars`, `npm run db:local`, `npm run build`
 once, then `npm run dev:api` in one terminal and `npm run dev` in another. The account page shows the

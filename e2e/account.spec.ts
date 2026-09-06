@@ -86,6 +86,35 @@ test('sign in, sync from the machine, pull on another browser, delete', async ({
   await a.waitForURL(/\/(\?handoff=1)?$/);
   await expect(a.getByRole('region', { name: 'LCD' })).toContainText('Load a Sound', { timeout: 30_000 });
 
+  // publish the synced sequence as a beat: rendered here, card drawn here, then a page with share tags
+  await a.goto('/publish/');
+  await expect(a.locator('#form-box')).toBeVisible({ timeout: 30_000 });
+  await expect(a.locator('#title')).toHaveValue('Synced Beat');
+  await a.fill('#tags', 'e2e, demo');
+  await a.check('#rights');
+  await a.getByRole('button', { name: 'Render and publish' }).click();
+  await expect(a.locator('#done')).toBeVisible({ timeout: 120_000 });
+  await expect(a.locator('#card')).toBeVisible();
+  await expect(a.locator('#mine')).toContainText('Synced Beat');
+  const beatUrl = `http://localhost:8788/beats/${handle}/synced-beat`;
+  const html = await (await a.request.get(beatUrl)).text();
+  expect(html).toContain(`<meta property="og:title" content="Synced Beat by @${handle}"`);
+  expect(html).toContain('og:audio');
+  expect(html).toContain('MusicRecording');
+  // the beats feed lists it; the page plays and opens on the machine (the API and page live on :8788 in tests)
+  const feed = await (await a.request.get('http://localhost:8788/api/beats?handle=' + handle)).json() as { beats: { slug: string; coverHash: string | null; previewHash: string }[] };
+  expect(feed.beats.map(b => b.slug)).toEqual(['synced-beat']);
+  expect(feed.beats[0].coverHash).toBeTruthy();
+  expect((await a.request.get(`http://localhost:8788/api/blobs/${feed.beats[0].previewHash}`)).headers()['content-type']).toContain('audio/mpeg');
+  await a.goto(beatUrl);
+  await expect(a.locator('#title')).toHaveText('Synced Beat');
+  await expect(a.locator('#cover')).toBeVisible();
+  await expect(a.locator('#stats')).toContainText('0 plays');
+  await a.getByRole('button', { name: 'Open on the machine' }).click();
+  await a.waitForURL(/localhost:8788\/(\?handoff=1)?$/);
+  await expect(a.getByRole('region', { name: 'LCD' })).toContainText('Load Project', { timeout: 30_000 });
+  await expect(a.getByRole('region', { name: 'LCD' })).toContainText('SYNCED_BEAT.CHOPDECK');
+
   // a second browser: sign in, and the machine boots with the synced project
   const ctxB = await browser.newContext();
   const b = await signIn(ctxB, email);

@@ -20,7 +20,8 @@ import { takeHandoff } from '@/disk/handoff';
 import { installMidiPorts } from '@/screens/midi';
 import { MidiIO } from '@/midi/io';
 import { handleMidiIn } from '@/kernel/midi-in';
-import { IdbDrive } from '@/disk/drive';
+import { IdbDrive, typeOf } from '@/disk/drive';
+import { encodeProject } from '@/disk/formats';
 import '@/ds';
 
 const style = document.createElement('style');
@@ -40,7 +41,8 @@ async function powerOn() {
   firmware.sound = engine;
   firmware.transport = new Transport(firmware, new WorkerClock());
   installHost(firmware, engine);
-  installDrive(new IdbDrive());
+  const drive = new IdbDrive();
+  installDrive(drive);
   // MIDI: ports bound from the model, input routed through the kernel, output timestamped against the audio clock
   const midi = new MidiIO();
   midi.audioToPerf = when => performance.now() + Math.max(0, when - engine.now()) * 1000;
@@ -63,6 +65,12 @@ async function powerOn() {
   // a file a Chop Deck page left for the machine (a kit from the library): into the import tray and straight to its Load window
   const handoff = await takeHandoff();
   if (handoff) {
+    if (handoff.setAside) {
+      // a beat is about to replace everything: keep what was here on the browser disk first
+      const stamp = new Date().toISOString().slice(2, 16).replace(/[-:T]/g, '');
+      const name = `BEFORE_${stamp}.CHOPDECK`;
+      try { await drive.write('', name, encodeProject(firmware.m, firmware.s.masterTempo), typeOf(name)); firmware.s.message = `SAVED AS ${name}`; firmware.touch(); } catch { /* disk full or blocked */ }
+    }
     importFiles(firmware.ctx(), [new File([handoff.bytes as BlobPart], handoff.name)]);
     void loadImported(firmware.ctx(), handoff.name);
     if (location.search.includes('handoff')) history.replaceState(null, '', '/');

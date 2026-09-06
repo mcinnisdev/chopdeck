@@ -30,7 +30,7 @@ beforeAll(async () => {
   const DB = (await mf.getD1Database('DB')) as unknown as D1Database;
   const BLOBS = (await mf.getR2Bucket('BLOBS')) as unknown as R2Bucket;
   await applySchema(DB);
-  env = { DB, BLOBS, SITE_URL: SITE, BETTER_AUTH_SECRET: 'test-secret-test-secret-test-secret-1234', DEV_MAGIC_LINKS: '1' };
+  env = { DB, BLOBS, ASSETS: { fetch: async () => new Response('') } as unknown as Fetcher, SITE_URL: SITE, BETTER_AUTH_SECRET: 'test-secret-test-secret-test-secret-1234', DEV_MAGIC_LINKS: '1' };
 }, 60_000);
 afterAll(async () => { await mf?.dispose(); });
 
@@ -246,6 +246,76 @@ describe('api', () => {
     expect((await call('/api/me', { method: 'DELETE', cookie })).status).toBe(200);
     expect(((await (await call('/api/samples')).json()) as { samples: unknown[] }).samples.length).toBe(0);
     expect(await env.BLOBS.get(`blobs/${hash}`)).toBeNull();
+  }, 60_000);
+
+  it('publishes a beat with its preview and card, serves it publicly, counts plays and likes, records remix lineage', async () => {
+    const cookie = await signIn('beatmaker@example.com');
+    expect((await call('/api/me', { method: 'PUT', cookie, ...json({ handle: 'maker' }) })).status).toBe(200);
+    const snd = new TextEncoder().encode('a kick'); const hash = await sha256Hex(snd);
+    const mp3 = new TextEncoder().encode('mp3 bytes'); const previewHash = await sha256Hex(mp3);
+    const png = new TextEncoder().encode('png bytes'); const coverHash = await sha256Hex(png);
+    const manifest = { kind: 'CHOPDECK-MANIFEST', version: 1, title: 'First Beat', masterTempo: 93, machine: { sounds: [{ id: 's1', name: 'KICK' }] }, blobs: { s1: hash } };
+    const body = { manifest, previewHash, coverHash, title: 'First Beat', description: 'Two bars.', tags: ['boom-bap'], license: 'CC-BY', source: { kind: 'sequence', index: 0 }, bpm: 93, durationMs: 5200, peaks: [0.2, 0.9] };
+    // everything must be uploaded first
+    let r = await call('/api/beats', { method: 'POST', cookie, ...json(body) });
+    expect(r.status).toBe(409);
+    for (const [h, b, mime] of [[hash, snd, 'application/zip'], [previewHash, mp3, 'audio/mpeg'], [coverHash, png, 'image/png']] as const) expect((await call(`/api/blobs/${h}`, { method: 'POST', cookie, body: b, headers: { 'content-type': mime } })).status).toBe(200);
+    r = await call('/api/beats', { method: 'POST', cookie, ...json(body) });
+    const pubText = await r.text();
+    expect(r.status, pubText).toBe(200);
+    const pub = JSON.parse(pubText) as { id: string; slug: string; url: string };
+    expect(pub.url).toBe('/beats/maker/first-beat');
+    expect((await JSON.parse(await (await call('/api/beats', { method: 'POST', cookie, ...json(body) })).text()) as { slug: string }).slug).toBe('first-beat-2');
+
+    // public: feed, page data, manifest, blobs (sounds, preview, cover), plays
+    let feed = await (await call('/api/beats?sort=new')).json() as { beats: { slug: string; handle: string; url: string; parent: unknown; previewHash: string; peaks: number[] }[] };
+    expect(feed.beats.map(b => b.slug)).toEqual(['first-beat-2', 'first-beat']);
+    expect(feed.beats[0].handle).toBe('maker');
+    expect(feed.beats[1].peaks).toEqual([0.2, 0.9]);
+    feed = await (await call('/api/beats?handle=maker&q=two')).json() as typeof feed;
+    expect(feed.beats.length).toBe(2);
+    feed = await (await call('/api/beats?handle=nobody')).json() as typeof feed;
+    expect(feed.beats.length).toBe(0);
+    const page = await (await call('/api/beats/maker/first-beat')).json() as { title: string; liked: boolean; remixList: unknown[]; license: string };
+    expect(page.title).toBe('First Beat'); expect(page.liked).toBe(false); expect(page.remixList).toEqual([]);
+    const man = await (await call('/api/beats/maker/first-beat/manifest')).json() as { id: string; manifest: { blobs: Record<string, string> } };
+    expect(man.manifest.blobs.s1).toBe(hash);
+    for (const h of [hash, previewHash, coverHash]) expect((await call(`/api/blobs/${h}`)).status).toBe(200);
+    expect((await call('/api/beats/maker/first-beat/play', { method: 'POST' })).status).toBe(200);
+    expect(((await (await call('/api/beats/by-id/' + pub.id)).json()) as { plays: number }).plays).toBe(1);
+    expect((await call('/api/beats/maker/nope')).status).toBe(404);
+
+    // likes toggle and need a session
+    expect((await call('/api/beats/maker/first-beat/like', { method: 'POST' })).status).toBe(401);
+    const fan = await signIn('fan@example.com');
+    expect(await (await call('/api/beats/maker/first-beat/like', { method: 'POST', cookie: fan })).json()).toEqual({ liked: true, likes: 1 });
+    expect(((await (await call('/api/beats/maker/first-beat', { cookie: fan })).json()) as { liked: boolean }).liked).toBe(true);
+    expect(await (await call('/api/beats/maker/first-beat/like', { method: 'POST', cookie: fan })).json()).toEqual({ liked: false, likes: 0 });
+
+    // a remix by the fan: the sound is the maker's but public through the beat, lineage recorded, parent counted
+    expect((await call('/api/me', { method: 'PUT', cookie: fan, ...json({ handle: 'fan' }) })).status).toBe(200);
+    const mp3b = new TextEncoder().encode('remix mp3'); const previewB = await sha256Hex(mp3b);
+    expect((await call(`/api/blobs/${previewB}`, { method: 'POST', cookie: fan, body: mp3b, headers: { 'content-type': 'audio/mpeg' } })).status).toBe(200);
+    r = await call('/api/beats', { method: 'POST', cookie: fan, ...json({ ...body, previewHash: previewB, coverHash: undefined, title: 'First Beat (flip)', parentBeat: pub.id }) });
+    expect(r.status, await r.clone().text()).toBe(200);
+    const rmx = await r.json() as { url: string };
+    expect(rmx.url).toBe('/beats/fan/first-beat-flip');
+    const parentNow = await (await call('/api/beats/maker/first-beat')).json() as { remixes: number; remixList: { url: string }[] };
+    expect(parentNow.remixes).toBe(1);
+    expect(parentNow.remixList[0].url).toBe('/beats/fan/first-beat-flip');
+    expect(((await (await call('/api/beats/fan/first-beat-flip')).json()) as { parent: { url: string } }).parent.url).toBe('/beats/maker/first-beat');
+    // a sound that is nobody's public is refused with its name
+    const secret = new TextEncoder().encode('secret sound'); const secretHash = await sha256Hex(secret);
+    expect((await call(`/api/blobs/${secretHash}`, { method: 'POST', cookie, body: secret })).status).toBe(200);
+    r = await call('/api/beats', { method: 'POST', cookie: fan, ...json({ ...body, previewHash: previewB, manifest: { ...manifest, machine: { sounds: [{ id: 'x', name: 'SECRET' }] }, blobs: { x: secretHash } }, title: 'Stolen' }) });
+    expect(r.status).toBe(403);
+    expect((await r.json() as { blocked: string[] }).blocked).toEqual(['SECRET']);
+
+    // owner removes; the stranger cannot
+    expect((await call(`/api/beats/${pub.id}`, { method: 'DELETE', cookie: fan })).status).toBe(404);
+    expect((await call(`/api/beats/${pub.id}`, { method: 'DELETE', cookie })).status).toBe(200);
+    expect((await call('/api/beats/maker/first-beat')).status).toBe(404);
+    expect(((await (await call('/api/beats/fan/first-beat-flip')).json()) as { parent: unknown }).parent).toBeNull();
   }, 60_000);
 
   it('curates through the admin routes with a token', async () => {

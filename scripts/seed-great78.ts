@@ -29,7 +29,7 @@ const BLOCK = /\b(n[i1]gg|coon|darkie|darky|darkey|pickaninn|mammy|chink|jap\b|w
 const LATER = /(willie lewis|wingy man+one|frankie masters|glenn miller|benny goodman|count basie|duke ellington|artie shaw|tommy dorsey|jimmy dorsey|fats waller|django|cab calloway|louis prima|bob crosby|harry james)/i;
 /** Latest year we treat as public domain in the US today (pre-1923 since 2022, then one more year each January). */
 const LAST_YEAR = Math.min(1946, new Date().getFullYear() - 101);
-const titleCase = (s: string) => s === s.toUpperCase() ? s.toLowerCase().replace(/(^|[\s(\-'])([a-z])/g, (m, a, b) => a + b.toUpperCase()) : s;
+const titleCase = (s: string) => s === s.toUpperCase() ? s.toLowerCase().replace(/(^|[\s(\-])([a-z])/g, (_m, a: string, b: string) => a + b.toUpperCase()) : s;
 const SUBJECTS = ['Jazz', 'Blues', 'Ragtime', 'Instrumental', '"Fox Trot"', 'Dance', 'Hawaiian', 'Tango', '"One Step"', 'Waltz', 'March', 'Banjo', 'Piano', 'Xylophone', 'Orchestra'];
 
 interface Doc { identifier: string; title: string; creator?: string | string[]; date?: string; downloads?: number; subject?: string | string[] }

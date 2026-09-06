@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Beat · Chop Deck</title>
+<meta name="description" content="A beat made on Chop Deck." />
+<link rel="canonical" href="https://chopdeck.com/beats/" />
+<meta property="og:type" content="music.song" />
+<meta property="og:site_name" content="Chop Deck" />
+<meta property="og:url" content="https://chopdeck.com/beats/" />
+<meta property="og:title" content="A beat on Chop Deck" />
+<meta property="og:description" content="Made on the browser drum machine. Play it, open it on the machine, remix it." />
+<meta property="og:image" content="https://chopdeck.com/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="A beat on Chop Deck" />
+<meta name="twitter:description" content="Made on the browser drum machine. Play it, open it on the machine, remix it." />
+<meta name="twitter:image" content="https://chopdeck.com/og.png" />
+<link rel="icon" href="/icon-192.png" type="image/png" />
+<link rel="stylesheet" href="../src/ds/tokens.css" />
+<link rel="stylesheet" href="../src/site/site.css" />
+<style>
+  .page { max-width: 860px; }
+  .cover { width: 100%; border: 3px solid var(--ink); border-radius: 8px; box-shadow: 0 4px 0 var(--ink); display: block; margin: 20px 0 12px; }
+  .wave { height: 90px; width: 100%; background: var(--lcd); border: 2px solid var(--ink); border-radius: 4px; box-shadow: inset 0 3px 8px rgba(0,0,0,.25); display: block; margin: 12px 0 6px; cursor: pointer; }
+  .player { display: flex; gap: 12px; align-items: center; margin: 8px 0 14px; }
+  .play { width: 64px; height: 64px; border-radius: 50%; background: var(--red); border: 3px solid var(--ink); box-shadow: inset 0 2px 0 rgba(255,255,255,.35), inset 0 -4px 0 rgba(0,0,0,.22), 0 2px 0 var(--ink); color: var(--cream); font-size: 24px; padding: 0; display: grid; place-items: center; flex: none; }
+  .play.on { background: var(--led-amber); color: var(--ink); }
+  .time { font-family: var(--font-lcd); font-size: 22px; background: var(--lcd); color: var(--lcd-ink); padding: 4px 10px; border-radius: 3px; }
+  .by { font-family: var(--font-label); font-weight: 600; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+  .by b, .by a { color: var(--red-deep); }
+  .meta { font-family: var(--font-label); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+  .actions .button, .actions button { font-size: 12px; padding: 9px 14px; }
+  .actions button.red { background: var(--red); }
+  .like.on { background: var(--led-amber); color: var(--ink); }
+  .remixes { display: grid; gap: 8px; }
+  .remixes a { display: block; background: var(--cream); border: 2px solid var(--ink); border-radius: 5px; padding: 8px 12px; text-decoration: none; color: var(--ink); }
+  h1 { margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <img src="/logo.webp" alt="" />
+  <div><div class="mark"><b>Chop</b><i>Deck</i></div><div class="sub">Beat</div></div>
+  <a class="back" href="/">Back to the machine</a>
+</header>
+
+<section id="loading"><p>One moment.</p></section>
+<section id="missing" hidden><h1>No such beat</h1><p>It may have been removed. <a href="/beats/">Browse beats</a>.</p></section>
+
+<section id="beat" hidden>
+  <img id="cover" class="cover" alt="" hidden />
+  <h1 id="title"></h1>
+  <div class="by">by <a id="handle" href="/beats/"></a> <span id="lineage"></span></div>
+  <p id="description"></p>
+  <canvas id="wave" class="wave" aria-label="waveform"></canvas>
+  <div class="player">
+    <button type="button" id="play" class="play" aria-label="Play">►</button>
+    <span class="time"><span id="pos">0:00</span> / <span id="len">0:00</span></span>
+    <span class="meta" id="stats"></span>
+  </div>
+  <div class="meta" id="meta"></div>
+  <div class="actions">
+    <button type="button" id="open">Open on the machine</button>
+    <button type="button" id="remix" class="red">Remix</button>
+    <button type="button" id="like" class="like ghost">♥ Like</button>
+    <button type="button" id="download" class="ghost" hidden>Download .CHOPDECK</button>
+    <button type="button" id="remove" class="ghost" hidden>Remove</button>
+  </div>
+  <div id="status" class="note" hidden></div>
+  <p class="note">Open on the machine loads the whole project, exactly as made; whatever was on your machine is saved to its browser disk first as <code>BEFORE_….CHOPDECK</code>. Remix does the same and credits this beat when you publish.</p>
+  <section id="remixes-box" hidden><h2>Remixes</h2><div id="remixes" class="remixes"></div></section>
+</section>
+
+<footer><a href="/">The machine</a><a href="/beats/">Beats</a><a href="/kits/">Kits</a><a href="/samples/">Samples</a><a href="/publish/">Publish a beat</a><a href="/account/">Account</a><a href="/terms/">Terms</a></footer>
+</div>
+<script type="module" src="./main.ts"></script>
+</body>
+</html>

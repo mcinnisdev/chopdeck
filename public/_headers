@@ -18,6 +18,12 @@
   Cache-Control: no-cache
 /samples/*
   Cache-Control: no-cache
+/beats/*
+  Cache-Control: no-cache
+/beat/*
+  Cache-Control: no-cache
+/publish/*
+  Cache-Control: no-store
 /terms/*
   Cache-Control: no-cache
 /privacy/*

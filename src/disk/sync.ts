@@ -3,6 +3,7 @@
 // has a newer revision than this browser has seen. Offline it waits; nothing here touches the LCD.
 import { Machine } from '@/model/types';
 import { buildManifest, machineFromManifest, isManifest, projectTitle, type ProjectManifest } from './manifest';
+import { getRemixOf } from './remix';
 
 export type SyncStatus = 'booting' | 'signed-out' | 'idle' | 'syncing' | 'synced' | 'offline' | 'error';
 export interface SyncUser { id: string; email: string; handle: string | null; plan: string }
@@ -112,13 +113,14 @@ export class SyncClient {
     if (!r.ok) throw new Error(`upload ${r.status}`);
   }
   private async put(manifest: ProjectManifest, hashes: string[]): Promise<{ revision: number; updatedAt: string }> {
-    let r = await api('/project', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ manifest, title: manifest.title, hashes }) });
+    const parentBeat = getRemixOf();
+    let r = await api('/project', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ manifest, title: manifest.title, hashes, parentBeat }) });
     if (r.status === 409) {
       // a blob vanished between HEAD and PUT: upload what it names and try once more
       const { missing } = await r.json() as { missing: string[] };
       const { blobs } = await buildManifest(this.getMachine!(), this.getTempo!());
       for (const h of missing) if (blobs.has(h)) await this.upload(h, blobs.get(h)!);
-      r = await api('/project', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ manifest, title: manifest.title, hashes }) });
+      r = await api('/project', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ manifest, title: manifest.title, hashes, parentBeat }) });
     }
     if (!r.ok) throw new Error(`save ${r.status}`);
     return await r.json() as { revision: number; updatedAt: string };

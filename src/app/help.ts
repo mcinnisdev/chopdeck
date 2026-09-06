@@ -38,6 +38,8 @@ export const HELP: Record<string, HelpEntry> = {
   account: { title: 'Account', text: 'Sign in and the machine keeps your work in your account, so it follows you to any browser. Signed in, this shows your handle and whether the last change has synced.', anchor: '' },
   kits: { title: 'Kit library', text: 'Pad banks other people made on Chop Deck: sixteen sounds with their tuning, envelopes and levels. Play them in the page and send one to the machine; it lands in the LOAD tray.', anchor: 'loading' },
   samples: { title: 'Samples library', text: 'Records, breaks and hits people have shared for chopping. Play one in the page and send it to the machine; it lands in the LOAD tray with the Load a Sound window open. Put it on a pad, then slice it from the ZONE page of TRIM.', anchor: 'zone' },
+  beats: { title: 'Beats', text: 'Beats people have published from their machines, with the whole project behind each one. Play them, open one on the machine to hear exactly how it was made, or remix it.', anchor: 'sequencing' },
+  publishBeat: { title: 'Publish this beat', text: "Render a sequence or song with the machine's own engine and publish it with the project behind it: a page with a player and a share card, open on the machine, remix. Needs an account.", anchor: 'recording' },
   publishKit: { title: 'Publish this kit', text: 'Put the program on the pads into the kit library under your handle, sounds and all. Needs an account; you choose the licence.', anchor: 'programs' },
 };
 

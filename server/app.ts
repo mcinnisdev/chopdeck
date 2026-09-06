@@ -5,6 +5,7 @@ import { Hono } from 'hono';
 import { makeAuth, sessionUser, type SessionUser } from './auth';
 import { kits } from './kits';
 import { samples } from './samples';
+import { beats } from './beats';
 import { admin } from './admin';
 import { sha256Hex } from './hash';
 import { MAX_BLOB_BYTES, PLAN_QUOTA_BYTES, REVISIONS_KEPT, type Env } from './env';
@@ -49,7 +50,7 @@ app.get('/dev/magic-link', async c => {
 const PUBLIC = (c: { req: { path: string; method: string } }) => {
   const p = c.req.path, m = c.req.method;
   if (p.startsWith('/api/auth/') || p === '/api/health' || p === '/api/providers' || p.startsWith('/api/dev/')) return true;
-  if ((p.startsWith('/api/kits') || p.startsWith('/api/samples')) && (m === 'GET' || p.endsWith('/download'))) return true;
+  if ((p.startsWith('/api/kits') || p.startsWith('/api/samples') || p.startsWith('/api/beats')) && (m === 'GET' || p.endsWith('/download') || p.endsWith('/play'))) return true;
   if (p.startsWith('/api/blobs/') && m === 'GET') return true;
   return false;
 };
@@ -63,6 +64,7 @@ app.use('/*', async (c, next) => {
 
 app.route('/kits', kits);
 app.route('/samples', samples);
+app.route('/beats', beats);
 app.route('/admin', admin);
 
 app.get('/me', async c => {
@@ -97,13 +99,15 @@ app.delete('/me', async c => {
     `SELECT b.hash FROM blobs b WHERE b.uploader_id = ? AND NOT EXISTS (
        SELECT 1 FROM project_blobs pb JOIN projects p ON p.id = pb.project_id WHERE pb.hash = b.hash AND p.owner_id <> ?)
      AND NOT EXISTS (SELECT 1 FROM kit_blobs kb JOIN kits k ON k.id = kb.kit_id WHERE kb.hash = b.hash AND k.owner_id <> ?)
-     AND NOT EXISTS (SELECT 1 FROM samples s WHERE s.hash = b.hash AND s.owner_id <> ?)`,
-  ).bind(u.id, u.id, u.id, u.id).all<{ hash: string }>();
+     AND NOT EXISTS (SELECT 1 FROM samples s WHERE s.hash = b.hash AND s.owner_id <> ?)
+     AND NOT EXISTS (SELECT 1 FROM beat_blobs bb JOIN beats x ON x.id = bb.beat_id WHERE bb.hash = b.hash AND x.owner_id <> ?)`,
+  ).bind(u.id, u.id, u.id, u.id, u.id).all<{ hash: string }>();
   await c.env.DB.batch([
     c.env.DB.prepare('DELETE FROM projects WHERE owner_id = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM kits WHERE owner_id = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM samples WHERE owner_id = ?').bind(u.id),
-    c.env.DB.prepare('DELETE FROM blobs WHERE uploader_id = ? AND hash NOT IN (SELECT hash FROM project_blobs) AND hash NOT IN (SELECT hash FROM kit_blobs) AND hash NOT IN (SELECT hash FROM samples)').bind(u.id),
+    c.env.DB.prepare('DELETE FROM beats WHERE owner_id = ?').bind(u.id),
+    c.env.DB.prepare('DELETE FROM blobs WHERE uploader_id = ? AND hash NOT IN (SELECT hash FROM project_blobs) AND hash NOT IN (SELECT hash FROM kit_blobs) AND hash NOT IN (SELECT hash FROM samples) AND hash NOT IN (SELECT hash FROM beat_blobs)').bind(u.id),
     c.env.DB.prepare('DELETE FROM session WHERE userId = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM account WHERE userId = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM user WHERE id = ?').bind(u.id),
@@ -155,14 +159,16 @@ async function storeProject(env: Env, userId: string, manifest: unknown, title: 
 
 app.put('/project', async c => {
   const u = c.get('user');
-  const body = await c.req.json<{ manifest?: unknown; title?: string; hashes?: string[] }>().catch(() => null);
+  const body = await c.req.json<{ manifest?: unknown; title?: string; hashes?: string[]; parentBeat?: string | null }>().catch(() => null);
   if (!body || typeof body.manifest !== 'object' || body.manifest === null) return c.json({ error: 'manifest required' }, 400);
   const hashes = Array.from(new Set((body.hashes ?? []).filter(h => typeof h === 'string' && /^[0-9a-f]{64}$/.test(h))));
   if (hashes.length > 500) return c.json({ error: 'too many sounds' }, 413);
   const missing = await missingHashes(c.env, hashes);
   if (missing.length) return c.json({ error: 'upload these sounds first', missing }, 409);
   const title = String(body.title ?? '').slice(0, 64);
-  return c.json(await storeProject(c.env, u.id, body.manifest, title, hashes));
+  const res = await storeProject(c.env, u.id, body.manifest, title, hashes);
+  if (body.parentBeat !== undefined) await c.env.DB.prepare('UPDATE projects SET parent_beat_id = ? WHERE owner_id = ?').bind(body.parentBeat ? String(body.parentBeat) : null, u.id).run();
+  return c.json(res);
 });
 
 app.get('/project/revisions', async c => {
@@ -233,8 +239,8 @@ app.get('/blobs/:hash', async c => {
   if (!HASH_RE.test(hash)) return c.json({ error: 'bad hash' }, 400);
   // public while a live kit names it; otherwise yours if you uploaded it or your project references it
   const isPublic = await c.env.DB.prepare(
-    'SELECT 1 AS ok WHERE EXISTS (SELECT 1 FROM kit_blobs kb JOIN kits k ON k.id = kb.kit_id WHERE kb.hash = ? AND k.takedown = 0) OR EXISTS (SELECT 1 FROM samples s WHERE s.hash = ? AND s.takedown = 0)',
-  ).bind(hash, hash).first();
+    'SELECT 1 AS ok WHERE EXISTS (SELECT 1 FROM kit_blobs kb JOIN kits k ON k.id = kb.kit_id WHERE kb.hash = ? AND k.takedown = 0) OR EXISTS (SELECT 1 FROM samples s WHERE s.hash = ? AND s.takedown = 0) OR EXISTS (SELECT 1 FROM beat_blobs bb JOIN beats x ON x.id = bb.beat_id WHERE bb.hash = ? AND x.takedown = 0)',
+  ).bind(hash, hash, hash).first();
   if (!isPublic) {
     if (!u) return c.json({ error: 'sign in first' }, 401);
     const ok = await c.env.DB.prepare(
