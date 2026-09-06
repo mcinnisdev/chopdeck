@@ -358,17 +358,19 @@ Make it something people keep open.
 
 ### Phases 7 to 10: the platform
 
-Planned in full in [docs/PLATFORM-PLAN.md](docs/PLATFORM-PLAN.md). In one line each:
+Planned in full in [docs/PLATFORM-PLAN.md](docs/PLATFORM-PLAN.md). The machine stays at 2000XL
+parity; everything the original could not do is a Chop Deck page, and the two meet only at the
+header link above the LCD. In one line each:
 
-- **Phase 7: Accounts and cloud saves.** Magic-link and OAuth sign-in, content-addressed sound blobs
-  on R2, a `CloudDrive` behind the existing `Drive` interface so `Device:CLOUD` appears on LOAD and
-  SAVE, autosave sync with kept revisions.
-- **Phase 8: Libraries.** `Device:LIBRARY` for a curated and user-published samples library and a
-  pad-bank (kit) library, with licenses, quotas, reports and takedowns; `/samples/` and `/kits/` pages.
-- **Phase 9: Publish and remix.** `PUBLISH` from SAVE mode with a client-rendered preview; beat pages
-  with a player and per-beat share cards; OPEN ON THE MACHINE; REMIX copies the manifest with lineage.
-- **Phase 10: Support and venues.** Buy Me a Coffee link now, Stripe supporter tier later; Tauri
-  desktop builds, itch.io, then Steam; a touch layout for phones.
+- **Phase 7: Accounts and cloud saves.** Magic-link and OAuth sign-in on `/account/`, content-addressed
+  sound blobs on R2, transparent sync of the existing autosave with kept revisions, `SIGN IN` becoming
+  the handle and sync state in the header.
+- **Phase 8: Libraries.** `/samples/` and `/kits/` pages for curated and user-published sounds and pad
+  banks, with licenses, quotas, reports and takedowns; "Send to machine" through the import tray.
+- **Phase 9: Publish and remix.** `/publish/` reads the machine's autosave and renders a preview; beat
+  pages with a player and per-beat share cards; OPEN ON THE MACHINE; REMIX copies the manifest with lineage.
+- **Phase 10: Support and venues.** `/support/` with Buy Me a Coffee now, Stripe supporter tier later;
+  Tauri desktop builds, itch.io, then Steam; a touch layout for phones.
 
 ---
 
