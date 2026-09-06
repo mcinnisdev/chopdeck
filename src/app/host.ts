@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Firmware } from '@/kernel/firmware';
 import { AudioEngine } from '@/audio/engine';
 import { importFiles } from '@/screens/load';
+import { isDesktop, desktopSave } from './desktop';
 
 export function installHost(fw: Firmware, engine: AudioEngine) {
   const input = document.createElement('input');
@@ -13,6 +14,8 @@ export function installHost(fw: Firmware, engine: AudioEngine) {
   fw.host = {
     pickFiles: () => { engine.boot(); input.click(); },
     download: (name, bytes, mime = 'application/octet-stream') => {
+      // the desktop app saves through the native dialog; a browser tab downloads
+      if (isDesktop) { void desktopSave(name, bytes).catch(e => console.warn('save failed', e)); return; }
       const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: mime }));
       const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click();
       setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1000);

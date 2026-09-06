@@ -22,6 +22,7 @@ import { MidiIO } from '@/midi/io';
 import { handleMidiIn } from '@/kernel/midi-in';
 import { IdbDrive, typeOf } from '@/disk/drive';
 import { encodeProject } from '@/disk/formats';
+import { isDesktop, installDesktopLinks } from '@/app/desktop';
 import '@/ds';
 
 const style = document.createElement('style');
@@ -75,6 +76,8 @@ async function powerOn() {
     void loadImported(firmware.ctx(), handoff.name);
     if (location.search.includes('handoff')) history.replaceState(null, '', '/');
   }
+
+  if (isDesktop) installDesktopLinks();
 
   // handy in the console while developing
   Object.assign(window, { chopdeck: firmware, chopdeckAudio: engine });

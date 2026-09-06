@@ -40,6 +40,12 @@ npm run build
 hides the site's links. Projects live in the browser; SAVE mode exports `.CHOPDECK`, `.WAV` and `.MID`
 files and LOAD brings them back.
 
+## Desktop app
+
+The same build in a native window, for Windows, macOS and Linux, working entirely offline. Installers
+are attached to each [GitHub release](https://github.com/mcinnisdev/chopdeck/releases). `docs/DESKTOP.md`
+explains how it is put together (Tauri around `dist/`, one codebase) and how to cut a release.
+
 ## Keyboard
 
 | Keys | Machine |

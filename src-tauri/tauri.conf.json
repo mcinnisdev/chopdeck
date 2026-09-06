@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Chop Deck",
+  "version": "../package.json",
+  "identifier": "com.chopdeck.app",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Chop Deck",
+        "width": 1320,
+        "height": 920,
+        "minWidth": 900,
+        "minHeight": 620,
+        "resizable": true,
+        "center": true,
+        "backgroundColor": "#1B1B1B"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Music",
+    "shortDescription": "A sampler and sequencer in the shape of a classic drum machine.",
+    "longDescription": "Chop Deck is a sampler and sequencer shaped like a late-90s hardware drum machine: sixteen pads, a green LCD, a sequencer with swing, sampling and chopping, a mixer with effects, song mode, MIDI. The desktop app is the same machine as chopdeck.com, working entirely offline; projects save to your disk as .CHOPDECK files.",
+    "copyright": "Copyright (c) 2026 Nick McInnis. MIT licence.",
+    "publisher": "mcinnis.dev",
+    "homepage": "https://chopdeck.com",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "fileAssociations": [
+      { "ext": ["chopdeck"], "name": "Chop Deck project", "description": "A Chop Deck project: sequences, songs, programs and sounds", "role": "Editor" }
+    ],
+    "windows": {
+      "webviewInstallMode": { "type": "downloadBootstrapper" }
+    },
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    },
+    "linux": {
+      "deb": { "depends": [] }
+    }
+  }
+}

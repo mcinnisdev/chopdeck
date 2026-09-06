@@ -4,6 +4,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { HELP, MANUAL_URL, type HelpEntry } from './help';
+import { isDesktop, desktopManual } from './desktop';
 
 interface TipState { entry: HelpEntry; x: number; y: number; below: boolean }
 interface TipApi {
@@ -73,7 +74,7 @@ export function Tip({ id, children, style }: { id: string; children: ReactNode; 
       style={{ display: 'inline-flex', ...style }}
       onPointerEnter={e => { if (e.pointerType === 'mouse') ctx?.show(id, e.currentTarget); }}
       onPointerLeave={() => ctx?.hide()}
-      onPointerDown={e => { ctx?.hide(); if (e.altKey) { e.preventDefault(); e.stopPropagation(); window.open(href, '_blank', 'noopener'); } }}
+      onPointerDown={e => { ctx?.hide(); if (e.altKey) { e.preventDefault(); e.stopPropagation(); if (isDesktop) void desktopManual(entry?.anchor ? `#${entry.anchor}` : ''); else window.open(href, '_blank', 'noopener'); } }}
     >
       {children}
     </span>

@@ -375,8 +375,10 @@ header link above the LCD. In one line each:
   OPEN ON THE MACHINE (the visitor's project is saved to the browser disk first), REMIX with lineage,
   download where the licence allows; `/beats/<handle>/` per person.
 - **Phase 10: Support and venues.** `/support/` with Buy Me a Coffee (done), the open-source
-  release (done: MIT licence, CONTRIBUTING, standalone builds that hide the site's links), Stripe
-  supporter tier later; Tauri desktop builds, itch.io, then Steam; a touch layout for phones.
+  release (done: MIT licence, CONTRIBUTING, standalone builds that hide the site's links), the
+  desktop app (done: Tauri around the same `dist/`, installers for Windows, macOS and Linux from a
+  tag, see `docs/DESKTOP.md`). Parked until the product has found its feet: Stripe supporter tier,
+  itch.io, Steam. Still to do: a touch layout for phones, code signing for the desktop builds.
 
 ---
 

@@ -1,0 +1,25 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "What the machine's window may do: save files through the native dialog, open links in the system browser, open the manual in its own window.",
+  "windows": ["main", "manual"],
+  "permissions": [
+    "core:default",
+    "core:webview:allow-create-webview-window",
+    "core:window:allow-set-title",
+    "dialog:default",
+    "fs:default",
+    "fs:allow-write-file",
+    "opener:default",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$HOME/**" },
+        { "path": "$DOWNLOAD/**" },
+        { "path": "$DOCUMENT/**" },
+        { "path": "$DESKTOP/**" },
+        { "path": "$AUDIO/**" }
+      ]
+    }
+  ]
+}
