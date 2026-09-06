@@ -8,6 +8,7 @@ import { Transport } from '@/seq/transport';
 import { WorkerClock } from '@/seq/clock';
 import { installDemo } from '@/audio/demo';
 import { loadAutosave, startAutosave } from '@/disk/autosave';
+import { sync } from '@/disk/sync';
 import { FirmwareContext } from '@/app/store';
 import { Chassis } from '@/app/Chassis';
 import { TipProvider } from '@/app/Tip';
@@ -26,10 +27,13 @@ document.head.appendChild(style);
 
 async function powerOn() {
   const restored = await loadAutosave();
-  const machine = restored ?? newMachineWithStarterProgram();
-  if (!restored) installDemo(machine);
+  // signed in somewhere else since this browser last synced? the account's version wins
+  const pulled = await sync.boot(!!restored);
+  const machine = pulled?.machine ?? restored ?? newMachineWithStarterProgram();
+  if (!restored && !pulled) installDemo(machine);
 
   const firmware = new Firmware(machine, allScreens);
+  if (pulled) firmware.s.masterTempo = pulled.masterTempo;
   const engine = new AudioEngine(() => firmware.m);
   firmware.sound = engine;
   firmware.transport = new Transport(firmware, new WorkerClock());
@@ -51,6 +55,8 @@ async function powerOn() {
     const t = performance.now(); if (t - meterAt > 50) { meterAt = t; firmware.touch(); }
   };
   startAutosave(() => firmware.m, fn => firmware.subscribe(fn));
+  sync.attach(() => firmware.m, () => firmware.s.masterTempo);
+  firmware.subscribe(() => sync.changed());
 
   // handy in the console while developing
   Object.assign(window, { chopdeck: firmware, chopdeckAudio: engine });

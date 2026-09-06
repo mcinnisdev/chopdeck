@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Account · Chop Deck</title>
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#1F3F6E" />
+<link rel="icon" href="/icon-192.png" type="image/png" />
+<link rel="stylesheet" href="../src/ds/tokens.css" />
+<link rel="stylesheet" href="../src/site/site.css" />
+</head>
+<body>
+<div class="page">
+<header>
+  <img src="/logo.webp" alt="" />
+  <div><div class="mark"><b>Chop</b><i>Deck</i></div><div class="sub">Account</div></div>
+  <a class="back" href="/">Back to the machine</a>
+</header>
+
+<section id="loading"><p>One moment.</p></section>
+
+<section id="signed-out" hidden>
+  <h1>Sign in</h1>
+  <p>An account keeps your work: whatever you make on the machine follows you to any browser or computer where you sign in. There is no password. We send a link to your email, or you can use Google or GitHub.</p>
+  <form id="magic">
+    <label for="email">Email</label>
+    <input id="email" type="email" name="email" required autocomplete="email" placeholder="you@example.com" />
+    <div class="row"><button type="submit">Send me a sign-in link</button>
+      <button type="button" id="google" class="ghost" hidden>Continue with Google</button>
+      <button type="button" id="github" class="ghost" hidden>Continue with GitHub</button></div>
+  </form>
+  <div id="sent" class="note" hidden>Check your email for a link from Chop Deck. It works once and expires in 15 minutes.</div>
+  <div id="devlink" class="note" hidden>Local development: <a id="devlink-a" href="#">open the sign-in link</a>.</div>
+  <div id="signin-error" class="error" hidden></div>
+  <p class="note">By signing in you agree to the <a href="/terms/">terms</a> and the <a href="/privacy/">privacy policy</a>. Nothing you make is public unless you publish it.</p>
+</section>
+
+<section id="signed-in" hidden>
+  <h1>Your account</h1>
+  <div id="handle-box" hidden>
+    <p class="note">Choose a handle. It names your beats and kits when you publish them, and it can be changed later.</p>
+    <form id="handle-form">
+      <label for="handle">Handle</label>
+      <input id="handle" type="text" name="handle" required minlength="3" maxlength="24" pattern="[a-z0-9][a-z0-9-]{2,23}" placeholder="nick-beats" />
+      <div class="row"><button type="submit">Save handle</button></div>
+    </form>
+  </div>
+  <div id="account-error" class="error" hidden></div>
+  <table>
+    <tr><th>Signed in as</th><td id="email-out"></td></tr>
+    <tr><th>Handle</th><td><span id="handle-out"></span> <button type="button" class="ghost" id="change-handle">Change</button></td></tr>
+    <tr><th>Plan</th><td id="plan-out"></td></tr>
+    <tr><th>Cloud used</th><td><div id="usage-out"></div><div class="meter"><div id="usage-bar" style="width:0"></div></div></td></tr>
+  </table>
+
+  <h2>Your project</h2>
+  <p>The machine saves to this browser as you work and, while you are signed in, to your account a few seconds later. The header above the LCD shows <code>SYNCED</code> when the two agree.</p>
+  <div id="no-project" class="note" hidden>Nothing synced yet. Go back to the machine, hit a pad, and it will follow.</div>
+  <div id="project-box" hidden>
+    <p><span class="lcdline" id="project-line"></span></p>
+    <div class="row">
+      <button type="button" id="export">Download as .CHOPDECK</button>
+      <a class="button" href="/">Open on the machine</a>
+    </div>
+    <h2>Earlier versions</h2>
+    <p>The last twenty saves are kept. Restoring one makes it current; the version you are replacing is kept too.</p>
+    <table id="revs"><tr><th>Version</th><th>Title</th><th>Saved</th><th></th></tr></table>
+  </div>
+
+  <h2>Sign out and delete</h2>
+  <div class="row">
+    <button type="button" id="signout" class="ghost">Sign out</button>
+    <button type="button" id="delete" class="red">Delete account</button>
+  </div>
+  <p>Deleting removes your project, its versions and every sound only you uploaded. It cannot be undone. Your browser keeps its local copy until you clear it.</p>
+</section>
+
+<footer><a href="/">The machine</a><a href="/manual/">Owner's manual</a><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a></footer>
+</div>
+<script type="module" src="./main.ts"></script>
+</body>
+</html>

@@ -6,3 +6,7 @@ coverage/
 .DS_Store
 playwright-report/
 test-results/
+
+# Cloudflare local state and secrets
+.wrangler/
+.dev.vars

@@ -1,0 +1,34 @@
+/* Chop Deck pages outside the machine (account, terms, privacy): the owner's manual's typography. */
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.55; }
+.page { max-width: 760px; margin: 0 auto; padding: 28px 20px 80px; }
+header { display: flex; align-items: center; gap: 16px; border-bottom: 3px solid var(--ink); padding-bottom: 16px; }
+header img { width: 56px; height: 56px; }
+.mark { font-family: var(--font-label); font-weight: 700; font-size: 32px; line-height: 1; text-transform: uppercase; }
+.mark b { color: var(--red); font-weight: 700; } .mark i { font-style: italic; }
+header .sub { font-family: var(--font-label); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; color: var(--ink-3); }
+header a.back { margin-left: auto; font-family: var(--font-label); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; color: var(--cream); background: var(--navy); border: 2px solid var(--ink); border-radius: 3px; padding: 6px 10px; text-decoration: none; box-shadow: 0 2px 0 var(--ink); white-space: nowrap; }
+h1 { font-family: var(--font-label); font-weight: 700; font-size: 34px; letter-spacing: .02em; text-transform: uppercase; margin: 40px 0 12px; border-bottom: 2px solid var(--ink); padding-bottom: 6px; }
+h2 { font-family: var(--font-label); font-weight: 700; font-size: 20px; letter-spacing: .04em; text-transform: uppercase; margin: 32px 0 8px; }
+a { color: var(--red-deep); }
+p { margin: 8px 0; }
+code, kbd { font-family: var(--font-lcd); font-size: 18px; line-height: 1; }
+code { background: var(--lcd); color: var(--lcd-ink); padding: 1px 6px; border-radius: 2px; }
+kbd { background: var(--white); border: 1px solid var(--ink); border-radius: 3px; padding: 1px 6px; font-family: var(--font-label); font-weight: 700; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; box-shadow: 0 1px 0 var(--ink); }
+table { border-collapse: collapse; width: 100%; margin: 8px 0 16px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--cream-3); vertical-align: top; }
+th { font-family: var(--font-label); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: 12px; color: var(--ink-3); }
+.note { border-left: 4px solid var(--led-amber); background: var(--cream); padding: 8px 12px; margin: 12px 0; }
+.error { border-left: 4px solid var(--red); background: var(--cream); padding: 8px 12px; margin: 12px 0; }
+label { display: block; font-family: var(--font-label); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: 12px; color: var(--ink-3); margin: 14px 0 4px; }
+input[type=email], input[type=text] { font: inherit; font-size: 18px; padding: 8px 10px; border: 2px solid var(--ink); border-radius: 3px; background: var(--white); color: var(--ink); width: 100%; max-width: 380px; box-sizing: border-box; }
+button, .button { font-family: var(--font-label); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; color: var(--cream); background: var(--ink); border: 2px solid var(--ink); border-radius: 3px; padding: 8px 14px; cursor: pointer; box-shadow: 0 2px 0 var(--ink-3); text-decoration: none; display: inline-block; }
+button.red { background: var(--red); }
+button.ghost { background: transparent; color: var(--ink); box-shadow: none; }
+button:disabled { opacity: .5; cursor: default; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
+.meter { height: 10px; background: var(--cream-3); border: 1px solid var(--ink); border-radius: 2px; overflow: hidden; max-width: 380px; }
+.meter > div { height: 100%; background: var(--lcd-ink); }
+.lcdline { font-family: var(--font-lcd); font-size: 20px; background: var(--lcd); color: var(--lcd-ink); padding: 6px 10px; border-radius: 3px; display: inline-block; }
+footer { margin-top: 60px; border-top: 2px solid var(--ink); padding-top: 12px; font-family: var(--font-label); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: 11px; color: var(--ink-3); display: flex; gap: 16px; flex-wrap: wrap; }
+footer a { color: var(--ink-3); }
+[hidden] { display: none !important; }

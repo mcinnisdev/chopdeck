@@ -1,5 +1,5 @@
 // The front panel. Composes design-system controls around the LCD and routes everything to the firmware.
-import { useEffect, useRef, useState, CSSProperties } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, CSSProperties } from 'react';
 import { Pad, HardButton, Led, Knob, Fader, CursorPad, DataWheel, Keypad, Panel, Wordmark, Lcd } from '@/ds';
 import { LcdScreen } from '@/lcd/LcdScreen';
 import { HwKey } from '@/kernel/keys';
@@ -11,6 +11,15 @@ import { AudioEngine } from '@/audio/engine';
 import { Tip, useTips } from './Tip';
 import { MANUAL_URL, softKeyHelp } from './help';
 import { Tour, shouldAutoStartTour } from './Tour';
+import { sync, type SyncState } from '@/disk/sync';
+
+/** The account link's text: SIGN IN, or the handle and a one-word sync state. */
+function accountLabel(s: SyncState): string {
+  if (!s.user) return s.status === 'booting' ? '' : 'SIGN IN';
+  const who = s.user.handle ? `@${s.user.handle.toUpperCase()}` : 'ACCOUNT';
+  const word = { booting: '', 'signed-out': '', idle: '', syncing: 'SYNCING', synced: 'SYNCED', offline: 'OFFLINE', error: 'SYNC ERROR' }[s.status];
+  return word ? `${who} · ${word}` : who;
+}
 import { fieldHelp } from './field-help';
 
 const CHASSIS_W = 1240;
@@ -47,6 +56,7 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
   const padProgram = fw.m.programs[fw.m.drums[s.drum].pgm];
   const tips = useTips();
   const [tour, setTour] = useState(shouldAutoStartTour);
+  const syncState = useSyncExternalStore(fn => sync.subscribe(fn), () => sync.snapshot);
 
   return (
     <div style={{ height: h || 'auto', position: 'relative' }}>
@@ -63,6 +73,8 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
               <Tip id="manual"><a href={MANUAL_URL} target="_blank" rel="noopener" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>OWNER'S MANUAL</a></Tip>
               {' · '}
               <Tip id="tips"><button type="button" aria-pressed={tips.enabled} onClick={() => tips.setEnabled(!tips.enabled)} style={{ ...lbl, background: 'none', border: 0, padding: 0, cursor: 'pointer', color: tips.enabled ? 'var(--led-amber)' : 'var(--cream)', opacity: tips.enabled ? 1 : .6, borderBottom: '1px solid currentColor' }}>TIPS {tips.enabled ? 'ON' : 'OFF'}</button></Tip>
+              {' · '}
+              <Tip id="account"><a href="/account/" data-sync={syncState.status} style={{ color: syncState.user ? 'var(--cream)' : 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>{accountLabel(syncState)}</a></Tip>
             </span>
             <div style={{ display: 'flex', gap: 14 }}>
               <Led color="green" on={s.playing} label="PLAY" style={{ color: 'var(--cream)' }} />

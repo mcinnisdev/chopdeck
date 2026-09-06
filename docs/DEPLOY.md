@@ -1,9 +1,11 @@
 # Deploying Chop Deck to chopdeck.com
 
-Chop Deck is a static site: `npm run build` produces `dist/` with two pages (`/` the machine, `/manual/`
-the owner's manual), a service worker, and a web manifest. There is no server. Everything a visitor makes
-stays in their browser. That makes Cloudflare Pages the natural host, and since the domain already lives
-on Cloudflare, DNS and certificates are handled for you.
+Chop Deck is a static site plus one small API: `npm run build` produces `dist/` with the machine (`/`),
+the owner's manual (`/manual/`), the account and legal pages, a service worker and a web manifest;
+`functions/` holds the account API that Cloudflare Pages runs at `/api/*` against a D1 database and an
+R2 bucket (section 7). Without an account, everything a visitor makes stays in their browser. Cloudflare
+Pages is the natural host, and since the domain already lives on Cloudflare, DNS and certificates are
+handled for you.
 
 The whole setup is about ten minutes. Steps 1 to 4 are one-time.
 
@@ -27,8 +29,8 @@ The whole setup is about ten minutes. Steps 1 to 4 are one-time.
    | Build output directory | `dist` |
    | Root directory | leave empty |
 
-4. **Environment variables** (build): add `NODE_VERSION` = `22`. Nothing else is needed; the app has no
-   secrets or API keys.
+4. **Environment variables** (build): add `NODE_VERSION` = `22`. The account secrets come in section 7,
+   after the project exists.
 5. **Save and Deploy**. The first build takes two or three minutes. You get a `*.pages.dev` URL immediately;
    check the machine loads, hit a pad, open `/manual/`.
 
@@ -88,7 +90,60 @@ After the first production deploy, run through this on `https://chopdeck.com`:
 10. Search Console: add the `chopdeck.com` property (Cloudflare can verify the DNS record for you) and
     submit `https://chopdeck.com/sitemap.xml`.
 
-## 7. Share cards and search
+## 7. Accounts: the API, database, storage and secrets
+
+Accounts run as Cloudflare Pages Functions in `functions/` (code in `server/`), with a D1 database
+and an R2 bucket that already exist in the account and are named in `wrangler.toml`:
+
+| Resource | Name | Binding |
+|---|---|---|
+| D1 database | `chopdeck` (id `e0f0be15-fe22-4b3a-9812-e288e66e1042`) | `DB` |
+| R2 bucket | `chopdeck-blobs` | `BLOBS` |
+
+Pages reads the bindings from `wrangler.toml`, so nothing needs adding in the dashboard for them.
+
+### 7.1 One-time setup, after the Pages project exists
+
+1. **Schema.** `npm run db:remote` applies `server/schema.sql` to the production database. It is
+   idempotent; run it again after any schema change.
+2. **Secrets.** Set these on the Pages project (Settings, Environment variables, Production, encrypted;
+   or `npx wrangler pages secret put NAME --project-name chopdeck`):
+
+   | Secret | What |
+   |---|---|
+   | `BETTER_AUTH_SECRET` | 32+ random characters; `openssl rand -base64 32`. Rotating it signs everyone out. |
+   | `RESEND_API_KEY` | From resend.com. Sign-in links go out from `hello@mail.chopdeck.com`, on the verified domain `mail.chopdeck.com`. Replies and the contact address are `hello@chopdeck.com`. |
+   | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional. Google Cloud console, OAuth client, web application, redirect URI `https://chopdeck.com/api/auth/callback/google`. |
+   | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | Optional. GitHub, Developer settings, OAuth app, callback `https://chopdeck.com/api/auth/callback/github`. |
+
+   Without the Google or GitHub pair the account page simply does not show that button. Never set
+   `DEV_MAGIC_LINKS` in production: it stores sign-in links in the database instead of emailing them.
+3. **Redeploy** after setting secrets (Deployments, Retry, or push a commit): Functions read secrets
+   at deploy time.
+
+`SITE_URL` in `wrangler.toml` is `https://chopdeck.com`, and sign-in cookies and links are bound to it,
+so accounts work on the production domain only. Preview deployments (`*.pages.dev`) serve the machine
+and the pages but cannot sign anyone in; that is intended.
+
+### 7.2 Local development
+
+- `cp .dev.vars.example .dev.vars` (already ignored by git). It points `SITE_URL` at the Vite dev
+  server and turns on `DEV_MAGIC_LINKS`, so the account page shows the sign-in link instead of emailing it.
+- `npm run db:local` creates the local D1 with the schema (state lives in `.wrangler/`, ignored).
+- `npm run build` once, so `wrangler pages dev` has a `dist/` to serve, then two terminals:
+  `npm run dev:api` (the API on :8788) and `npm run dev` (Vite on :5173, which proxies `/api` to it).
+- `npm test` runs the API against an in-process Miniflare D1 and R2; `npm run test:e2e` starts both
+  servers itself and signs in, syncs and deletes a throwaway account.
+
+### 7.3 What to check after deploying
+
+1. `https://chopdeck.com/api/health` answers `{"ok":true}`.
+2. `/account/`: request a link, receive the email from `hello@mail.chopdeck.com`, land back signed in.
+3. Choose a handle; open the machine; the header shows the handle and, a few seconds after a change,
+   `SYNCED`. The account page lists the project and its version.
+4. A private window: sign in, and the machine boots with the same project.
+
+## 8. Share cards and search
 
 Everything search engines and link previews read is static and lives in the repo:
 
@@ -103,7 +158,7 @@ Everything search engines and link previews read is static and lives in the repo
 - `public/manifest.webmanifest` names the app, its icons and a screenshot for the install prompt.
 - `public/404.html` is the not-found page Pages serves for unknown paths.
 
-## 8. Alternatives, if you ever want them
+## 9. Alternatives, if you ever want them
 
 - **Deploy from GitHub Actions instead of Cloudflare's Git integration**: add a job that runs
   `npm ci && npm run build` and then `npx wrangler pages deploy dist --project-name chopdeck`, with
@@ -112,7 +167,7 @@ Everything search engines and link previews read is static and lives in the repo
 - **Any static host** (Netlify, GitHub Pages, an S3 bucket behind a CDN) works the same way: build,
   upload `dist/`, serve `/manual/` from `manual/index.html`. Only the `_headers` file is Cloudflare-specific.
 
-## 9. Things that are not there yet
+## 10. Things that are not there yet
 
 - No analytics or error reporting are wired in. If you want either, Cloudflare Web Analytics is a single
   script tag in `index.html` and respects the no-tracking spirit of the machine.

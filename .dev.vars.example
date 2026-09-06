@@ -1,0 +1,10 @@
+# Copy to .dev.vars for `npm run dev:api`. Never commit .dev.vars.
+SITE_URL=http://localhost:5173
+BETTER_AUTH_SECRET=change-me-to-32-random-characters-please
+# With no RESEND_API_KEY, magic links are written to the dev_links table and served at /api/dev/magic-link
+DEV_MAGIC_LINKS=1
+# RESEND_API_KEY=
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=
+# GITHUB_CLIENT_ID=
+# GITHUB_CLIENT_SECRET=

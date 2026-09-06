@@ -1,0 +1,19 @@
+# Cloudflare Pages configuration: the static site in dist/ plus the API in functions/.
+# Bindings declared here apply to production and to `wrangler pages dev`. Secrets are set with
+# `wrangler pages secret put NAME` (production) or in .dev.vars (local); see docs/DEPLOY.md.
+name = "chopdeck"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+SITE_URL = "https://chopdeck.com"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "chopdeck"
+database_id = "e0f0be15-fe22-4b3a-9812-e288e66e1042"
+
+[[r2_buckets]]
+binding = "BLOBS"
+bucket_name = "chopdeck-blobs"

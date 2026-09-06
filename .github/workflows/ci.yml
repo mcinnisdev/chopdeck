@@ -10,6 +10,8 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
-      - run: npx playwright install --with-deps chromium
-      - run: npx playwright test
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      # the browser tests talk to the API: wrangler pages dev serves dist/ + functions/ with a local D1 and R2
+      - run: cp .dev.vars.example .dev.vars
+      - run: npx playwright test

@@ -35,6 +35,7 @@ export const HELP: Record<string, HelpEntry> = {
   manual: { title: "Owner's Manual", text: 'The full manual: every mode, every window, and a keyboard reference.', anchor: '' },
   tips: { title: 'TIPS', text: 'Switch these hover tips on or off. The choice is remembered in this browser.', anchor: 'panel' },
   quickStart: { title: 'Quick start', text: 'A short guided tour of the machine: play the demo, hit the pads, drop in your own sounds, chop them and record a beat. Escape closes it.', anchor: 'quick-start' },
+  account: { title: 'Account', text: 'Sign in and the machine keeps your work in your account, so it follows you to any browser. Signed in, this shows your handle and whether the last change has synced.', anchor: '' },
 };
 
 /** Soft-key help by label. Labels are what the screens print; a few appear in several modes with the same meaning. */

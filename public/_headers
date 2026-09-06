@@ -12,6 +12,12 @@
 
 /manual/*
   Cache-Control: no-cache
+/account/*
+  Cache-Control: no-store
+/terms/*
+  Cache-Control: no-cache
+/privacy/*
+  Cache-Control: no-cache
 
 /*
   X-Content-Type-Options: nosniff
