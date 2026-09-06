@@ -36,6 +36,8 @@ export const HELP: Record<string, HelpEntry> = {
   tips: { title: 'TIPS', text: 'Switch these hover tips on or off. The choice is remembered in this browser.', anchor: 'panel' },
   quickStart: { title: 'Quick start', text: 'A short guided tour of the machine: play the demo, hit the pads, drop in your own sounds, chop them and record a beat. Escape closes it.', anchor: 'quick-start' },
   account: { title: 'Account', text: 'Sign in and the machine keeps your work in your account, so it follows you to any browser. Signed in, this shows your handle and whether the last change has synced.', anchor: '' },
+  kits: { title: 'Kit library', text: 'Pad banks other people made on Chop Deck: sixteen sounds with their tuning, envelopes and levels. Play them in the page and send one to the machine; it lands in the LOAD tray.', anchor: 'loading' },
+  publishKit: { title: 'Publish this kit', text: 'Put the program on the pads into the kit library under your handle, sounds and all. Needs an account; you choose the licence.', anchor: 'programs' },
 };
 
 /** Soft-key help by label. Labels are what the screens print; a few appear in several modes with the same meaning. */

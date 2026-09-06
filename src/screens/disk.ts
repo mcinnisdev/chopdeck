@@ -79,6 +79,17 @@ export const loadPage: ScreenDef = {
   onEnter(c) { void refresh(c); if (c.s.importFiles.length && !entries.length) diskState.device = 'IMPORT'; },
 };
 
+/** Open a file already in the import tray as if the user had selected it and pressed DO IT (kits sent from the library). */
+export async function loadImported(c: Ctx, name: string): Promise<void> {
+  diskState.device = 'IMPORT';
+  c.fw.setMode('LOAD');
+  const i = shown(c).findIndex(f => f.name === name);
+  if (i < 0) return;
+  c.s.diskIndex = i;
+  await doLoad(c);
+  c.fw.touch();
+}
+
 async function doLoad(c: Ctx) {
   const f = current(c); if (!f) return;
   if (f.type === 'DIR') { c.s.diskFolder = f.name === '..' ? parentOf(c.s.diskFolder) : f.path; c.s.diskIndex = 0; await refresh(c); return; }

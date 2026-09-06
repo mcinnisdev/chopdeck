@@ -88,6 +88,34 @@ CREATE TABLE IF NOT EXISTS project_revs (
   PRIMARY KEY (project_id, revision)
 );
 
+-- Published kits: a program (sixteen pads with their note parameters) and the sounds it uses, by hash.
+CREATE TABLE IF NOT EXISTS kits (
+  id TEXT PRIMARY KEY,
+  owner_id TEXT REFERENCES user(id) ON DELETE CASCADE,
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  tags TEXT NOT NULL DEFAULT '[]',
+  license TEXT NOT NULL,
+  manifest TEXT NOT NULL,
+  pads TEXT NOT NULL DEFAULT '[]',
+  sounds INTEGER NOT NULL DEFAULT 0,
+  bytes INTEGER NOT NULL DEFAULT 0,
+  downloads INTEGER NOT NULL DEFAULT 0,
+  featured INTEGER NOT NULL DEFAULT 0,
+  takedown INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE INDEX IF NOT EXISTS kits_owner ON kits(owner_id);
+CREATE INDEX IF NOT EXISTS kits_created ON kits(created_at);
+CREATE TABLE IF NOT EXISTS kit_blobs (
+  kit_id TEXT NOT NULL REFERENCES kits(id) ON DELETE CASCADE,
+  hash TEXT NOT NULL REFERENCES blobs(hash),
+  PRIMARY KEY (kit_id, hash)
+);
+CREATE INDEX IF NOT EXISTS kit_blobs_hash ON kit_blobs(hash);
+
 -- Development only: magic links land here when no email provider is configured.
 CREATE TABLE IF NOT EXISTS dev_links (
   email TEXT NOT NULL,

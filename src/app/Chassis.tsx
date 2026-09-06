@@ -191,6 +191,12 @@ export function Chassis({ engine }: { engine: AudioEngine }) {
             </div>
           </Tip>
           <span style={{ ...lbl, opacity: .7, textAlign: 'center' }}>BANK {BANKS[s.padBank]} · {padProgram.name} · HIT A PAD, PRESS PLAY</span>
+          {/* the kit library and publishing live on Chop Deck pages; these links are the pads' doorway to them */}
+          <span style={{ ...lbl, textAlign: 'center' }}>
+            <Tip id="kits"><a href="/kits/" style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>KITS LIBRARY</a></Tip>
+            {' · '}
+            <Tip id="publishKit"><a href={`/kits/publish/?pgm=${fw.m.drums[s.drum].pgm}`} style={{ color: 'var(--led-amber)', textDecoration: 'none', borderBottom: '1px solid var(--led-amber)' }}>PUBLISH THIS KIT</a></Tip>
+          </span>
         </div>
       </div>
     </div>

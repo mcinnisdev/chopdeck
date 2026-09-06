@@ -14,7 +14,9 @@ import { Chassis } from '@/app/Chassis';
 import { TipProvider } from '@/app/Tip';
 import { installHost } from '@/app/host';
 import { installSamplerInput, keep } from '@/screens/sample';
-import { installDrive } from '@/screens/disk';
+import { installDrive, loadImported } from '@/screens/disk';
+import { importFiles } from '@/screens/load';
+import { takeHandoff } from '@/disk/handoff';
 import { installMidiPorts } from '@/screens/midi';
 import { MidiIO } from '@/midi/io';
 import { handleMidiIn } from '@/kernel/midi-in';
@@ -57,6 +59,14 @@ async function powerOn() {
   startAutosave(() => firmware.m, fn => firmware.subscribe(fn));
   sync.attach(() => firmware.m, () => firmware.s.masterTempo);
   firmware.subscribe(() => sync.changed());
+
+  // a file a Chop Deck page left for the machine (a kit from the library): into the import tray and straight to its Load window
+  const handoff = await takeHandoff();
+  if (handoff) {
+    importFiles(firmware.ctx(), [new File([handoff.bytes as BlobPart], handoff.name)]);
+    void loadImported(firmware.ctx(), handoff.name);
+    if (location.search.includes('handoff')) history.replaceState(null, '', '/');
+  }
 
   // handy in the console while developing
   Object.assign(window, { chopdeck: firmware, chopdeckAudio: engine });

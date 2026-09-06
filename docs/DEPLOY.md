@@ -135,7 +135,23 @@ and the pages but cannot sign anyone in; that is intended.
 - `npm test` runs the API against an in-process Miniflare D1 and R2; `npm run test:e2e` starts both
   servers itself and signs in, syncs and deletes a throwaway account.
 
-### 7.3 What to check after deploying
+### 7.3 The kit library
+
+Kits (`/kits/`, publishing at `/kits/publish/`) use the same database and bucket. After any schema
+change, including the first deploy of the library, run `npm run db:remote` again. To feature a kit at
+the top of the library:
+
+```
+npx wrangler d1 execute chopdeck --remote --command "UPDATE kits SET featured = 1 WHERE slug = 'handle-kit-name'"
+```
+
+To take a kit down without deleting it (it disappears from the library and its sounds stop being public):
+
+```
+npx wrangler d1 execute chopdeck --remote --command "UPDATE kits SET takedown = 1 WHERE slug = 'handle-kit-name'"
+```
+
+### 7.4 What to check after deploying
 
 1. `https://chopdeck.com/api/health` answers `{"ok":true}`.
 2. `/account/`: request a link, receive the email from `hello@mail.chopdeck.com`, land back signed in.

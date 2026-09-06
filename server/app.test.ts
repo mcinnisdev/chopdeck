@@ -134,6 +134,72 @@ describe('api', () => {
     expect(await env.BLOBS.get(`blobs/${hash}`)).toBeNull();
   }, 60_000);
 
+  it('publishes a kit, lists it publicly with public blobs, counts sends, and lets only the owner remove it', async () => {
+    const cookie = await signIn('kits@example.com');
+    const sound = new TextEncoder().encode('a kit sound');
+    const hash = await sha256Hex(sound);
+    const manifest = { kind: 'CHOPDECK-KIT', version: 1, title: 'Dusty Drums', program: { name: 'DUSTY' }, sounds: [{ id: 's1', name: 'KICK' }], blobs: { s1: hash } };
+    const body = { manifest, title: 'Dusty Drums', description: 'From a 1972 record.', tags: ['Boom Bap', 'breaks', 'breaks', 'x'.repeat(40)], license: 'CC-BY', pads: ['KICK', '', 'SNARE'], hashes: [hash] };
+
+    // needs a handle, then the sounds, then it publishes; a second publish gets a numbered slug
+    let r = await call('/api/kits', { method: 'POST', cookie, ...json(body) });
+    expect(r.status).toBe(400);
+    expect((await call('/api/me', { method: 'PUT', cookie, ...json({ handle: 'kitmaker' }) })).status).toBe(200);
+    r = await call('/api/kits', { method: 'POST', cookie, ...json(body) });
+    expect(r.status).toBe(409);
+    expect((await call(`/api/blobs/${hash}`, { method: 'POST', cookie, body: sound })).status).toBe(200);
+    // before publishing, a stranger cannot fetch the blob
+    expect((await call(`/api/blobs/${hash}`)).status).toBe(401);
+    r = await call('/api/kits', { method: 'POST', cookie, ...json(body) });
+    const pubText = await r.text();
+    expect(r.status, pubText).toBe(200);
+    const pub = JSON.parse(pubText) as { id: string; slug: string; url: string };
+    expect(pub.slug).toBe('kitmaker-dusty-drums');
+    r = await call('/api/kits', { method: 'POST', cookie, ...json(body) });
+    expect((await r.json() as { slug: string }).slug).toBe('kitmaker-dusty-drums-2');
+    expect((await call('/api/kits', { method: 'POST', cookie, ...json({ ...body, license: 'GPL' }) })).status).toBe(400);
+
+    // public listing, search, tag filter, detail
+    let list = await (await call('/api/kits')).json() as { kits: { slug: string; tags: string[]; handle: string; pads: string[]; sounds: number; bytes: number; license: string }[] };
+    expect(list.kits.map(k => k.slug)).toEqual(['kitmaker-dusty-drums-2', 'kitmaker-dusty-drums']);
+    expect(list.kits[0].tags).toEqual(['boom-bap', 'breaks']);
+    expect(list.kits[0].handle).toBe('kitmaker');
+    expect(list.kits[0].pads).toEqual(['KICK', '', 'SNARE']);
+    expect(list.kits[0].sounds).toBe(1);
+    expect(list.kits[0].bytes).toBe(sound.byteLength);
+    list = await (await call('/api/kits?q=1972')).json() as typeof list;
+    expect(list.kits.length).toBe(2);
+    list = await (await call('/api/kits?tag=boom-bap')).json() as typeof list;
+    expect(list.kits.length).toBe(2);
+    list = await (await call('/api/kits?q=nothing-like-this')).json() as typeof list;
+    expect(list.kits.length).toBe(0);
+    const detail = await (await call(`/api/kits/${pub.slug}`)).json() as { manifest: { blobs: Record<string, string> }; license: string };
+    expect(detail.manifest.blobs.s1).toBe(hash);
+    expect(detail.license).toBe('CC-BY');
+
+    // the kit's blob is public now, with a public cache header
+    r = await call(`/api/blobs/${hash}`);
+    expect(r.status).toBe(200);
+    expect(r.headers.get('cache-control')).toContain('public');
+
+    // sends are counted; mine lists both; a stranger cannot remove; the owner can
+    expect((await call(`/api/kits/${pub.slug}/download`, { method: 'POST' })).status).toBe(200);
+    expect(((await (await call(`/api/kits/${pub.slug}`)).json()) as { downloads: number }).downloads).toBe(1);
+    const mine = await (await call('/api/kits/mine', { cookie })).json() as { kits: unknown[] };
+    expect(mine.kits.length).toBe(2);
+    expect((await call('/api/kits/mine')).status).toBe(401);
+    const stranger = await signIn('stranger@example.com');
+    expect((await call(`/api/kits/${pub.id}`, { method: 'DELETE', cookie: stranger })).status).toBe(404);
+    expect((await call(`/api/kits/${pub.id}`, { method: 'DELETE', cookie })).status).toBe(200);
+    list = await (await call('/api/kits')).json() as typeof list;
+    expect(list.kits.map(k => k.slug)).toEqual(['kitmaker-dusty-drums-2']);
+    // still public through the remaining kit; private again once that goes too
+    expect((await call(`/api/blobs/${hash}`)).status).toBe(200);
+    const other = (await (await call('/api/kits/mine', { cookie })).json() as { kits: { id: string }[] }).kits[0];
+    expect((await call(`/api/kits/${other.id}`, { method: 'DELETE', cookie })).status).toBe(200);
+    expect((await call(`/api/blobs/${hash}`)).status).toBe(401);
+  }, 60_000);
+
   it('enforces the quota', async () => {
     const cookie = await signIn('quota@example.com');
     const big = new Uint8Array(1024);

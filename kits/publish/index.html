@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Publish a kit · Chop Deck</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" href="/icon-192.png" type="image/png" />
+<link rel="stylesheet" href="../../src/ds/tokens.css" />
+<link rel="stylesheet" href="../../src/site/site.css" />
+<style>
+  .programs { display: grid; gap: 8px; margin: 8px 0 16px; }
+  .program { display: grid; grid-template-columns: auto 1fr; gap: 10px 12px; align-items: start; background: var(--cream); border: 2px solid var(--ink); border-radius: 5px; padding: 10px 12px; cursor: pointer; }
+  .program.on { outline: 3px solid var(--led-amber); }
+  .program b { font-family: var(--font-label); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .program .pads { grid-column: 2; font-family: var(--font-lcd); font-size: 15px; color: var(--ink-3); line-height: 1.3; }
+  select, textarea { font: inherit; font-size: 16px; padding: 8px 10px; border: 2px solid var(--ink); border-radius: 3px; background: var(--white); color: var(--ink); width: 100%; max-width: 380px; box-sizing: border-box; }
+  textarea { max-width: 560px; min-height: 70px; }
+  .mine { margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <img src="/logo.webp" alt="" />
+  <div><div class="mark"><b>Chop</b><i>Deck</i></div><div class="sub">Publish a kit</div></div>
+  <a class="back" href="/">Back to the machine</a>
+</header>
+
+<h1>Publish a kit</h1>
+<p>A kit is one of the machine's programs: its sixteen pads, the sounds on them, and every note parameter you set. Publishing puts it in the <a href="/kits/">kit library</a> under your handle, where anyone can play it in the page and send it to their machine.</p>
+
+<section id="loading"><p>Reading the machine.</p></section>
+<section id="signed-out" hidden><div class="note">You need an account to publish. <a href="/account/">Sign in</a>, then come back here.</div></section>
+<section id="no-handle" hidden><div class="note">Choose a handle on the <a href="/account/">account page</a> first; kits are published under it.</div></section>
+<section id="no-programs" hidden><div class="note">The machine has no programs with sounds yet. Load or sample some sounds, put them on pads, and come back.</div></section>
+
+<section id="form-box" hidden>
+  <h2>Which program</h2>
+  <div id="programs" class="programs"></div>
+  <form id="form">
+    <label for="title">Title</label>
+    <input id="title" type="text" maxlength="48" required />
+    <label for="description">Description</label>
+    <textarea id="description" maxlength="500" placeholder="Where the sounds came from, what it is good for."></textarea>
+    <label for="tags">Tags, comma separated, up to five</label>
+    <input id="tags" type="text" placeholder="boom-bap, breaks, lofi" />
+    <label for="license">Licence for the sounds</label>
+    <select id="license">
+      <option value="CHOPDECK">Chop Deck licence: anyone can use it on Chop Deck</option>
+      <option value="CC0">CC0: public domain, use anywhere</option>
+      <option value="CC-BY">CC BY: use anywhere with credit</option>
+      <option value="CC-BY-NC">CC BY-NC: non-commercial with credit</option>
+    </select>
+    <p class="note">Publish only sounds you made or have the right to share. See the <a href="/terms/">terms</a>.</p>
+    <div class="row"><button type="submit" id="publish">Publish</button><span id="progress"></span></div>
+  </form>
+  <div id="error" class="error" hidden></div>
+  <div id="done" class="note" hidden>Published. <a id="done-link" href="/kits/">See it in the library</a>.</div>
+</section>
+
+<section id="mine-box" hidden>
+  <h2>Your kits</h2>
+  <table id="mine" class="mine"><tr><th>Kit</th><th>Sounds</th><th>Sent</th><th></th></tr></table>
+</section>
+
+<footer><a href="/">The machine</a><a href="/kits/">Kit library</a><a href="/account/">Account</a><a href="/terms/">Terms</a></footer>
+</div>
+<script type="module" src="./main.ts"></script>
+</body>
+</html>

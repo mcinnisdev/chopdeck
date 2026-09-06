@@ -3,6 +3,7 @@
 // Function at /api/*; see functions/api/[[route]].ts. Tested against Miniflare in app.test.ts.
 import { Hono } from 'hono';
 import { makeAuth, sessionUser, type SessionUser } from './auth';
+import { kits } from './kits';
 import { MAX_BLOB_BYTES, PLAN_QUOTA_BYTES, REVISIONS_KEPT, type Env } from './env';
 
 type Vars = { user: SessionUser };
@@ -43,15 +44,25 @@ app.get('/dev/magic-link', async c => {
   return r ? c.json({ url: r.url }) : c.json({ error: 'no link' }, 404);
 });
 
-// ---------- signed in ----------
+// ---------- session ----------
+// Public routes (browsing kits, fetching public blobs) still learn who is asking, if anyone; the
+// rest refuse without a session.
+const PUBLIC = (c: { req: { path: string; method: string } }) => {
+  const p = c.req.path, m = c.req.method;
+  if (p.startsWith('/api/auth/') || p === '/api/health' || p === '/api/providers' || p.startsWith('/api/dev/')) return true;
+  if (p.startsWith('/api/kits') && (m === 'GET' || p.endsWith('/download'))) return true;
+  if (p.startsWith('/api/blobs/') && m === 'GET') return true;
+  return false;
+};
 app.use('/*', async (c, next) => {
-  const p = c.req.path;
-  if (p.startsWith('/api/auth/') || p === '/api/health' || p === '/api/providers' || p.startsWith('/api/dev/')) return next();
+  if (c.req.path.startsWith('/api/auth/') || c.req.path === '/api/health') return next();
   const user = await sessionUser(makeAuth(c.env), c.req.raw);
-  if (!user) return c.json({ error: 'sign in first' }, 401);
-  c.set('user', user);
+  if (user) c.set('user', user);
+  else if (!PUBLIC(c)) return c.json({ error: 'sign in first' }, 401);
   await next();
 });
+
+app.route('/kits', kits);
 
 app.get('/me', async c => {
   const u = c.get('user');
@@ -83,11 +94,13 @@ app.delete('/me', async c => {
   // blobs this user uploaded that nobody else's project references
   const orphans = await c.env.DB.prepare(
     `SELECT b.hash FROM blobs b WHERE b.uploader_id = ? AND NOT EXISTS (
-       SELECT 1 FROM project_blobs pb JOIN projects p ON p.id = pb.project_id WHERE pb.hash = b.hash AND p.owner_id <> ?)`,
-  ).bind(u.id, u.id).all<{ hash: string }>();
+       SELECT 1 FROM project_blobs pb JOIN projects p ON p.id = pb.project_id WHERE pb.hash = b.hash AND p.owner_id <> ?)
+     AND NOT EXISTS (SELECT 1 FROM kit_blobs kb JOIN kits k ON k.id = kb.kit_id WHERE kb.hash = b.hash AND k.owner_id <> ?)`,
+  ).bind(u.id, u.id, u.id).all<{ hash: string }>();
   await c.env.DB.batch([
     c.env.DB.prepare('DELETE FROM projects WHERE owner_id = ?').bind(u.id),
-    c.env.DB.prepare('DELETE FROM blobs WHERE uploader_id = ? AND hash NOT IN (SELECT hash FROM project_blobs)').bind(u.id),
+    c.env.DB.prepare('DELETE FROM kits WHERE owner_id = ?').bind(u.id),
+    c.env.DB.prepare('DELETE FROM blobs WHERE uploader_id = ? AND hash NOT IN (SELECT hash FROM project_blobs) AND hash NOT IN (SELECT hash FROM kit_blobs)').bind(u.id),
     c.env.DB.prepare('DELETE FROM session WHERE userId = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM account WHERE userId = ?').bind(u.id),
     c.env.DB.prepare('DELETE FROM user WHERE id = ?').bind(u.id),
@@ -212,19 +225,23 @@ app.post('/blobs/:hash', async c => {
 });
 
 app.get('/blobs/:hash', async c => {
-  const u = c.get('user');
+  const u = c.get('user') as SessionUser | undefined;
   const hash = c.req.param('hash');
   if (!HASH_RE.test(hash)) return c.json({ error: 'bad hash' }, 400);
-  // yours if you uploaded it or your project references it (public libraries and beats come later)
-  const ok = await c.env.DB.prepare(
-    `SELECT 1 AS ok FROM blobs b WHERE b.hash = ? AND (b.uploader_id = ? OR EXISTS (
-       SELECT 1 FROM project_blobs pb JOIN projects p ON p.id = pb.project_id WHERE pb.hash = b.hash AND p.owner_id = ?)
-       OR EXISTS (SELECT 1 FROM project_revs r JOIN projects p ON p.id = r.project_id WHERE p.owner_id = ? AND instr(r.manifest, b.hash) > 0))`,
-  ).bind(hash, u.id, u.id, u.id).first();
-  if (!ok) return c.json({ error: 'not found' }, 404);
+  // public while a live kit names it; otherwise yours if you uploaded it or your project references it
+  const isPublic = await c.env.DB.prepare('SELECT 1 AS ok FROM kit_blobs kb JOIN kits k ON k.id = kb.kit_id WHERE kb.hash = ? AND k.takedown = 0 LIMIT 1').bind(hash).first();
+  if (!isPublic) {
+    if (!u) return c.json({ error: 'sign in first' }, 401);
+    const ok = await c.env.DB.prepare(
+      `SELECT 1 AS ok FROM blobs b WHERE b.hash = ? AND (b.uploader_id = ? OR EXISTS (
+         SELECT 1 FROM project_blobs pb JOIN projects p ON p.id = pb.project_id WHERE pb.hash = b.hash AND p.owner_id = ?)
+         OR EXISTS (SELECT 1 FROM project_revs r JOIN projects p ON p.id = r.project_id WHERE p.owner_id = ? AND instr(r.manifest, b.hash) > 0))`,
+    ).bind(hash, u.id, u.id, u.id).first();
+    if (!ok) return c.json({ error: 'not found' }, 404);
+  }
   const obj = await c.env.BLOBS.get(`blobs/${hash}`);
   if (!obj) return c.json({ error: 'not found' }, 404);
-  return new Response(obj.body, { headers: { 'content-type': obj.httpMetadata?.contentType ?? 'application/octet-stream', 'content-length': String(obj.size), 'cache-control': 'private, max-age=31536000, immutable', etag: `"${hash}"` } });
+  return new Response(obj.body, { headers: { 'content-type': obj.httpMetadata?.contentType ?? 'application/octet-stream', 'content-length': String(obj.size), 'cache-control': `${isPublic ? 'public' : 'private'}, max-age=31536000, immutable`, etag: `"${hash}"` } });
 });
 
 app.notFound(c => c.json({ error: 'no such route' }, 404));

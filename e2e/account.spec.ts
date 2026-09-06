@@ -13,7 +13,8 @@ async function signIn(ctx: BrowserContext, address: string) {
   await expect(page.locator('#signed-out')).toBeVisible();
   await page.fill('#email', address);
   await page.getByRole('button', { name: 'Send me a sign-in link' }).click();
-  await expect(page.locator('#sent')).toBeVisible();
+  await expect(page.locator('#sent').or(page.locator('#signin-error:not([hidden])'))).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('#signin-error')).toBeHidden();
   const link = page.locator('#devlink-a');
   await expect(link).toBeVisible();
   await page.goto((await link.getAttribute('href'))!);
@@ -47,6 +48,25 @@ test('sign in, sync from the machine, pull on another browser, delete', async ({
   await expect(a.locator('#project-line')).toContainText('Synced Beat');
   await expect(a.locator('#revs')).toContainText('current');
 
+  // publish the starter program as a kit, find it in the library, send it back to the machine
+  await a.goto('/kits/publish/?pgm=0');
+  await expect(a.locator('#form-box')).toBeVisible();
+  await expect(a.locator('#title')).toHaveValue('STARTER');
+  await a.fill('#tags', 'e2e, Starter');
+  await a.getByRole('button', { name: 'Publish', exact: true }).click();
+  await expect(a.locator('#done')).toBeVisible({ timeout: 60_000 });
+  await expect(a.locator('#mine')).toContainText('STARTER');
+  await a.goto('/kits/');
+  const kit = a.locator(`#${handle}-starter`);
+  await expect(kit).toBeVisible();
+  await expect(kit).toContainText(`@${handle}`);
+  await expect(kit).toContainText('#e2e');
+  await expect(kit.locator('.pad').filter({ hasText: 'KICK' })).toHaveCount(1);
+  await kit.getByRole('button', { name: 'Send to machine' }).click();
+  await a.waitForURL(/\/(\?handoff=1)?$/);
+  await expect(a.getByRole('region', { name: 'LCD' })).toContainText('STARTER.PGM', { timeout: 30_000 });
+  await expect(a.getByRole('region', { name: 'LCD' })).toContainText('Load');
+
   // a second browser: sign in, and the machine boots with the synced project
   const ctxB = await browser.newContext();
   const b = await signIn(ctxB, email);
@@ -65,7 +85,7 @@ test('sign in, sync from the machine, pull on another browser, delete', async ({
   await b.goto('/account/');
   b.once('dialog', d => d.accept());
   await b.getByRole('button', { name: 'Delete account' }).click();
-  await b.waitForURL(/\/$/);
+  await b.waitForURL(url => new URL(url).pathname === '/');
   await a.goto('/');
   await expect(a.locator('a[href="/account/"]')).toHaveText('SIGN IN');
   await ctxA.close(); await ctxB.close(); await ctxC.close();
