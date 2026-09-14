@@ -30,9 +30,9 @@ Words in EZ are the plain ones; each maps onto a machine concept, and the manual
 | Pattern 1 to 8 | sequences 1 to 8 | Bars and tempo shown per pattern; the other 91 stay in OG |
 | Steps | events at 1/16 grid ticks on the DRUM1 track | A 16-step row per pad; longer bars scroll; off-grid notes show as dots |
 | Swing | `Timing` swing % | One slider |
-| Record | REC + PLAY START with count-in and loop on | The red button; UNDO is a button too |
+| Record | OVERDUB + PLAY START, loop on | The red button; press it again to punch out and keep playing. UNDO is a button too |
 | Sounds | the sounds in memory, LOAD for files | Add files or drop them anywhere; audition; Put on pad; Chop |
-| Chop | TRIM, ZONE, SLICE SOUND | Drag the region on the waveform, choose 4/8/16 slices, put on pads in a new kit or this one |
+| Chop | TRIM, ZONE, SLICE SOUND | Drag the region on the waveform, choose 4/8/16 slices, put on pads in a new kit or this one. Placing is armed with "Put on pads"; otherwise a pad tap is just a pad tap |
 | Edit pads, New kit, Kit name | PROGRAM mode | Tap a pad to choose its sound or clear it; a fresh program on DRUM1; its name |
 | Mixer | per-note level and pan on the kit | A fader and a pan knob per pad |
 | Song | song 1 | A row of pattern chips in order; later |
@@ -103,3 +103,10 @@ Each ships on its own and is usable.
   EZ component, so OG and EZ cannot disagree about what a step or a slice is.
 - **Two panels to keep in the design system's voice.** EZ uses the same components (`src/ds`) and
   tokens; no new visual language.
+- **Destructive machine operations reaching EZ without OG's guards.** OG asks DO IT before anything
+  that throws work away; EZ has no such window, so a plain-worded button can wrap an operation that
+  quietly destroys a pattern or a kit. It already happened twice: EZ's red button was wired to REC,
+  which replaces the track as the playhead passes, and a pad tap in Chop reassigned the pad it hit.
+  The rule EZ works to now: **a destructive action is either armed first, or it is not destructive.**
+  Recording layers, placing is armed, and opening a sound in the chopper shows suggested chops
+  without writing them. `e2e/ez-record-and-chop.spec.ts` holds both edges down.
