@@ -26,7 +26,7 @@ const HOTKEYS = PAD_KEYS.map(code => code.replace('Key', '').replace('Digit', ''
 const PAD_ORDER = [12, 13, 14, 15, 8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3];
 const PANEL_KEY = 'chopdeck.ezPanel';
 
-export interface EzCtx { fw: Firmware; go(p: EzPanelId): void; note(msg: string): void; standalone: boolean; chop: number; setChop(i: number): void; editPads: boolean; setEditPads(on: boolean): void; editing: number | null; setEditing(i: number | null): void }
+export interface EzCtx { fw: Firmware; go(p: EzPanelId): void; note(msg: string): void; standalone: boolean; chop: number; setChop(i: number): void; editPads: boolean; setEditPads(on: boolean): void; editing: number | null; setEditing(i: number | null): void; placing: boolean; setPlacing(on: boolean): void }
 
 function readPanel(): EzPanelId { try { const v = localStorage.getItem(PANEL_KEY); if (v === 'chop' || v === 'sequence' || v === 'library' || v === 'mix') return v; } catch { /* private mode */ } return 'chop'; }
 
@@ -62,6 +62,7 @@ export function EzPanel({ engine }: { engine: AudioEngine }) {
   const [chop, setChop] = useState(0);
   const [editPads, setEditPads] = useState(false);
   const [editing, setEditing] = useState<number | null>(null);
+  const [placing, setPlacing] = useState(false);
   const [noteText, setNoteText] = useState<string | null>(null);
   const note = useRef((msg: string) => setNoteText(msg)).current;
   const go = useRef((p: EzPanelId) => { setPanelState(p); try { localStorage.setItem(PANEL_KEY, p); } catch { /* private mode */ } }).current;
@@ -73,28 +74,40 @@ export function EzPanel({ engine }: { engine: AudioEngine }) {
   const per = 24; const step = Math.max(0, Math.floor(s.now / per));
   const lit = (i: number) => s.litPads.has(i) || s.padsDown.has(i);
 
+  // A pad tap plays the pad. It only means something else while a placing/editing mode is explicitly armed,
+  // so that experimenting with the pads can never quietly rewrite the kit.
   const hit = (i: number, vel: number) => {
-    if (panel === 'chop' && chopSound && chopSound.zones.length > 1) {
-      const sl = fw.assignChopToPad(chopSound.id, Math.min(chop, chopSound.zones.length - 1), i);
-      if (sl) { note(`Chop ${chop + 1} is on pad ${i + 1}`); fw.padDown(i, vel); }
+    if (panel === 'mix' && editPads) { setEditing(i); return; }
+    if (panel === 'chop' && placing && chopSound) {
+      const starts = fw.zoneStarts(chopSound.id);
+      if (chopSound.zones.length <= 1) fw.setZoneStarts(chopSound.id, starts);   // the shown chops become real
+      const sel = Math.min(chop, starts.length - 1);
+      const sl = fw.assignChopToPad(chopSound.id, sel, i);
+      if (sl) {
+        note(`Chop ${sel + 1} is on pad ${i + 1}`);
+        setChop(sel + 1 < starts.length ? sel + 1 : 0);   // walk to the next chop, so pads fill left to right
+        fw.padDown(i, vel);
+      }
       return;
     }
-    if (panel === 'mix' && editPads) { setEditing(i); return; }
     fw.padDown(i, vel);
   };
-  const ctx: EzCtx = { fw, go, note, standalone, chop, setChop, editPads, setEditPads, editing, setEditing };
+  const ctx: EzCtx = { fw, go, note, standalone, chop, setChop, editPads, setEditPads, editing, setEditing, placing, setPlacing };
   const Current = { chop: ChopPanel, sequence: SequencePanel, library: LibraryPanel, mix: MixPanel }[panel];
   const title = NAV.find(n => n[0] === panel)![1];
-  const hint = panel === 'chop' && chopSound ? `Tap a pad to put chop ${chop + 1} of ${chopSound.name} on it.` : panel === 'mix' && editPads ? 'Tap a pad to choose its sound or clear it.' : s.record !== 'OFF' ? 'Recording: play the pads in time.' : 'Tap pads to play. Z X C V · A S D F · Q W E R · 1 2 3 4 also work.';
+  const hint = panel === 'chop' && placing && chopSound ? `Placing: tap a pad to put chop ${chop + 1} of ${chopSound.name} on it.`
+    : panel === 'mix' && editPads ? 'Tap a pad to choose its sound or clear it.'
+    : s.record !== 'OFF' ? 'Recording onto the pattern: play the pads in time. Press Rec again to stop recording and keep playing.'
+    : 'Tap pads to play. Z X C V · A S D F · Q W E R · 1 2 3 4 also work.';
 
   return (
     <div className="ez" role="region" aria-label="EZ panel">
       <header className="ez-head">
         <a href="/" className="ez-brand" aria-label="Chop Deck"><img src="/logo.webp" alt="" width={36} height={36} /><Wordmark size="sm" /></a>
         <div className="ez-transport">
-          <HardButton label="Play" led="green" ledOn={s.playing && s.record === 'OFF'} active={s.playing && s.record === 'OFF'} size="lg" onClick={() => (s.playing ? fw.transport.stop() : fw.transport.play(false))}>►</HardButton>
+          <HardButton label="Play" led="green" ledOn={s.playing} active={s.playing} size="lg" onClick={() => (s.playing ? fw.transport.stop() : fw.transport.play(false))}>►</HardButton>
           <HardButton label="Stop" size="lg" onClick={() => fw.transport.stop()}>■</HardButton>
-          <HardButton label="Rec" cap="red" led="red" ledOn={s.record !== 'OFF'} active={s.record !== 'OFF'} size="lg" onClick={() => (s.record !== 'OFF' ? fw.transport.stop() : fw.recordFromStart())}>●</HardButton>
+          <HardButton label="Rec" cap="red" led="red" ledOn={s.record !== 'OFF'} active={s.record !== 'OFF'} size="lg" onClick={() => (s.record !== 'OFF' ? fw.punchOut() : fw.recordFromStart())}>●</HardButton>
           <div className="ez-bpm">
             <Knob label="Tempo" size="sm" ticks={false} min={TEMPO_MIN} max={TEMPO_MAX} value={fw.tempo()} onChange={v => fw.setTempo(v)} />
             <span className="ez-bpm-read" aria-label="Tempo readout">{fw.tempo().toFixed(1)}<small> bpm</small></span>
@@ -126,7 +139,7 @@ export function EzPanel({ engine }: { engine: AudioEngine }) {
         </div>
         <div className="ez-grid">
           {PAD_ORDER.map(i => { const slot = s.padBank * 16 + i; const nm = names[i] ?? ''; return (
-            <Pad key={i} fluid label={String(i + 1)} ariaLabel={`Pad ${i + 1}${nm ? `: ${nm}` : ', empty'}`} note={nm || undefined} hotkey={HOTKEYS[i]} color={nm || panel === 'chop' ? 'red' : 'grey'} lit={lit(slot)}
+            <Pad key={i} fluid label={String(i + 1)} ariaLabel={`Pad ${i + 1}${nm ? `: ${nm}` : ', empty'}`} note={nm || undefined} hotkey={HOTKEYS[i]} color={nm ? 'red' : 'grey'} lit={lit(slot)}
               onTrigger={v => hit(slot, v)} onRelease={() => fw.padUp(slot)} onPressure={p => fw.padPressure(slot, p)} />); })}
         </div>
         <p className="ez-hint">{hint}</p>
