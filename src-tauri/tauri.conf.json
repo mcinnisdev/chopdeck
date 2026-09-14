@@ -53,7 +53,19 @@
       "minimumSystemVersion": "11.0"
     },
     "linux": {
-      "deb": { "depends": [] }
+      "deb": {
+        "depends": [
+          "gstreamer1.0-plugins-base",
+          "gstreamer1.0-plugins-good",
+          "gstreamer1.0-pulseaudio"
+        ]
+      },
+      "rpm": {
+        "depends": [
+          "gstreamer1-plugins-base",
+          "gstreamer1-plugins-good"
+        ]
+      }
     }
   }
 }
