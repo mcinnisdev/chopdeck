@@ -61,6 +61,27 @@ sudo apt install gstreamer1.0-plugins-good gstreamer1.0-libav          # Debian 
 
 Check with `gst-inspect-1.0 autoaudiosink`. If that says "No such element", the app will be silent.
 
+**And `pulsesink` is silent on Bluetooth.** Having the plugins is not the end of it. WebKit asks
+`autoaudiosink` to choose the output element; autoaudiosink prefers `pulsesink`; and pulsesink
+talking to PipeWire's PulseAudio compatibility layer plays nothing at all on a Bluetooth sink. The
+failure is invisible from inside the page — the stream opens, unmuted, at full volume, the
+AudioContext says `running`, `currentTime` advances, and the samples go nowhere. Measured on the
+same page with the same packages, same Bluetooth device:
+
+| sink element | peak |
+|---|---|
+| `autoaudiosink` → `pulsesink` | 0.0000 |
+| `pipewiresink` ranked MAX | 0.3349 |
+
+So `src-tauri/src/lib.rs` sets `GST_PLUGIN_FEATURE_RANK=pipewiresink:MAX` before the webview
+starts, which makes the sink follow the desktop's default output. Set that variable yourself to
+override it. Browsers never use GStreamer, which is why chopdeck.com plays on a machine where the
+desktop app is mute — a difference worth remembering before blaming the machine.
+
+One more, not a bug: WebKit reports the AudioContext state as `interrupted` (not a standard state)
+whenever the window does not have focus, and freezes `currentTime`. An unfocused window is silent
+by design; it resumes on focus.
+
 The builds are not code-signed yet. macOS will refuse to open the app until you right-click it and
 choose Open once; Windows SmartScreen asks for confirmation. Signing (an Apple Developer ID and a
 Windows certificate) is the step to take before listing on itch.io or Steam, and it is only secrets
