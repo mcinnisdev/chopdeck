@@ -69,11 +69,18 @@ test('EZ: add a sound, chop it, put chops on pads, name the kit; OG has it all',
   await ez.getByRole('button', { name: '4 slices' }).click();
   await expect(ez.getByRole('slider', { name: 'Chop 3 start' })).toBeVisible();
   await expect(ez.getByRole('slider', { name: 'Chop 5 start' })).toHaveCount(0);
-  // select chop 2 and tap pad 13: the slice lands there
-  await ez.getByRole('slider', { name: 'Chop 2 start' }).click();
+  // a pad tap is just a pad tap until placing is armed
   const pads = ez.getByRole('region', { name: 'Pads' });
+  await ez.getByRole('slider', { name: 'Chop 2 start' }).click();
+  await pads.getByRole('button', { name: 'Pad 13, empty' }).click();
+  await expect(pads.getByRole('button', { name: 'Pad 13, empty' })).toBeVisible();
+  // arm it, and the selected chop lands on the pad we tap
+  await ez.getByRole('button', { name: 'Put on pads' }).click();
   await pads.getByRole('button', { name: 'Pad 13, empty' }).click();
   await expect(pads.getByRole('button', { name: 'Pad 13: TONE_A42' })).toBeVisible();
+  // placing walks on to the next chop, so the next pad gets chop 3
+  await pads.getByRole('button', { name: 'Pad 14, empty' }).click();
+  await expect(pads.getByRole('button', { name: 'Pad 14: TONE_A43' })).toBeVisible();
   // all chops onto the pads from pad 1
   await ez.getByRole('button', { name: 'All to pads' }).click();
   await expect(pads.getByRole('button', { name: 'Pad 1: TONE_A41' })).toBeVisible();

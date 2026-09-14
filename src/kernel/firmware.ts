@@ -369,8 +369,14 @@ export class Firmware {
     this.sound.mixerChanged?.();
     this.touch();
   }
-  /** Arm REC and play from the top: the count-in and loop settings apply as they would from the panel. */
-  recordFromStart() { this.transport.setRecord('REC'); this.transport.play(true); }
+  /**
+   * Arm recording and play from the top: the count-in and loop settings apply as they would from the
+   * panel. `mode` defaults to OVERDUB, which layers onto what is already there; REC replaces the track
+   * under the playhead as it passes, which is what the OG panel's REC key does.
+   */
+  recordFromStart(mode: RecordMode = 'OVERDUB') { this.transport.setRecord(mode); this.transport.play(true); }
+  /** Stop writing notes but keep the transport rolling. Nothing happens if we were not recording. */
+  punchOut() { const m = this.s.record; if (m !== 'OFF') this.transport.setRecord(m); }
   setLoop(on: boolean) { this.m.sequences[this.s.seq].loop.on = on; this.touch(); }
   setBars(n: number) { this.m.sequences[this.s.seq].bars = Math.max(1, Math.min(999, Math.round(n))); this.touch(); }
 
@@ -471,9 +477,13 @@ export class Firmware {
   /** Slice one zone of a sound into its own sound and put it on a pad. */
   assignChopToPad(soundId: string, zone: number, pad: number, drum = 0): Sound | null {
     const s = this.m.sounds.find(x => x.id === soundId); if (!s || !s.zones[zone]) return null;
-    const [sl] = sliceZones({ ...s, zones: [s.zones[zone]] }, 0);
-    sl.name = `${s.name.slice(0, 15 - String(zone + 1).length)}${zone + 1}`;
-    this.m.sounds.push(sl);
+    const z = s.zones[zone];
+    const name = `${s.name.slice(0, 15 - String(zone + 1).length)}${zone + 1}`;
+    // Placing the same chop again (on a second pad, or after changing your mind) must not pile up copies
+    // of it in memory: the slice for this zone already exists, so reuse it.
+    const already = this.m.sounds.find(x => x.name === name && x.length === z.end - z.st);
+    const sl = already ?? sliceZones({ ...s, zones: [z] }, 0)[0];
+    if (!already) { sl.name = name; this.m.sounds.push(sl); }
     this.assignPad(pad, sl.id, drum);
     return sl;
   }
@@ -488,14 +498,17 @@ export class Firmware {
       const a = Math.max(0, Math.min(s.length, Math.round(st ?? s.st))), b = Math.max(a + 1, Math.min(s.length, Math.round(end ?? s.end)));
       s.zones = equalZones(a, b, Math.max(1, Math.min(16, Math.round(n ?? 8))));
     }
-    const slices = sliceZones(s, 0);
-    this.m.sounds.push(...slices);
+    // Reuse a slice we cut earlier rather than stacking another copy of it in memory on every press.
+    const slices = sliceZones(s, 0).map(sl => this.m.sounds.find(x => x.name === sl.name && x.length === sl.length) ?? sl);
+    this.m.sounds.push(...slices.filter(sl => !this.m.sounds.includes(sl)));
     const pgmIndex = target === 'new' ? this.newProgram(s.name.slice(0, 16), drum) : this.m.drums[drum].pgm;
     const pg = this.m.programs[pgmIndex];
     const map = pg.padAssign === 'MASTER' ? this.m.masterPadToNote : pg.padToNote;
     slices.forEach((sl, k) => { if (k < 16 && map[k]) pg.notes[map[k] - NOTE_MIN].snd = sl.id; });
     pg.used = true;
-    this.s.sound = this.m.sounds.length - 1;
+    // Stay on the sound that was chopped. Selecting a slice here would drop the chopper onto a fragment
+    // of the break the moment the user pressed the button.
+    this.s.sound = Math.max(0, this.m.sounds.indexOf(s));
     this.sound.mixerChanged?.();
     this.touch();
     return slices;
