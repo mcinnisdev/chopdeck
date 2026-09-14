@@ -29,6 +29,9 @@ export function ChopPanel({ ctx }: { ctx: EzCtx }) {
   const hear = (i: number) => {
     const st = sound.zones.length > 1 && sound.zones[i] ? sound.zones[i].st : Math.round(chops[i] * sound.length);
     const end = sound.zones.length > 1 && sound.zones[i] ? sound.zones[i].end : Math.round((chops[i + 1] ?? 1) * sound.length);
+    // Grabbing a marker selects it and the click that follows selects it again; cut the last voice so one
+    // gesture is one chop, not two stacked on top of each other.
+    fw.sound.stopAll();
     fw.sound.playSound(sound, { from: st, to: end });
   };
   const select = (i: number) => { setChop(i); hear(i); };
