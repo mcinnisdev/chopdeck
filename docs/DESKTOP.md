@@ -41,10 +41,25 @@ for installers under `src-tauri/target/release/bundle/`.
 
 | | Windows (WebView2) | macOS (WebKit) | Linux (WebKitGTK) |
 |---|---|---|---|
-| Playing, sequencing, disk | yes | yes | yes |
+| Playing, sequencing, disk | yes | yes | yes, with the GStreamer plugins below |
 | Sampling from the microphone | yes, with a permission prompt | yes; `Info.plist` carries the usage text | yes, where PipeWire or PulseAudio is present |
 | Web MIDI | yes | no: WebKit has no Web MIDI | no |
 | `.CHOPDECK` files open the app | registered by the installer | registered | registered by the `.deb` |
+
+**Linux needs GStreamer, and fails silently without it.** WebKitGTK has no audio stack of its own:
+Web Audio and `decodeAudioData` both run through GStreamer, so a machine missing the output elements
+runs the machine perfectly and plays nothing — no error, no warning, just silence. The element
+WebKitGTK reaches for is `autoaudiosink`, which lives in the "good" plugin set, and MP3 and M4A
+decoding wants `gst-libav` on top. The installers declare these (`bundle.linux.deb.depends` and
+`.rpm.depends`) and the AppImage carries its own copies via `linuxdeploy-plugin-gstreamer`, so this
+only bites when running the bare binary from `cargo build`:
+
+```
+sudo pacman -S gst-plugins-good gst-libav                              # Arch
+sudo apt install gstreamer1.0-plugins-good gstreamer1.0-libav          # Debian / Ubuntu
+```
+
+Check with `gst-inspect-1.0 autoaudiosink`. If that says "No such element", the app will be silent.
 
 The builds are not code-signed yet. macOS will refuse to open the app until you right-click it and
 choose Open once; Windows SmartScreen asks for confirmation. Signing (an Apple Developer ID and a
